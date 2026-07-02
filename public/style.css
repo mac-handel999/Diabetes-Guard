@@ -1,0 +1,317 @@
+/* ===== PALETTE VARIABLES (Clean Medical Blue & Slate Neutral) ===== */
+:root {
+    --primary-blue: #2a7faa;
+    --primary-dark: #1a4664;
+    --accent-gold: #dba42b;
+    --neutral-bg: #f8fafc;
+    --neutral-border: #e2e8f0;
+    --text-dark: #2d3748;
+    --text-muted: #718096;
+}
+
+/* ===== BASE STYLES ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, Arial, sans-serif;
+}
+
+body {
+    background: #e8f0f9;
+    color: var(--text-dark);
+  
+    
+    min-height: 100vh;
+}
+
+.app-container {
+    width: 450px;
+    width: 100%;
+    background: #ffffff;
+    
+    box-shadow: 0 20px 40px rgba(0, 20, 40, 0.1);
+    overflow: hidden;
+}
+
+/* ===== APP HEADER BAR ===== */
+.app-header {
+    background: var(--primary-dark);
+    color: #ffffff;
+    padding: 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo-image {
+    width: 100px;
+    height: 100px;
+    background-color: var(--neutral-bg);
+    border-radius: 30%;
+}
+
+.app-logo {
+    display: block;
+    margin-bottom: 12px;
+}
+
+.app-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.app-header p {
+    font-size: 13px;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+}
+
+/* ===== NAVIGATION MODULE TABS ===== */
+.nav-tabs {
+    display: flex;
+    background: #e2e8f0;
+    border-bottom: 1px solid var(--neutral-border);
+}
+
+.tab-link {
+    flex: 1;
+    text-align: center;
+    padding: 14px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4a5568;
+    transition: all 0.2s ease;
+}
+
+.tab-link.active {
+    background: #ffffff;
+    color: var(--primary-blue);
+    border-top: 3px solid var(--primary-blue);
+}
+
+/* ===== STRUCTURAL PANELS & CARDS ===== */
+.content-section {
+    padding: 20px;
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+.card {
+    background: var(--neutral-bg);
+    border: 1px solid var(--neutral-border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.card h3 {
+    font-size: 15px;
+    color: var(--primary-dark);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-subtitle {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+/* ===== INPUT ELEMENT SCALING ===== */
+input[type="number"],
+input[type="text"],
+select {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 20px;
+    border: 1px solid #cbd5e0;
+    outline: none;
+    font-size: 14px;
+}
+
+input:focus,
+select:focus {
+    border-color: var(--primary-blue);
+}
+
+/* ===== TRACKING BUTTON UTILITIES ===== */
+.grid-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.tracker-btn {
+    border: none;
+    padding: 12px;
+    border-radius: 14px;
+    color: #ffffff;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 13px;
+    transition: opacity 0.2s;
+}
+
+.tracker-btn:hover {
+    opacity: 0.9;
+}
+
+.btn-food {
+    background: #e67e22;
+}
+
+.btn-activity {
+    background: #27ae60;
+}
+
+.btn-water {
+    background: #2980b9;
+}
+
+.btn-weight {
+    background: #f39c12;
+}
+
+.logs-display-panel {
+    margin-top: 14px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--primary-dark);
+    background: #eaf2f9;
+    padding: 8px;
+    border-radius: 20px;
+}
+
+/* ===== PROGRESS DASHBOARD BAR ===== */
+.progress-track {
+    background: #e2e8f0;
+    border-radius: 10px;
+    height: 10px;
+    width: 100%;
+    margin: 8px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: var(--primary-blue);
+    height: 100%;
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+.progress-label {
+    font-size: 12px;
+    text-align: center;
+    color: var(--text-dark);
+}
+
+/* ===== CORE ACTION BUTTON BUILDERS ===== */
+.action-btn {
+    background: var(--primary-blue);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* ===== BMI PANEL ALIGNMENTS ===== */
+.bmi-inputs-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.bmi-result-panel {
+    background: #eaf4fa;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+/* ===== CURRICULUM DISPLAY FIELDS ===== */
+.selector-group {
+    margin-bottom: 12px;
+}
+
+.selector-group label {
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.curriculum-display-box {
+    background: #ffffff;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid var(--neutral-border);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.assessment-option {
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* ===== GAMIFICATION CONTAINERS ===== */
+.badge-flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.badge-unit {
+    background: #fff;
+    border: 1px solid var(--primary-blue);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary-dark);
+}
+
+.input-sync-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--neutral-border);
+    font-size: 13px;
+}
+
+.app-footer-tag {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
