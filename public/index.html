@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Diabetes Guard – Dashboard</title>
+  <title>Diabetes Guard – Analytics Edition</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -12,102 +12,97 @@
 <body>
 
   <div class="app-container">
-    <div class="app-header">
-     <figure class="app-logo">
-        <img src="Images/diabetes-guard-logo-Photoroom.png" alt="Diabetes Guard Logo" width="100" height="100" class="logo-image">
-      </figure>
-     
-    </div>
 
-    <div class="nav-tabs">
-      <div class="tab-link active" onclick="switchTab('trackers')"><i class="fas fa-heartbeat"></i> Trackers</div>
-      <div class="tab-link" onclick="switchTab('learning')"><i class="fas fa-book"></i> Learn</div>
-      <div class="tab-link" onclick="switchTab('gamification')"><i class="fas fa-trophy"></i> Rewards</div>
-    </div>
-
-    <div id="trackers" class="content-section active">
-      <div class="card">
-        <h3><i class="fas fa-edit"></i> Continuous Metrics Tracking</h3>
-        <p class="card-subtitle">No credentials required. Data points persist inside your local browser instance.</p>
-
-        <div class="grid-buttons">
-          <button class="tracker-btn btn-food" onclick="logMetric('food')"><i class="fas fa-apple-alt"></i> Food
-            Diary</button>
-          <button class="tracker-btn btn-activity" onclick="logMetric('activity')"><i class="fas fa-walking"></i>
-            Exercise</button>
-          <button class="tracker-btn btn-water" onclick="logMetric('water')"><i class="fas fa-tint"></i> Water
-            Log</button>
-          <button class="tracker-btn btn-weight" onclick="logMetric('weight')"><i class="fas fa-weight"></i>
-            Weight</button>
-        </div>
-
-        <div id="localLogsDisplay" class="logs-display-panel"></div>
+    <div id="authGateway" class="auth-wrapper">
+      <div class="app-header">
+        <h1>🛡️ Diabetes Guard</h1>
+        <p>Research Cohort Authentication Panel</p>
       </div>
 
-      <div class="card">
-        <h3><i class="fas fa-percentage"></i> Weekly Progress Metrics</h3>
-        <div class="progress-track">
-          <div id="progressFill" class="progress-fill"></div>
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button id="tabLogin" class="auth-tab-btn active" onclick="toggleAuthForm('login')">Log In</button>
+          <button id="tabRegister" class="auth-tab-btn" onclick="toggleAuthForm('register')">Join Cohort</button>
         </div>
-        <p id="progressText" class="progress-label">0% Complete</p>
-      </div>
 
-      <div class="card">
-        <h3><i class="fas fa-calculator"></i> BMI Calculator</h3>
-        <div class="bmi-inputs-row">
-          <input type="number" id="bmiWeight" placeholder="Weight (kg)">
-          <input type="number" id="bmiHeight" placeholder="Height (cm)">
-          <button class="action-btn" onclick="calculateBMI()"><i class="fas fa-compute"></i> Calculate</button>
-        </div>
-        <div id="bmiResult" class="bmi-result-panel" style="display:none;"></div>
+        <form id="loginForm" onsubmit="handleAuthSubmit(event, 'login')">
+          <input type="email" id="loginEmail" placeholder="Student Email (.edu.ng Preferred)" required>
+          <input type="password" id="loginPassword" placeholder="Enter Password" required>
+          <button type="submit" class="action-btn wide-btn">Sign In To Dashboard</button>
+        </form>
+
+        <form id="registerForm" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
+          <input type="email" id="registerEmail" placeholder="Valid Student Email" required>
+          <input type="text" id="registerUsername" placeholder="Full Name or Student ID" required>
+          <input type="text" id="registerAnonHandle" placeholder="Leaderboard Alias (e.g. FutoRunner)" required>
+          <input type="password" id="registerPassword" placeholder="Create Strong Password" required>
+          <button type="submit" class="action-btn wide-btn">Submit Registration</button>
+        </form>
+        <div id="authMessage" class="auth-status-msg"></div>
       </div>
     </div>
 
-    <div id="learning" class="content-section">
-      <div class="card">
-        <h3><i class="fas fa-graduation-cap"></i> System Curriculum Matrix</h3>
-        <div class="selector-group">
-          <label for="weekSelector">Select Intervention Week:</label>
+    <div id="cohortWorkspace" style="display: none;">
+      <div class="app-header">
+        <div class="header-top-row">
+          <span id="welcomeUser">👋 Loading Session...</span>
+          <button class="logout-btn" onclick="triggerSignOut()"><i class="fas fa-sign-out-alt"></i> Leave</button>
+        </div>
+        <p>12-Week Active Intervention Telemetry Tracker</p>
+      </div>
+
+      <div class="nav-tabs">
+        <div class="tab-link active" onclick="switchTab('trackers')"><i class="fas fa-heartbeat"></i> Trackers</div>
+        <div class="tab-link" onclick="switchTab('learning')"><i class="fas fa-book"></i> Learn</div>
+        <div class="tab-link" onclick="switchTab('gamification')"><i class="fas fa-trophy"></i> Rewards</div>
+      </div>
+
+      <div id="trackers" class="content-section active">
+        <div class="card">
+          <h3><i class="fas fa-edit"></i> Metric Loggers (Research Analytics Pipeline)</h3>
+          <p class="card-subtitle">Every click safely relays timestamped inputs to the research coordinator's engine.
+          </p>
+          <div class="grid-buttons">
+            <button class="tracker-btn btn-food" onclick="submitMetric('food')"><i class="fas fa-apple-alt"></i> Food
+              Diary</button>
+            <button class="tracker-btn btn-activity" onclick="submitMetric('activity')"><i class="fas fa-walking"></i>
+              Exercise</button>
+            <button class="tracker-btn btn-water" onclick="submitMetric('water')"><i class="fas fa-tint"></i> Water
+              Log</button>
+            <button class="tracker-btn btn-weight" onclick="submitMetric('weight')"><i class="fas fa-weight"></i>
+              Weight</button>
+          </div>
+          <div id="localLogsDisplay" class="logs-display-panel">Loading metrics snapshot...</div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-percentage"></i> Cohort Progress Metrics</h3>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <p id="progressText" class="progress-label">0% Complete</p>
+        </div>
+      </div>
+
+      <div id="learning" class="content-section">
+        <div class="card">
+          <h3><i class="fas fa-graduation-cap"></i> Curriculum Core</h3>
           <select id="weekSelector" onchange="loadWeekModule()">
             <option value="1">Week 1: Foundations of Glucose Control</option>
             <option value="2">Week 2: Physical Activity Dynamics</option>
           </select>
-        </div>
-        <div id="moduleTarget" class="curriculum-display-box">
-          Loading module materials...
+          <div id="moduleTarget" class="curriculum-display-box">Loading...</div>
         </div>
       </div>
 
-      <div class="card">
-        <h3><i class="fas fa-vial"></i> Quick Educational Self-Assessment</h3>
-        <p class="card-subtitle">Does daily alcohol/smoking intake raise type-2 risks?</p>
-        <button class="tracker-btn btn-activity assessment-option" onclick="answerQuiz(true)">Yes, drastically affects
-          insulin resistance.</button>
-        <button class="tracker-btn btn-food assessment-option" onclick="answerQuiz(false)">No, it has zero scientific
-          correlation.</button>
-      </div>
-    </div>
-
-    <div id="gamification" class="content-section">
-      <div class="card">
-        <h3><i class="fas fa-medal"></i> Local Milestones & Achievements</h3>
-        <div id="badgeZone" class="badge-flex-container">
-        </div>
-      </div>
-
-      <div class="card">
-        <h3><i class="fas fa-users"></i> Anonymous Global Leaderboard</h3>
-        <div class="input-sync-group">
-          <input type="text" id="anonHandleInput" placeholder="Create an Anonymous Handle (e.g. FutoWarrior)">
-          <button class="action-btn btn-sync" onclick="syncScoreToCloud()"><i class="fas fa-cloud-upload-alt"></i> Share
-            Score Anonymously</button>
-        </div>
-        <div id="leaderboardTarget" class="leaderboard-wrapper">
+      <div id="gamification" class="content-section">
+        <div class="card">
+          <h3><i class="fas fa-users"></i> Real-time Peer Leaderboard</h3>
+          <p class="card-subtitle">Displays research aliases only to guarantee absolute identity obfuscation.</p>
+          <div id="leaderboardTarget" class="leaderboard-wrapper">Gathering scores...</div>
         </div>
       </div>
     </div>
-
-    <p class="app-footer-tag">⚕️ Preventing Type 2 Diabetes · University of Owerri</p>
   </div>
 
   <script src="main.js"></script>

@@ -51,6 +51,7 @@ body {
     height: 100px;
     background-color: var(--neutral-bg);
     border-radius: 30%;
+    padding: 8px;
 }
 
 .app-logo {
@@ -314,4 +315,87 @@ select:focus {
     font-size: 11px;
     color: var(--text-muted);
     margin-bottom: 16px;
+}
+
+
+
+
+/* ===== ADDITIONAL AUTH SCROLL CONFIGURATIONS ===== */
+.auth-wrapper {
+    padding: 30px 20px;
+    background: #ffffff;
+}
+
+.auth-card {
+    margin-top: 20px;
+    background: var(--neutral-bg);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--neutral-border);
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--neutral-border);
+    padding-bottom: 10px;
+}
+
+.auth-tab-btn {
+    background: none;
+    border: none;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px 8px;
+}
+
+.auth-tab-btn.active {
+    color: var(--primary-blue);
+    border-bottom: 3px solid var(--primary-blue);
+}
+
+.auth-card input {
+    margin-bottom: 12px;
+    border-radius: 12px;
+}
+
+.wide-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.auth-status-msg {
+    margin-top: 10px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--primary-dark);
+}
+
+.header-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.logout-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #fff;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.logout-btn:hover {
+    background: #fff;
+    color: var(--primary-dark);
 }
