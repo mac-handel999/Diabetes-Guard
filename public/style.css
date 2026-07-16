@@ -26,12 +26,21 @@ body {
 }
 
 .app-container {
-    width: 450px;
+    max-width: 450px;
     width: 100%;
+    margin: 40px auto;
     background: #ffffff;
-    
     box-shadow: 0 20px 40px rgba(0, 20, 40, 0.1);
     overflow: hidden;
+    border-radius: 20px;
+}
+
+@media (max-width: 480px) {
+    .app-container {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
 }
 
 /* ===== APP HEADER BAR ===== */
@@ -131,6 +140,8 @@ body {
 /* ===== INPUT ELEMENT SCALING ===== */
 input[type="number"],
 input[type="text"],
+input[type="email"],
+input[type="password"],
 select {
     width: 100%;
     padding: 10px 14px;
