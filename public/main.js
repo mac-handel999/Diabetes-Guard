@@ -57,6 +57,7 @@ function initWorkspace() {
 }
 
 async function submitMetric(type) {
+  if(!currentSessionUser || !currentSessionUser.access_token) return;
   try {
     const res = await fetch('/api/v1/metrics/log', {
       method: 'POST',
@@ -73,6 +74,7 @@ async function submitMetric(type) {
 }
 
 async function syncDashboardTelemetry() {
+  if(!currentSessionUser || !currentSessionUser.access_token) return;
   try {
     const res = await fetch('/api/v1/metrics/snapshot', {
       headers: { 'Authorization': `Bearer ${currentSessionUser.access_token}` }
@@ -90,26 +92,66 @@ async function syncDashboardTelemetry() {
   }
 }
 
-function switchTab(tabId) {
+function switchTab(element, tabId) {
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  event.currentTarget.classList.add('active');
+
+  const targetSection = document.getElementById(tabId);
+  if (targetSection) {
+    targetSection.classList.add('active');
+  }
+
+  if (element) {
+    element.classList.add('active');
+  } else {
+    // If element is not passed, find the tab element by matching index or text/attributes
+    const tabs = document.querySelectorAll('.tab-link');
+    if (tabId === 'trackers' && tabs[0]) tabs[0].classList.add('active');
+    else if (tabId === 'learning' && tabs[1]) tabs[1].classList.add('active');
+    else if (tabId === 'gamification' && tabs[2]) tabs[2].classList.add('active');
+  }
+
   if(tabId === 'gamification') fetchLeaderboard();
 }
 
 async function fetchLeaderboard() {
-  const res = await fetch('/api/v1/metrics/leaderboard');
-  const list = await res.json();
-  document.getElementById('leaderboardTarget').innerHTML = list.map((u, i) => `
-    <div class="leaderboard-item"><span>${i+1}. 👤 ${u.anon_handle}</span><strong>${u.total_points} pts</strong></div>
-  `).join('');
+  try {
+    const res = await fetch('/api/v1/metrics/leaderboard');
+    const list = await res.json();
+    if (Array.isArray(list)) {
+      document.getElementById('leaderboardTarget').innerHTML = list.map((u, i) => `
+        <div class="leaderboard-item"><span>${i+1}. 👤 ${u.anon_handle}</span><strong>${u.total_points} pts</strong></div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error("Leaderboard fetch failure.", err);
+  }
 }
 
 function triggerSignOut() {
   localStorage.removeItem('dg_session_token');
   currentSessionUser = null;
   location.reload();
+}
+
+function loadWeekModule() {
+  const weekSelector = document.getElementById('weekSelector');
+  const moduleTarget = document.getElementById('moduleTarget');
+  if (!weekSelector || !moduleTarget) return;
+  const week = weekSelector.value;
+  if(week === "1") {
+    moduleTarget.innerHTML = `
+      <h4>Week 1: Foundations of Glucose Control</h4>
+      <p>Discover the fundamentals of blood glucose tracking, insulin sensitivity, and basic carbohydrate counting to manage your daily glycemic load.</p>
+    `;
+  } else if(week === "2") {
+    moduleTarget.innerHTML = `
+      <h4>Week 2: Physical Activity Dynamics</h4>
+      <p>Analyze how aerobic and resistance exercises influence metabolic rates, immediate blood glucose utilization, and post-workout glycemic stability.</p>
+    `;
+  } else {
+    moduleTarget.innerHTML = `<p>Select a valid week module to begin learning.</p>`;
+  }
 }
 
 window.onload = () => { if(currentSessionUser) initWorkspace(); };

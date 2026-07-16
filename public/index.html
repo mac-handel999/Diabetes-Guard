@@ -15,8 +15,11 @@
 
     <div id="authGateway" class="auth-wrapper">
       <div class="app-header">
-        <h1>🛡️ Diabetes Guard</h1>
-        <p>Research Cohort Authentication Panel</p>
+        <div class="header-text" style="display: flex; flex-direction: column; align-items: flex-start; text-align: left;">
+          <h1>🛡️ Diabetes Guard</h1>
+          <p>Research Cohort Authentication Panel</p>
+        </div>
+        <img src="Images/diabetes-guard-logo-Photoroom.png" alt="Diabetes Guard Logo" class="logo-image">
       </div>
 
       <div class="auth-card">
@@ -43,7 +46,7 @@
     </div>
 
     <div id="cohortWorkspace" style="display: none;">
-      <div class="app-header">
+      <div class="app-header" style="flex-direction: column; align-items: stretch; text-align: left; gap: 8px;">
         <div class="header-top-row">
           <span id="welcomeUser">👋 Loading Session...</span>
           <button class="logout-btn" onclick="triggerSignOut()"><i class="fas fa-sign-out-alt"></i> Leave</button>
@@ -52,9 +55,9 @@
       </div>
 
       <div class="nav-tabs">
-        <div class="tab-link active" onclick="switchTab('trackers')"><i class="fas fa-heartbeat"></i> Trackers</div>
-        <div class="tab-link" onclick="switchTab('learning')"><i class="fas fa-book"></i> Learn</div>
-        <div class="tab-link" onclick="switchTab('gamification')"><i class="fas fa-trophy"></i> Rewards</div>
+        <div class="tab-link active" onclick="switchTab(this, 'trackers')"><i class="fas fa-heartbeat"></i> Trackers</div>
+        <div class="tab-link" onclick="switchTab(this, 'learning')"><i class="fas fa-book"></i> Learn</div>
+        <div class="tab-link" onclick="switchTab(this, 'gamification')"><i class="fas fa-trophy"></i> Rewards</div>
       </div>
 
       <div id="trackers" class="content-section active">

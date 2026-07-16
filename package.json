@@ -1,0 +1,27 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "A health tech web app for a 12-week program for Diabetes  Diabetes_guard#9112",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mac-handel999/Diabetes-Guard.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mac-handel999/Diabetes-Guard/issues"
+  },
+  "homepage": "https://github.com/mac-handel999/Diabetes-Guard#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}

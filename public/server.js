@@ -8,8 +8,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Configure connection credentials dynamically via project configurations
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+// Configure connection credentials dynamically via project configurations with fallback placeholders to prevent crashes
+const supabaseUrl = process.env.SUPABASE_URL || 'https://placeholder-project.supabase.co';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || 'placeholder-anon-key';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Helper function to safely extract anon handle from profile relation
+const getAnonHandle = (profile) => {
+    if (!profile) return 'Anonymous';
+    if (Array.isArray(profile)) return profile[0]?.anon_handle || 'Anonymous';
+    return profile.anon_handle || 'Anonymous';
+};
 
 // ================= AUTH GATEWAY PIPELINES =================
 app.post('/api/v1/auth/register', async (req, res) => {
@@ -17,6 +26,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
     try {
         const { data: authData, error: authErr } = await supabase.auth.signUp({ email, password });
         if (authErr) throw authErr;
+        if (!authData || !authData.user) throw new Error("Could not create user account.");
 
         // Populate downstream profiles model
         const { error: profErr } = await supabase.from('profiles').insert({
@@ -36,10 +46,13 @@ app.post('/api/v1/auth/login', async (req, res) => {
     try {
         const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({ email, password });
         if (authErr) throw authErr;
+        if (!authData || !authData.user || !authData.session) throw new Error("Invalid login session.");
 
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', authData.user.id).single();
+        const username = profile ? profile.username : (authData.user.email || 'Cohort User');
+
         res.json({
-            session: { access_token: authData.session.access_token, username: profile.username }
+            session: { access_token: authData.session.access_token, username }
         });
     } catch(err) { res.status(400).json({ error: err.message }); }
 });
@@ -50,11 +63,17 @@ async function verifyJWT(req, res, next) {
     if(!authHeader) return res.status(401).json({ error: "Access token missing." });
     
     const token = authHeader.split(' ')[1];
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    if(error || !user) return res.status(403).json({ error: "Invalid token validation." });
+    if (!token) return res.status(401).json({ error: "Access token malformed." });
     
-    req.user = user;
-    next();
+    try {
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if(error || !user) return res.status(403).json({ error: "Invalid token validation." });
+
+        req.user = user;
+        next();
+    } catch(err) {
+        return res.status(403).json({ error: "Token validation failed: " + err.message });
+    }
 }
 
 // ================= TELEMETRY ANALYTICS ENDPOINTS =================
@@ -73,23 +92,35 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
 app.get('/api/v1/metrics/snapshot', verifyJWT, async (req, res) => {
     const uid = req.user.id;
     try {
-        const { data: logs } = await supabase.from('research_analytics').select('metric_type').eq('user_id', uid);
-        const { data: pts } = await supabase.from('user_points').select('total_points').eq('user_id', uid).single();
+        const { data: logs, error: logsErr } = await supabase.from('research_analytics').select('metric_type').eq('user_id', uid);
+        if (logsErr) throw logsErr;
+
+        const { data: pts, error: ptsErr } = await supabase.from('user_points').select('total_points').eq('user_id', uid).maybeSingle();
         
         let counts = { food: 0, activity: 0, water: 0, weight: 0 };
-        logs.forEach(l => { if(counts[l.metric_type] !== undefined) counts[l.metric_type]++; });
+        const logsList = logs || [];
+        logsList.forEach(l => { if(counts[l.metric_type] !== undefined) counts[l.metric_type]++; });
         
-        res.json({ logs: counts, totalLogs: logs.length, points: pts ? pts.total_points : 0 });
+        res.json({ logs: counts, totalLogs: logsList.length, points: pts ? pts.total_points : 0 });
     } catch(err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/v1/metrics/leaderboard', async (req, res) => {
-    const { data } = await supabase.from('user_points')
-        .select(`total_points, profiles(anon_handle)`)
-        .order('total_points', { ascending: false }).limit(5);
-    
-    const formatted = data.map(d => ({ total_points: d.total_points, anon_handle: d.profiles.anon_handle }));
-    res.json(formatted);
+    try {
+        const { data, error } = await supabase.from('user_points')
+            .select(`total_points, profiles(anon_handle)`)
+            .order('total_points', { ascending: false }).limit(5);
+        if (error) throw error;
+
+        const list = data || [];
+        const formatted = list.map(d => ({
+            total_points: d.total_points || 0,
+            anon_handle: getAnonHandle(d.profiles)
+        }));
+        res.json(formatted);
+    } catch(err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.listen(3000, () => console.log('Secure Analytics Web Engine running smoothly.'));
