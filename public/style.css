@@ -85,49 +85,76 @@ body {
     opacity: 0.85;
     letter-spacing: 0.5px;
 }
+/* Ensure the page layout always takes up full viewport height */
+html,
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* Dynamic viewport height for modern mobile browsers */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure content body leaves enough space so bottom tab bar doesn't cover elements */
+body {
+    padding-bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+}
 
 /* ===== NAVIGATION MODULE TABS ===== */
 .nav-tabs {
     display: flex;
-    background: var(--accent-mint);
-    border-bottom: 1px solid var(--neutral-border);
+    justify-content: space-around;
+    align-items: center;
+    background: var(--accent-mint, #ffffff);
+    border-top: 1px solid var(--neutral-border, #e0e0e0);
+
+    /* Native App Mobile Pinning */
     position: fixed;
+    bottom: 0;
     left: 0;
     right: 0;
-    bottom: 0; /* stick to bottom of the viewport */
+    width: 100%;
     z-index: 9999;
+
+    /* Mobile safe area padding for modern devices */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    /* Hardware acceleration for smooth scrolling */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    /* Subtle native app elevation */
 }
 
 .tab-link {
     flex: 1;
     text-align: center;
-    padding: 10px 6px;
+    padding: 8px 4px;
     cursor: pointer;
     font-size: 11px;
     font-weight: 600;
-    color: var(--primary-dark);
+    color: var(--primary-dark, #333333);
     background: none;
     border: none;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     transition: all 0.2s ease;
-}
-
-/* ensure page content is not hidden behind the fixed bottom nav */
-body {
-    padding-bottom: 80px; /* space for the nav-tabs */
+    -webkit-tap-highlight-color: transparent;
+    /* Removes blue flash tap on mobile */
 }
 
 .tab-link i {
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .tab-link.active {
     background: #ffffff;
-    color: var(--primary-teal);
-    border-top: 3px solid var(--primary-teal);
+    color: var(--primary-teal, #1A7A4A);
+    border-top: 3px solid var(--primary-teal, #1A7A4A);
 }
 
 /* ===== STRUCTURAL PANELS & CARDS ===== */

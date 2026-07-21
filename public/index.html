@@ -4,10 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description"
-    content="Diabetes Guard – health tutorials, research cohort, and telemetry tracking for diabetes management.">
-  <meta name="keywords" content="health tech, Diabetes, type 2 diabetes,">
-  <title>Diabetes Guard | portal</title>
+<title>DiaShield — Diabetes Prevention & Health Tracker</title>
+<meta name="title" content="DiaShield — Diabetes Prevention & Health Tracker" />
+<meta name="description"
+  content="Empowering young adults and students with interactive diabetes prevention, daily health habits, risk assessments, and lifestyle tracking." />
+<meta name="keywords"
+  content="diabetes prevention, DiaShield, young adult health, Type 2 diabetes risk, student wellness, diabetes education, healthy habits tracker, BMI calculator, lifestyle intervention" />
+<meta name="author" content="Fabian Codes HQ" />
   <link rel="icon" href="Images/diabetes-guard-logo.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
@@ -236,7 +239,31 @@
       </div>
 
 
-      <div class="nav-tabs" role="tablist">
+      <div class="nav-tabs" role="tablis
+/* ===== NAVIGATION MODULE TABS ===== */
+.nav-tabs {
+    display: flex;
+    background: var(--accent-mint);
+    border-bottom: 1px solid var(--neutral-border);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0; /* stick to bottom of the viewport */
+    z-index: 9999;
+}
+
+.tab-link {
+    flex: 1;
+    text-align: center;
+    padding: 10px 6px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-dark);
+    background: none;
+    border: none;
+    display: flex;
+t">
         <button class="tab-link active" role="tab" aria-selected="true" aria-controls="trackers"
           onclick="switchTab('trackers', this)"><i class="fas fa-heartbeat"
             aria-hidden="true"></i><span>Trackers</span>
