@@ -4,9 +4,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Diabetes Guard – Analytics Edition</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <meta name="description"
+    content="Diabetes Guard – health tutorials, research cohort, and telemetry tracking for diabetes management.">
+  <meta name="keywords" content="health tech, Diabetes, type 2 diabetes,">
+  <title>Diabetes Guard | portal</title>
+  <link rel="icon" href="Images/diabetes-guard-logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Inside <head> -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1A7A4A">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" href="Images/diabetes-guard-logo.png">
 </head>
 
 <body>
@@ -15,97 +25,248 @@
 
     <div id="authGateway" class="auth-wrapper">
       <div class="app-header">
-        <h1>🛡️ Diabetes Guard</h1>
-        <p>Research Cohort Authentication Panel</p>
+        <div class="app-logo">
+          <img src="Images/diabetes-guard-logo-Photoroom.png" alt="Diabetes Guard Logo" class="logo-image"
+            onerror="this.closest('.app-logo').style.display='none'">
+        </div>
+        <!-- <h1><i class="fas fa-shield-alt" aria-hidden="true"></i> Diabetes Guard</h1> -->
+        <p>Authentication Panel</p>
       </div>
 
       <div class="auth-card">
-        <div class="auth-tabs">
-          <button id="tabLogin" class="auth-tab-btn active" onclick="toggleAuthForm('login')">Log In</button>
-          <button id="tabRegister" class="auth-tab-btn" onclick="toggleAuthForm('register')">Join Cohort</button>
+        <div class="auth-tabs" role="tablist">
+          <button id="tabLogin" class="auth-tab-btn active" role="tab" aria-selected="true" aria-controls="loginForm"
+            onclick="toggleAuthForm('login')">
+            Log In
+          </button>
+
+          <button id="tabRegister" class="auth-tab-btn" role="tab" aria-selected="false" aria-controls="registerForm"
+            onclick="toggleAuthForm('register')">
+            Sign Up
+          </button>
         </div>
 
-        <form id="loginForm" onsubmit="handleAuthSubmit(event, 'login')">
-          <input type="email" id="loginEmail" placeholder="Student Email (.edu.ng Preferred)" required>
-          <input type="password" id="loginPassword" placeholder="Enter Password" required>
+        <form id="loginForm" role="tabpanel" onsubmit="handleAuthSubmit(event, 'login')">
+          <input type="email" id="loginEmail" placeholder="E-mail (example@gmail.com)" autocomplete="email" required>
+          <input type="password" id="loginPassword" placeholder="Enter Password (********)" autocomplete="current-password"
+            required>
           <button type="submit" class="action-btn wide-btn">Sign In To Dashboard</button>
         </form>
 
-        <form id="registerForm" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
-          <input type="email" id="registerEmail" placeholder="Valid Student Email" required>
-          <input type="text" id="registerUsername" placeholder="Full Name or Student ID" required>
-          <input type="text" id="registerAnonHandle" placeholder="Leaderboard Alias (e.g. FutoRunner)" required>
-          <input type="password" id="registerPassword" placeholder="Create Strong Password" required>
+        <form id="registerForm" role="tabpanel" onsubmit="handleAuthSubmit(event, 'register')" style="display: none;">
+          <input type="email" id="registerEmail" placeholder="E-mail (example@gmail.com)" autocomplete="email" required>
+          <input type="text" id="registerUsername" placeholder="Full Name or Student ID (e.g. John Doe or 2024....)" autocomplete="name" required>
+          <input type="text" id="registerAnonHandle" placeholder="Leaderboard userAlias (e.g. FutoRunner)" required>
+          <input type="password" id="registerPassword" placeholder="Create Strong Password (********)" minlength="8"
+            autocomplete="new-password" required>
           <button type="submit" class="action-btn wide-btn">Submit Registration</button>
         </form>
-        <div id="authMessage" class="auth-status-msg"></div>
+        <div id="authMessage" class="auth-status-msg" role="status" aria-live="polite"></div>
       </div>
     </div>
 
     <div id="cohortWorkspace" style="display: none;">
       <div class="app-header">
+        <div class="app-logo">
+          <img src="Images/diabetes-guard-logo-Photoroom.png" alt="Diabetes Guard Logo" class="logo-image"
+            onerror="this.closest('.app-logo').style.display='none'">
+        </div>
         <div class="header-top-row">
-          <span id="welcomeUser">👋 Loading Session...</span>
-          <button class="logout-btn" onclick="triggerSignOut()"><i class="fas fa-sign-out-alt"></i> Leave</button>
+          <span class="user"><i class="fas fa-user" aria-hidden="true"></i>
+          <span id="welcomeUser"> 
+          <span aria-hidden="true">👋</span> Loading Session...</span>
+          </span>
+
+
+          <button class="logout-btn" onclick="triggerSignOut()"><i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            Log Out
+          </button>
         </div>
-        <p>12-Week Active Intervention Telemetry Tracker</p>
+        
       </div>
 
-      <div class="nav-tabs">
-        <div class="tab-link active" onclick="switchTab('trackers')"><i class="fas fa-heartbeat"></i> Trackers</div>
-        <div class="tab-link" onclick="switchTab('learning')"><i class="fas fa-book"></i> Learn</div>
-        <div class="tab-link" onclick="switchTab('gamification')"><i class="fas fa-trophy"></i> Rewards</div>
-      </div>
-
-      <div id="trackers" class="content-section active">
+      
+      <div id="trackers" class="content-section active" role="tabpanel">
         <div class="card">
-          <h3><i class="fas fa-edit"></i> Metric Loggers (Research Analytics Pipeline)</h3>
-          <p class="card-subtitle">Every click safely relays timestamped inputs to the research coordinator's engine.
-          </p>
+          <h3><i class="fas fa-edit" aria-hidden="true"></i> Metric Loggers (Research Analytics Pipeline)</h3>
+          <p class="card-subtitle">Every click safely relays timestamped inputs to the research coordinator's
+            engine.</p>
+
           <div class="grid-buttons">
-            <button class="tracker-btn btn-food" onclick="submitMetric('food')"><i class="fas fa-apple-alt"></i> Food
-              Diary</button>
-            <button class="tracker-btn btn-activity" onclick="submitMetric('activity')"><i class="fas fa-walking"></i>
-              Exercise</button>
-            <button class="tracker-btn btn-water" onclick="submitMetric('water')"><i class="fas fa-tint"></i> Water
-              Log</button>
-            <button class="tracker-btn btn-weight" onclick="submitMetric('weight')"><i class="fas fa-weight"></i>
-              Weight</button>
+            <button class="tracker-btn btn-food" onclick="submitMetric('food')"><i class="fas fa-apple-alt"
+                aria-hidden="true"></i> Food Diary</button>
+            <button class="tracker-btn btn-activity" onclick="submitMetric('activity')"><i class="fas fa-walking"
+                aria-hidden="true"></i> Exercise</button>
+            <button class="tracker-btn btn-water" onclick="submitMetric('water')"><i class="fas fa-tint"
+                aria-hidden="true"></i> Water Log</button>
+            <button class="tracker-btn btn-weight" onclick="submitMetric('weight')"><i class="fas fa-weight"
+                aria-hidden="true"></i> Weight</button>
           </div>
-          <div id="localLogsDisplay" class="logs-display-panel">Loading metrics snapshot...</div>
+          <div id="localLogsDisplay" class="logs-display-panel" role="status" aria-live="polite">Loading metrics
+            snapshot...</div>
         </div>
 
         <div class="card">
-          <h3><i class="fas fa-percentage"></i> Cohort Progress Metrics</h3>
-          <div class="progress-track">
+          <h3><i class="fas fa-percentage" aria-hidden="true"></i> Cohort Progress Metrics</h3>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             <div id="progressFill" class="progress-fill"></div>
           </div>
           <p id="progressText" class="progress-label">0% Complete</p>
         </div>
+
+        <div class="card">
+          <h3><i class="fas fa-medal" aria-hidden="true"></i> Your Badges</h3>
+          <p class="card-subtitle"><span id="rankBadgeCount">0</span> badges earned</p>
+          <div id="badgeContainer" class="badge-flex-container"></div>
+        </div>
+
+        <div class="bmi-card">
+          <h2>BMI Calculator</h2>
+          <p class="bmi-subtitle">Calculate your Body Mass Index to check your healthy weight range.</p>
+        
+          <div class="form-group">
+            <label for="bmiWeight">Weight (kg)</label>
+            <input type="number" id="bmiWeight" class="form-control" placeholder="e.g. 70" min="1" step="0.1" />
+          </div>
+        
+          <div class="form-group">
+            <label for="bmiHeight">Height (cm)</label>
+            <input type="number" id="bmiHeight" class="form-control" placeholder="e.g. 175" min="1" step="0.1" />
+          </div>
+        
+          <button type="button" class="btn-calculate" onclick="calculateBMI()">
+            Calculate BMI
+          </button>
+        
+          <!-- Result Container (Initially hidden) -->
+          <div id="bmiResult" class="bmi-result-box hidden"></div>
+        </div>
       </div>
 
-      <div id="learning" class="content-section">
+      <div id="learning" class="content-section" role="tabpanel">
         <div class="card">
-          <h3><i class="fas fa-graduation-cap"></i> Curriculum Core</h3>
+          <h3><i class="fas fa-graduation-cap" aria-hidden="true"></i> Curriculum Core</h3>
+          <p id="weekProgressLabel" class="week-progress-label">Week 1 of 12</p>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div id="weekProgressBar" class="progress-fill"></div>
+          </div>
+
+          <label for="weekSelector" class="visually-hidden">Select curriculum week</label>
           <select id="weekSelector" onchange="loadWeekModule()">
-            <option value="1">Week 1: Foundations of Glucose Control</option>
-            <option value="2">Week 2: Physical Activity Dynamics</option>
+            <option value="1">Week 1: Understanding Diabetes Risk</option>
+            <option value="2">Week 2: Glucose &amp; What You Eat</option>
+            <option value="3">Week 3: The Glycaemic Index</option>
+            <option value="4">Week 4: Physical Activity &amp; Insulin</option>
+            <option value="5">Week 5: Hydration &amp; Kidney Health</option>
+            <option value="6">Week 6: Weight Management</option>
+            <option value="7">Week 7: Stress, Sleep &amp; Blood Sugar</option>
+            <option value="8">Week 8: Smoking &amp; Diabetes Risk</option>
+            <option value="9">Week 9: Alcohol &amp; Blood Glucose</option>
+            <option value="10">Week 10: Reading Food Labels</option>
+            <option value="11">Week 11: Building Long-term Habits</option>
+            <option value="12">Week 12: Program Review &amp; Next Steps</option>
           </select>
+
           <div id="moduleTarget" class="curriculum-display-box">Loading...</div>
+
+          <button id="markCompleteBtn" class="action-btn wide-btn" onclick="markModuleComplete()"
+            style="margin-top:12px;">
+            <i class="fas fa-check-circle" aria-hidden="true"></i> Mark as Complete (+30 pts)
+          </button>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-question-circle" aria-hidden="true"></i> Weekly Quiz</h3>
+          <div id="quizContent" role="status" aria-live="polite">Loading quiz...</div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-flag-checkered" aria-hidden="true"></i> Weekly Challenge</h3>
+          <p id="challengeTitle" class="challenge-title"></p>
+          <p id="challengeDesc" class="card-subtitle"></p>
+          <button class="action-btn wide-btn" onclick="completeChallenge()">
+            <i class="fas fa-trophy" aria-hidden="true"></i> Complete Challenge (+50 pts)
+          </button>
+          <div id="challengeFeedback" class="logs-display-panel hidden" style="margin-top:10px;" role="status"
+            aria-live="polite"></div>
         </div>
       </div>
 
-      <div id="gamification" class="content-section">
+      <div id="gamification" class="content-section" role="tabpanel">
         <div class="card">
-          <h3><i class="fas fa-users"></i> Real-time Peer Leaderboard</h3>
+          <h3><i class="fas fa-users" aria-hidden="true"></i> Real-time Peer Leaderboard</h3>
           <p class="card-subtitle">Displays research aliases only to guarantee absolute identity obfuscation.</p>
-          <div id="leaderboardTarget" class="leaderboard-wrapper">Gathering scores...</div>
+          <div id="leaderboardTarget" class="leaderboard-wrapper" role="status" aria-live="polite">Gathering
+            scores...</div>
         </div>
       </div>
+
+      <div id="profile" class="content-section" role="tabpanel">
+        <div class="card">
+          <h3><i class="fas fa-id-card" aria-hidden="true"></i> Your Profile</h3>
+          <p class="card-subtitle">Account details tied to this research cohort enrollment.</p>
+
+          <div class="profile-field">
+            <span class="profile-label">Full Name</span>
+            <span id="profileFullName" class="profile-value">Loading...</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">Email</span>
+            <span id="profileEmail" class="profile-value">Loading...</span>
+          </div>
+          <div class="profile-field">
+            <span class="profile-label">Leaderboard Alias</span>
+            <span id="profileAlias" class="profile-value">Loading...</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-shield-alt" aria-hidden="true"></i> Account Actions</h3>
+          <button class="action-btn wide-btn" onclick="triggerSignOut()">
+            <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Log Out
+          </button>
+          <button class="danger-btn wide-btn" onclick="handleDeleteAccount()">
+            <i class="fas fa-trash-alt" aria-hidden="true"></i> Delete My Account
+          </button>
+          <p class="card-subtitle" style="margin-top:10px;margin-bottom:0">
+            Deleting your account permanently removes your profile, logs, points, and progress from the research
+            database, and cannot be undone.
+          </p>
+        </div>
+      </div>
+
+
+      <div class="nav-tabs" role="tablist">
+        <button class="tab-link active" role="tab" aria-selected="true" aria-controls="trackers"
+          onclick="switchTab('trackers', this)"><i class="fas fa-heartbeat"
+            aria-hidden="true"></i><span>Trackers</span>
+          </button>
+
+        <button class="tab-link" role="tab" aria-selected="false" aria-controls="learning"
+          onclick="switchTab('learning', this)"><i class="fas fa-book" aria-hidden="true"></i><span>Courses</span>
+        </button>
+
+        <button class="tab-link" role="tab" aria-selected="false" aria-controls="gamification"
+          onclick="switchTab('gamification', this)"><i class="fas fa-trophy"
+            aria-hidden="true"></i><span>Leaderboard</span>
+        </button>
+
+        <button class="tab-link" role="tab" aria-selected="false" aria-controls="profile"
+          onclick="switchTab('profile', this)"><i class="fas fa-user" aria-hidden="true"></i><span>Profile</span>
+        </button>
+      </div>
+
     </div>
+
+    
   </div>
 
+  <footer class="app-footer">
+    <p>&copy; 2026 Diabetes Guard. All rights reserved.</p>
+  </footer>
+
   <script src="main.js"></script>
+  <script src="pwa.js"></script>
 </body>
 
 </html>

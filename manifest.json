@@ -1,0 +1,21 @@
+{
+  "short_name": "DiaShield",
+  "name": "DiaShield - Diabetes Prevention Program",
+  "icons": [
+    {
+      "src": "Images/diabetes-guard-logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "Images/diabetes-guard-logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "theme_color": "#1A7A4A",
+  "display": "standalone",
+  "orientation": "portrait"
+}

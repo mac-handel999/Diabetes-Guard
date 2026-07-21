@@ -1,12 +1,19 @@
-/* ===== PALETTE VARIABLES (Clean Medical Blue & Slate Neutral) ===== */
+/* ===== PALETTE VARIABLES (Clinical Teal & Ward White) ===== */
 :root {
-    --primary-blue: #2a7faa;
-    --primary-dark: #1a4664;
-    --accent-gold: #dba42b;
-    --neutral-bg: #f8fafc;
-    --neutral-border: #e2e8f0;
-    --text-dark: #2d3748;
-    --text-muted: #718096;
+    --primary-teal: #0f766e;
+    --primary-dark: #0b4f4a;
+    --primary-green: #1A7A4A;
+    --primary-hover: #135E38;
+    --accent-mint: #ccfbf1;
+    --accent-coral: #ef6f6c;
+    --neutral-bg: #f6faf9;
+    --bg-light: #F4F9F6;
+    --neutral-border: #d7e6e3;
+    --border-color: #D4EBE0;
+    --surface: #ffffff;
+    --text-dark: #1e293b;
+    --text-muted: #64748b;
+    --muted: #5A7A67;
 }
 
 /* ===== BASE STYLES ===== */
@@ -14,44 +21,51 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: system-ui, -apple-system, Arial, sans-serif;
+    font-family: Georgia, 'Times New Roman', Times, serif, -apple-system, Arial, sans-serif;
 }
 
 body {
-    background: #e8f0f9;
+    background: #eaf3f1;
     color: var(--text-dark);
-  
-    
     min-height: 100vh;
 }
 
 .app-container {
     width: 450px;
     width: 100%;
-    background: #ffffff;
-    
-    box-shadow: 0 20px 40px rgba(0, 20, 40, 0.1);
+    background: var(--surface);
+    box-shadow: 0 20px 40px rgba(6, 44, 40, 0.12);
     overflow: hidden;
 }
 
 /* ===== APP HEADER BAR ===== */
 .app-header {
     background: var(--primary-dark);
+    background-image:
+        linear-gradient(rgba(11, 79, 74, 0.94), rgba(11, 79, 74, 0.94)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpolyline points='0,20 60,20 72,20 78,4 86,36 94,20 110,20 300,20' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.16'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: bottom center;
+    background-size: cover;
     color: #ffffff;
-    padding: 24px;
-    text-align: center;
+    padding: 30px;
+    
     display: flex;
     flex-direction: row;
-    align-items: center;
     justify-content: space-between;
+    row-gap: 200%;
+    gap: 500px;
+    align-items: center;
+    width: 100%;
 }
 
 .logo-image {
-    width: 100px;
-    height: 100px;
-    background-color: var(--neutral-bg);
-    border-radius: 30%;
-    padding: 8px;
+    width: 90px;
+    height: 90px;
+    background-color: var(--bg-light);
+    border-radius: 40%;
+    padding: 12px;
+    object-fit: contain;
 }
 
 .app-logo {
@@ -63,6 +77,7 @@ body {
     font-size: 20px;
     font-weight: 700;
     margin-bottom: 4px;
+    letter-spacing: 0.2px;
 }
 
 .app-header p {
@@ -74,25 +89,35 @@ body {
 /* ===== NAVIGATION MODULE TABS ===== */
 .nav-tabs {
     display: flex;
-    background: #e2e8f0;
+    background: var(--accent-mint);
     border-bottom: 1px solid var(--neutral-border);
 }
 
 .tab-link {
     flex: 1;
     text-align: center;
-    padding: 14px 10px;
+    padding: 10px 6px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 600;
-    color: #4a5568;
+    color: var(--primary-dark);
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
     transition: all 0.2s ease;
+}
+
+.tab-link i {
+    font-size: 16px;
 }
 
 .tab-link.active {
     background: #ffffff;
-    color: var(--primary-blue);
-    border-top: 3px solid var(--primary-blue);
+    color: var(--primary-teal);
+    border-top: 3px solid var(--primary-teal);
 }
 
 /* ===== STRUCTURAL PANELS & CARDS ===== */
@@ -108,7 +133,8 @@ body {
 .card {
     background: var(--neutral-bg);
     border: 1px solid var(--neutral-border);
-    border-radius: 16px;
+    border-left: 4px solid var(--primary-teal);
+    border-radius: 12px;
     padding: 16px;
     margin-bottom: 16px;
 }
@@ -131,18 +157,23 @@ body {
 /* ===== INPUT ELEMENT SCALING ===== */
 input[type="number"],
 input[type="text"],
-select {
+select,
+textarea,
+input {
     width: 100%;
     padding: 10px 14px;
-    border-radius: 20px;
-    border: 1px solid #cbd5e0;
+    border-radius: 10px;
+    border: 1px solid #c7d9d6;
+    background: #ffffff;
     outline: none;
     font-size: 14px;
+    color: var(--text-dark);
 }
 
 input:focus,
 select:focus {
-    border-color: var(--primary-blue);
+    border-color: var(--primary-teal);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
 }
 
 /* ===== TRACKING BUTTON UTILITIES ===== */
@@ -155,7 +186,7 @@ select:focus {
 .tracker-btn {
     border: none;
     padding: 12px;
-    border-radius: 14px;
+    border-radius: 10px;
     color: #ffffff;
     font-weight: bold;
     cursor: pointer;
@@ -172,19 +203,19 @@ select:focus {
 }
 
 .btn-food {
-    background: #e67e22;
+    background: #4d8f7b;
 }
 
 .btn-activity {
-    background: #27ae60;
+    background: #0f766e;
 }
 
 .btn-water {
-    background: #2980b9;
+    background: #2f7d9b;
 }
 
 .btn-weight {
-    background: #f39c12;
+    background: #5b7a9d;
 }
 
 .logs-display-panel {
@@ -193,14 +224,14 @@ select:focus {
     text-align: center;
     font-weight: 600;
     color: var(--primary-dark);
-    background: #eaf2f9;
+    background: var(--accent-mint);
     padding: 8px;
-    border-radius: 20px;
+    border-radius: 10px;
 }
 
 /* ===== PROGRESS DASHBOARD BAR ===== */
 .progress-track {
-    background: #e2e8f0;
+    background: var(--neutral-border);
     border-radius: 10px;
     height: 10px;
     width: 100%;
@@ -209,7 +240,7 @@ select:focus {
 }
 
 .progress-fill {
-    background: var(--primary-blue);
+    background: var(--primary-teal);
     height: 100%;
     width: 0%;
     transition: width 0.4s ease;
@@ -223,11 +254,11 @@ select:focus {
 
 /* ===== CORE ACTION BUTTON BUILDERS ===== */
 .action-btn {
-    background: var(--primary-blue);
+    background: var(--primary-teal);
     color: #ffffff;
     border: none;
     padding: 10px 18px;
-    border-radius: 20px;
+    border-radius: 10px;
     font-weight: bold;
     cursor: pointer;
 }
@@ -244,12 +275,13 @@ select:focus {
 }
 
 .bmi-result-panel {
-    background: #eaf4fa;
+    background: var(--accent-mint);
     padding: 12px;
-    border-radius: 12px;
+    border-radius: 10px;
     text-align: center;
     margin-top: 10px;
     font-size: 13px;
+    color: var(--primary-dark);
 }
 
 /* ===== CURRICULUM DISPLAY FIELDS ===== */
@@ -267,7 +299,7 @@ select:focus {
 .curriculum-display-box {
     background: #ffffff;
     padding: 14px;
-    border-radius: 12px;
+    border-radius: 10px;
     border: 1px solid var(--neutral-border);
     font-size: 13px;
     line-height: 1.5;
@@ -286,8 +318,8 @@ select:focus {
 }
 
 .badge-unit {
-    background: #fff;
-    border: 1px solid var(--primary-blue);
+    background: #ffffff;
+    border: 1px solid var(--primary-teal);
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 12px;
@@ -317,27 +349,40 @@ select:focus {
     margin-bottom: 16px;
 }
 
-
-
-
 /* ===== ADDITIONAL AUTH SCROLL CONFIGURATIONS ===== */
 .auth-wrapper {
-    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+    padding: 40px;
     background: #ffffff;
+    margin: 20px auto;
+    text-align: center;
 }
 
 .auth-card {
+    /* d */
+    align-items: center;
+    justify-content: center;
     margin-top: 20px;
+    margin: 30px auto;
     background: var(--neutral-bg);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 50px;
+    text-align: center;
     border: 1px solid var(--neutral-border);
+    gap: 20px;
 }
 
 .auth-tabs {
     display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
+    margin: 20px auto;
     border-bottom: 2px solid var(--neutral-border);
     padding-bottom: 10px;
 }
@@ -353,13 +398,13 @@ select:focus {
 }
 
 .auth-tab-btn.active {
-    color: var(--primary-blue);
-    border-bottom: 3px solid var(--primary-blue);
+    color: var(--primary-teal);
+    border-bottom: 3px solid var(--primary-teal);
 }
 
 .auth-card input {
     margin-bottom: 12px;
-    border-radius: 12px;
+    border-radius: 10px;
 }
 
 .wide-btn {
@@ -371,6 +416,7 @@ select:focus {
 
 .auth-status-msg {
     margin-top: 10px;
+    padding: 20px;
     font-size: 13px;
     text-align: center;
     font-weight: bold;
@@ -379,23 +425,225 @@ select:focus {
 
 .header-top-row {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: space-evenly;
     align-items: center;
     margin-bottom: 4px;
+    width: 100%;
+    padding: 20px;
+    margin: 20px auto;
+    gap: 20px;
+}
+
+.user {
+    border: 2px solid var(--neutral-border);
+    padding: 10px;
+    border-radius: 20px;
 }
 
 .logout-btn {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.18);
     border: 1px solid #fff;
     color: #fff;
     padding: 4px 10px;
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     font-size: 11px;
     font-weight: bold;
 }
 
 .logout-btn:hover {
-    background: #fff;
+    background: var(--accent-coral);
+    border-color: var(--accent-coral);
+    color: #fff;
+}
+
+/* ===== PROFILE SECTION ===== */
+.profile-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--neutral-border);
+    font-size: 13px;
+}
+
+.profile-field:last-child {
+    border-bottom: none;
+}
+
+.profile-label {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.profile-value {
+    color: var(--text-dark);
+    font-weight: 700;
+    text-align: right;
+    word-break: break-word;
+}
+
+.danger-btn {
+    background: #ffffff;
+    color: var(--accent-coral);
+    border: 1.5px solid var(--accent-coral);
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.danger-btn:hover {
+    background: var(--accent-coral);
+    color: #ffffff;
+}
+
+/* ===== ACCESSIBILITY UTILITY ===== */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Used throughout main.js (showFeedback, toggleAuthForm, challenge
+   feedback, etc.) to show/hide elements — was referenced everywhere
+   but never actually defined, so nothing it toggled ever took effect. */
+.hidden {
+    display: none !important;
+}
+
+/* ===== LEARNING / COURSES ===== */
+.week-progress-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.locked-week-notice {
+    text-align: center;
+    padding: 20px 14px;
+    color: var(--text-muted);
+    font-size: 13px;
+    background: #ffffff;
+    border: 1px dashed var(--neutral-border);
+    border-radius: 10px;
+}
+
+.locked-week-notice i {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: var(--primary-teal);
+}
+
+.challenge-title {
+    font-weight: 700;
     color: var(--primary-dark);
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+/* ===== APP FOOTER ===== */
+.app-footer {
+    text-align: center;
+    padding: 16px 0 24px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+
+/* Card Layout */
+.bmi-card {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    font-family: system-ui, -apple-system, sans-serif;
+    color: var(--text-dark);
+}
+
+.bmi-card h2 {
+    margin-top: 0;
+    margin-bottom: 6px;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.bmi-subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+}
+
+/* Form Controls */
+.form-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-green);
+}
+
+/* Action Button */
+.btn-calculate {
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--primary-green);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-calculate:hover {
+    background-color: var(--primary-hover);
+}
+
+/* Result Box & Hidden Utility Class */
+.bmi-result-box {
+    margin-top: 18px;
+    padding: 14px;
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.hidden {
+    display: none !important;
 }

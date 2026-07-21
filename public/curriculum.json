@@ -1,0 +1,103 @@
+{
+  "programTitle": "DiaShield Diabetes Prevention Program",
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "weeklyTheme": "Understanding Diabetes and Personal Risk",
+      "weeklyGoal": "Participants will understand diabetes, recognize the risks to young adults, and appreciate the importance of prevention.",
+      "learningOutcomes": [
+        "Define diabetes mellitus.",
+        "Distinguish between Type 1 and Type 2 diabetes.",
+        "Identify major symptoms and complications.",
+        "Explain why university students may be vulnerable.",
+        "Recognize the importance of prevention."
+      ],
+      "days": [
+        {
+          "dayNumber": 1,
+          "topic": "Welcome to DiaShield",
+          "imagePlaceholder": {
+            "src": "assets/images/w1d1_welcome.png",
+            "alt": "Welcome to DiaShield Dashboard overview illustration"
+          },
+          "educationalLesson": {
+            "paragraphs": [
+              "Welcome to the Diabetes Prevention Program. Over the next 12 weeks, you will learn how simple lifestyle habits can help prevent Type 2 diabetes.",
+              "Many people think diabetes only affects older adults, but unhealthy eating habits, physical inactivity, poor sleep, stress, and weight gain can increase risk even among young adults."
+            ],
+            "bulletPoints": [
+              "Understand your diabetes risk",
+              "Improve eating habits",
+              "Increase physical activity",
+              "Manage stress",
+              "Build lifelong healthy behaviors"
+            ]
+          },
+          "interactiveActivity": {
+            "type": "form",
+            "title": "Participant Profile Setup",
+            "fields": ["Age", "Sex", "University", "Faculty", "Level of study"]
+          },
+          "dailyChallenge": "Log into the app twice today.",
+          "pushNotification": "Welcome! Your journey toward diabetes prevention begins today."
+        },
+        {
+          "dayNumber": 3,
+          "topic": "Types of Diabetes",
+          "imagePlaceholder": {
+            "src": "assets/images/w1d3_types.png",
+            "alt": "Infographic breaking down differences between Type 1, Type 2, and Gestational Diabetes"
+          },
+          "educationalLesson": {
+            "paragraphs": [
+              "There are several forms of diabetes. Type 1 is an autoimmune condition where the body stops producing insulin. Type 2 is the most common form where the body becomes resistant to insulin and is strongly linked to lifestyle."
+            ]
+          },
+          "interactiveActivity": {
+            "type": "drag_and_drop",
+            "title": "Drag-and-Drop Classification Exercise",
+            "categories": ["Type 1 Diabetes", "Type 2 Diabetes", "Gestational Diabetes"],
+            "cards": [
+              {"text": "Autoimmune condition", "correctCategory": "Type 1 Diabetes"},
+              {"text": "Body becomes resistant to insulin", "correctCategory": "Type 2 Diabetes"},
+              {"text": "Occurs during pregnancy", "correctCategory": "Gestational Diabetes"}
+            ],
+            "gamification": {
+              "points": 20,
+              "badge": "Diabetes Detective",
+              "bonusPoints": 5
+            }
+          },
+          "dailyChallenge": "Share one difference between Type 1 and Type 2 diabetes.",
+          "pushNotification": "Most diabetes cases worldwide are Type 2 and many are preventable."
+        },
+        {
+          "dayNumber": 5,
+          "topic": "Signs and Symptoms of Diabetes",
+          "imagePlaceholder": {
+            "src": "assets/images/w1d5_symptoms.png",
+            "alt": "Visual checklist of key symptoms like excessive thirst and fatigue"
+          },
+          "educationalLesson": {
+            "paragraphs": ["Common symptoms include excessive thirst, frequent urination, excessive hunger, unexplained weight loss, fatigue, and blurred vision."]
+          },
+          "interactiveActivity": {
+            "type": "quiz",
+            "title": "Symptom Recognition Quiz",
+            "questions": [
+              {
+                "questionId": 1,
+                "questionText": "Which of the following is a common symptom of diabetes?",
+                "options": ["A. Increased energy", "B. Excessive thirst", "C. Better eyesight", "D. Reduced appetite"],
+                "correctOption": "B",
+                "explanation": "High blood glucose levels can cause the body to lose more water, leading to increased thirst."
+              }
+            ]
+          },
+          "dailyChallenge": "Discuss diabetes symptoms with a family member.",
+          "pushNotification": "Knowing the signs can help prevent complications."
+        }
+      ]
+    }
+  ]
+}

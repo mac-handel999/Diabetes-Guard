@@ -1,0 +1,5 @@
+{
+    "jules-extension.customPrompt": "Always Reply in English",
+    "jules.defaultBranch": "default",
+    "jules-extension.autoReplyMessage": "I have reviewed the changes. Please Push Code To GitHub."
+}
