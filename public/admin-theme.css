@@ -1,0 +1,56 @@
+:root {
+  --teal: #0f766e;
+  --primary-dark: #0b4f4a;
+  --green: #1a7a4a;
+  --mint: #ccfbf1;
+  --bg: #f4f9f6;
+  --border: #d4ebe0;
+  --text: #1e293b;
+  --muted: #64748b;
+  --surface: #ffffff;
+  --coral: #ef6f6c;
+}
+
+* { font-family: Georgia, 'Times New Roman', Times, serif, -apple-system, Arial, sans-serif; }
+body { background: #eaf3f1; color: var(--text); }
+.admin-shell { max-width: 1500px; padding: 0 0 90px; }
+.admin-login-panel { position: relative; overflow: hidden; max-width: 480px; margin: 8vh auto; padding: 32px; border: 1px solid var(--border); border-radius: 0 0 16px 16px; box-shadow: 0 20px 40px rgba(6,44,40,.12); }
+.admin-login-panel::before { content: ''; display: block; height: 84px; margin: -32px -32px 26px; background: linear-gradient(rgba(11,79,74,.94),rgba(11,79,74,.94)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpolyline points='0,20 60,20 72,20 78,4 86,36 94,20 110,20 300,20' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.16'/%3E%3C/svg%3E") center/cover; }
+.brand-mark { position: absolute; top: 34px; left: 32px; display: grid; width: 62px; height: 62px; place-items: center; border-radius: 16px; background: var(--bg); }
+.admin-logo { width: 100%; height: 100%; padding: 7px; border-radius: 16px; background: var(--bg); object-fit: contain; }
+.admin-login-panel h1, .admin-header h1, .section-heading h2 { color: var(--primary-dark); }
+.admin-login-panel > p:not(.eyebrow) { color: var(--muted); line-height: 1.5; }
+.admin-header { margin: 0 0 18px; padding: 22px 28px; color: #fff; background: linear-gradient(rgba(11,79,74,.95),rgba(11,79,74,.95)), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 40'%3E%3Cpolyline points='0,20 60,20 72,20 78,4 86,36 94,20 110,20 300,20' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.16'/%3E%3C/svg%3E") center/cover; box-shadow: 0 8px 20px rgba(6,44,40,.12); }
+.admin-header h1 { color: #fff; font-size: 22px; }
+.admin-brand { display: flex; align-items: center; gap: 14px; }
+.admin-brand .admin-logo { width: 68px; height: 68px; }
+.admin-header .user { display:flex; align-items:center; gap:6px; min-width:0; max-width:100%; padding:8px 12px; border:2px solid var(--border); border-radius:20px; overflow-wrap:anywhere; }
+.admin-header .logout-btn { flex:0 0 auto; white-space:nowrap; padding:4px 10px; border:1px solid #fff; border-radius:10px; color:#fff; background:rgba(255,255,255,.18); cursor:pointer; font-size:11px; font-weight:bold; }
+.admin-header .logout-btn:hover { border-color:var(--coral); color:#fff; background:var(--coral); }
+.admin-header .eyebrow { color: var(--mint); }
+.admin-header .header-actions { color: #fff; }
+.admin-nav { padding: 0 28px 4px; }
+.nav-button { border-color: var(--border); color: var(--primary-dark); background: var(--mint); }
+.nav-button.active { border-color: var(--primary-dark); background: var(--primary-dark); }
+.section-heading, .admin-section > .panel, .dashboard-grid, .metric-grid { margin-left: 28px; margin-right: 28px; }
+.metric-card, .panel { border-color: var(--border); border-radius: 12px; box-shadow: 0 4px 12px rgba(6,44,40,.05); }
+.metric-card strong, .panel h3 { color: var(--primary-dark); }
+.metric-card span, .panel-note, th { color: var(--muted); }
+.primary-button { background: var(--green); }
+.primary-button:hover { background: #135e38; }
+.ghost-button, .table-action { border-color: var(--border); color: var(--primary-dark); }
+.ghost-button:hover, .table-action:hover { background: var(--mint); }
+input, select { border-color: var(--border); border-radius: 8px; }
+input:focus, select:focus { outline: 2px solid rgba(15,118,110,.2); border-color: var(--teal); }
+th, td { border-color: var(--border); }
+.status-pill { background: var(--mint); color: var(--green); }
+.detail-modal-card { border: 1px solid var(--border); }
+@media (max-width: 600px) {
+  .admin-shell { padding-bottom: 75px; }
+  .admin-header { margin: 0 0 14px; padding: 18px; }
+  .admin-nav { padding: 0 14px 4px; }
+  .section-heading, .admin-section > .panel, .dashboard-grid, .metric-grid { margin-left: 14px; margin-right: 14px; }
+  .admin-brand .admin-logo { width: 58px; height: 58px; }
+  .admin-header .header-actions { width:100%; justify-content:flex-end; }
+  .admin-header .user { flex:1 1 180px; }
+}

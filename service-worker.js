@@ -1,20 +1,35 @@
-const CACHE_NAME = 'diashield-v1';
+const CACHE_NAME = 'diashield-v2';
 const ASSETS_TO_CACHE = [
   '/',
-  'public/index.html',
-  'public/style.css',
-  'public/main.js',
-  'public/curriculum.json',
-  'manifest.json',
-  'public/Images'
+  '/index.html',
+  '/style.css',
+  '/main.js',
+  '/modules.js',
+  '/pwa.js',
+  '/curriculum.json',
+  '/manifest.json',
+  '/admin.html',
+  '/admin.css',
+  '/admin-theme.css',
+  '/admin.js',
+  '/Images/diabetes-guard-logo-Photoroom.png',
+  '/Images/dia-shield-logo.svg',
+  '/Images/dia-shield-icon-192.png',
+  '/Images/dia-shield-icon-512.png'
 ];
 
 // 1. Install Event - Cache Core Assets
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(async (cache) => {
       console.log('[Service Worker] Caching app shell');
-      return cache.addAll(ASSETS_TO_CACHE);
+      await Promise.all(ASSETS_TO_CACHE.map(async asset => {
+        try {
+          await cache.add(asset);
+        } catch (error) {
+          console.warn('[Service Worker] Could not cache', asset, error.message);
+        }
+      }));
     })
   );
   self.skipWaiting();
@@ -39,9 +54,35 @@ self.addEventListener('activate', (e) => {
 
 // 3. Fetch Event - Serve from Cache, Fallback to Network
 self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+
+  const requestUrl = new URL(e.request.url);
+  if (requestUrl.pathname.startsWith('/api/')) return;
+
+  if (e.request.mode === 'navigate') {
+    const fallbackUrl = requestUrl.pathname === '/admin.html' ? '/admin.html' : '/index.html';
+    e.respondWith(
+      fetch(e.request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(fallbackUrl, copy));
+          return response;
+        })
+        .catch(() => caches.match(fallbackUrl))
+    );
+    return;
+  }
+
   e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+    caches.match(e.request).then(cached => {
+      const network = fetch(e.request).then(response => {
+        if (response.ok && requestUrl.origin === self.location.origin) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(e.request, copy));
+        }
+        return response;
+      }).catch(() => cached);
+      return cached || network;
     })
   );
 });

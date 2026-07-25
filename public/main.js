@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   DiabetesGuard — main.js
+   Dia Shield — main.js
    Version: 2.2 (Merge pass — reconciled with a divergent draft)
 
    Carried forward from 2.1:
@@ -43,6 +43,10 @@ const API_BASE = (
 
 // ── Session (persisted in localStorage) ─────────────────────
 let SESSION = null;  // { access_token, user_id, username, anon_handle }
+let refreshPromise = null;
+let sessionExpiryHandled = false;
+let PROFILE_FULL_NAME = '';
+const OFFLINE_METRIC_QUEUE_KEY = 'dg_pending_metrics';
 
 // ── Local UI state ───────────────────────────────────────────
 let waterCount = 0;
@@ -56,9 +60,13 @@ window.addEventListener('DOMContentLoaded', () => {
   if (stored) {
     try {
       SESSION = JSON.parse(stored);
-      enterApp();
+      if (isSessionExpired()) {
+        handleExpiredSession();
+      } else {
+        enterApp();
+      }
     } catch {
-      localStorage.removeItem('dg_session_token');
+      clearSession();
     }
   }
 });
@@ -67,7 +75,13 @@ window.addEventListener('DOMContentLoaded', () => {
 // API WRAPPER
 // One function for all requests — handles auth header + errors
 // ═══════════════════════════════════════════════════════════════
-async function api(path, method = 'GET', body = null) {
+async function api(path, method = 'GET', body = null, allowRefresh = true) {
+  const isPublicAuthRequest = ['/auth/login', '/auth/register', '/auth/refresh'].includes(path);
+  if (!isPublicAuthRequest && isSessionExpired()) {
+    handleExpiredSession();
+    throw new Error('Your session has expired. Please sign in again.');
+  }
+
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -75,15 +89,81 @@ async function api(path, method = 'GET', body = null) {
 
   if (SESSION?.access_token) {
     opts.headers['Authorization'] = `Bearer ${SESSION.access_token}`;
+    if (SESSION.session_ticket) {
+      opts.headers['X-Session-Ticket'] = SESSION.session_ticket;
+    }
   }
 
   if (body) opts.body = JSON.stringify(body);
 
   const res  = await fetch(`${API_BASE}/api/v1${path}`, opts);
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok && allowRefresh && SESSION?.refresh_token && (res.status === 401 || res.status === 403) &&
+      !path.startsWith('/auth/')) {
+    try {
+      await refreshSession();
+      return api(path, method, body, false);
+    } catch {
+      handleExpiredSession();
+      throw new Error('Your session has expired. Please sign in again.');
+    }
+  }
 
   if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
   return data;
+}
+
+function isSessionExpired() {
+  return Boolean(SESSION &&
+    (!SESSION.access_token || !SESSION.refresh_token || !SESSION.session_ticket ||
+      !SESSION.session_expires_at || Date.now() >= SESSION.session_expires_at));
+}
+
+function clearSession() {
+  localStorage.removeItem('dg_session_token');
+  SESSION = null;
+}
+
+function handleExpiredSession() {
+  if (sessionExpiryHandled) return;
+  sessionExpiryHandled = true;
+  clearSession();
+
+  const authGw = document.getElementById('authGateway');
+  const mainApp = document.getElementById('mainApp') || document.getElementById('cohortWorkspace');
+  if (mainApp) mainApp.style.display = 'none';
+  if (authGw) authGw.style.display = 'block';
+  toggleAuthForm('login');
+  showAuthMsg('Your session has expired. Please sign in again.');
+  alert('Your session has expired. Please sign in again.');
+}
+
+async function refreshSession() {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        refreshToken: SESSION?.refresh_token,
+        sessionTicket: SESSION?.session_ticket,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.session) throw new Error(data.error || 'Session refresh failed.');
+
+    SESSION = data.session;
+    localStorage.setItem('dg_session_token', JSON.stringify(SESSION));
+    return SESSION;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -146,12 +226,15 @@ async function handleLogin(e) {
   }
 
   try {
+    // A previous expired session must never block a fresh login attempt.
+    clearSession();
     const res = await api('/auth/login', 'POST', {
       email:    emailEl.value.trim(),
       password: passwordEl.value,
     });
 
     SESSION = res.session;
+    sessionExpiryHandled = false;
     localStorage.setItem('dg_session_token', JSON.stringify(SESSION));
     enterApp();
 
@@ -270,7 +353,7 @@ async function enterApp() {
   ]);
 
   // Now safe to load module content for the correct week
-  loadModule();
+  loadModule({ forceNotification: true });
 }
 
 // Legacy alias used by older index.html
@@ -566,6 +649,12 @@ function updateProgressBarLocally() {
 }
 
 async function submitMetric(type, extra = {}) {
+  if (!navigator.onLine) {
+    queueOfflineMetric(type, extra);
+    showOfflineMetricMessage();
+    return;
+  }
+
   try {
     const result = await api('/metrics/log', 'POST', { metric_type: type, ...extra });
 
@@ -584,9 +673,52 @@ async function submitMetric(type, extra = {}) {
     await loadDashboardStats();
 
   } catch (err) {
+    if (err instanceof TypeError || !navigator.onLine) {
+      queueOfflineMetric(type, extra);
+      showOfflineMetricMessage();
+      return;
+    }
     console.warn(`[submitMetric:${type}]`, err.message);
   }
 }
+
+function readOfflineMetricQueue() {
+  try { return JSON.parse(localStorage.getItem(OFFLINE_METRIC_QUEUE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function queueOfflineMetric(type, extra) {
+  const queue = readOfflineMetricQueue();
+  queue.push({ metric_type: type, ...extra, queued_at: new Date().toISOString() });
+  localStorage.setItem(OFFLINE_METRIC_QUEUE_KEY, JSON.stringify(queue));
+}
+
+function showOfflineMetricMessage() {
+  const display = document.getElementById('localLogsDisplay');
+  if (display) display.textContent = 'Offline: activity saved on this device and will sync when you reconnect.';
+}
+
+async function flushOfflineMetrics() {
+  if (!navigator.onLine || !SESSION) return;
+  const queue = readOfflineMetricQueue();
+  if (!queue.length) return;
+
+  const remaining = [];
+  for (const item of queue) {
+    const { queued_at, ...payload } = item;
+    try {
+      await api('/metrics/log', 'POST', payload);
+    } catch (error) {
+      remaining.push(item);
+      if (error instanceof TypeError || !navigator.onLine) break;
+    }
+  }
+  localStorage.setItem(OFFLINE_METRIC_QUEUE_KEY, JSON.stringify(remaining));
+  if (!remaining.length) await loadDashboardStats();
+}
+
+window.flushOfflineMetrics = flushOfflineMetrics;
+window.addEventListener('online', flushOfflineMetrics);
 
 // ═══════════════════════════════════════════════════════════════
 // LEARNING — Module content (fully local — no extra API call)
@@ -595,314 +727,6 @@ async function submitMetric(type, extra = {}) {
 
 
 
-
- // ═══════════════════════════════════════════════════════════════
-// LEARNING — Dynamic Async JSON Engine
-// ═══════════════════════════════════════════════════════════════
-
-/**
- * Primary layout renderer orchestrating view composition from properties.
- */
-const MODULE_CONTENT = {
-  1: {
-    title: 'Week 1: Understanding Diabetes Risk',
-    body: 'Diabetes is a chronic condition that affects how your body processes blood sugar (glucose). Type 2 diabetes is largely preventable through healthy lifestyle choices including balanced nutrition, regular physical activity, and weight management.',
-    quiz: {
-      q: 'Which of the following is the most effective way to prevent Type 2 diabetes?',
-      opts: ['Smoking regularly', 'Regular exercise and healthy eating', 'Skipping meals', 'Drinking only soda'],
-      ans: 1
-    },
-    challenge: { title: 'Weekly Check-in', desc: 'Log your meals and activity for 3 days this week.' }
-  },
-  2: {
-    title: 'Week 2: Glucose & What You Eat',
-    body: 'Carbohydrates have the biggest impact on blood glucose levels. Understanding how different foods affect your blood sugar helps you make better choices throughout the day.',
-    quiz: {
-      q: 'Which nutrient has the greatest impact on blood glucose?',
-      opts: ['Protein', 'Carbohydrates', 'Fat', 'Vitamins'],
-      ans: 1
-    },
-    challenge: { title: 'Carb Tracker', desc: 'Track your carbohydrate intake for one full day.' }
-  },
-  3: {
-    title: 'Week 3: The Glycaemic Index',
-    body: 'The Glycaemic Index (GI) ranks foods by how quickly they raise blood sugar. Low-GI foods provide longer-lasting energy and help maintain stable glucose levels.',
-    quiz: {
-      q: 'Which food typically has the lowest Glycaemic Index?',
-      opts: ['White bread', 'Watermelon', 'Steel-cut oats', 'Cornflakes'],
-      ans: 2
-    },
-    challenge: { title: 'GI Swap', desc: 'Swap one high-GI food for a low-GI alternative this week.' }
-  },
-  4: {
-    title: 'Week 4: Physical Activity & Insulin',
-    body: 'Exercise improves how your body uses insulin and lowers blood glucose. Both aerobic and resistance training are important for diabetes prevention.',
-    quiz: {
-      q: 'How does physical activity affect insulin sensitivity?',
-      opts: ['It decreases sensitivity', 'It increases sensitivity', 'No effect', 'It replaces insulin'],
-      ans: 1
-    },
-    challenge: { title: 'Active Week', desc: 'Complete at least 150 minutes of moderate activity this week.' }
-  },
-  5: {
-    title: 'Week 5: Hydration & Kidney Health',
-    body: 'Proper hydration supports kidney function and helps your body regulate blood sugar. Water is the best choice for staying hydrated throughout the day.',
-    quiz: {
-      q: 'How much water should an average adult drink daily?',
-      opts: ['1 glass', '4 glasses', '8 glasses', '20 glasses'],
-      ans: 2
-    },
-    challenge: { title: 'Hydration Goal', desc: 'Drink at least 8 glasses of water every day this week.' }
-  },
-  6: {
-    title: 'Week 6: Weight Management',
-    body: 'Losing even 5-10% of your body weight can significantly reduce your risk of Type 2 diabetes. Sustainable weight management comes from consistent daily habits, not extreme diets.',
-    quiz: {
-      q: 'What percentage of body weight loss can reduce diabetes risk?',
-      opts: ['1-2%', '5-10%', '20-25%', 'No amount helps'],
-      ans: 1
-    },
-    challenge: { title: 'Mindful Eating', desc: 'Practice mindful eating at every meal for 3 consecutive days.' }
-  },
-  7: {
-    title: 'Week 7: Stress, Sleep & Blood Sugar',
-    body: 'Poor sleep and chronic stress raise cortisol, which can increase blood sugar. Prioritizing rest and stress management is essential for metabolic health.',
-    quiz: {
-      q: 'Which hormone released during stress raises blood sugar?',
-      opts: ['Insulin', 'Cortisol', 'Adrenaline only', 'Melatonin'],
-      ans: 1
-    },
-    challenge: { title: 'Sleep Routine', desc: 'Establish a consistent bedtime routine for 5 nights this week.' }
-  },
-  8: {
-    title: 'Week 8: Smoking & Diabetes Risk',
-    body: 'Smoking increases the risk of Type 2 diabetes by 30-40%. It also makes blood sugar harder to control for those already diagnosed.',
-    quiz: {
-      q: 'Approximately how much does smoking increase Type 2 diabetes risk?',
-      opts: ['No increase', '10-20%', '30-40%', '50-60%'],
-      ans: 2
-    },
-    challenge: { title: 'Smoke-Free Days', desc: 'Log every smoke-free day and identify one trigger to avoid.' }
-  },
-  9: {
-    title: 'Week 9: Alcohol & Blood Glucose',
-    body: 'Alcohol can cause dangerous spikes and drops in blood sugar. Moderation and never drinking on an empty stomach are key safety principles.',
-    quiz: {
-      q: 'Why is drinking alcohol on an empty stomach dangerous?',
-      opts: ['It speeds absorption', 'It causes hypoglycemia', 'It has no effect', 'It cures diabetes'],
-      ans: 1
-    },
-    challenge: { title: 'Alcohol Log', desc: 'Record all alcohol intake this week and note whether food was consumed.' }
-  },
-  10: {
-    title: 'Week 10: Reading Food Labels',
-    body: 'Food labels reveal hidden sugars, unhealthy fats, and excessive sodium. Learning to read them empowers you to make healthier grocery choices.',
-    quiz: {
-      q: 'What is the first thing to check on a nutrition label?',
-      opts: ['The logo', 'Serving size and calories', 'The price', 'The color'],
-      ans: 1
-    },
-    challenge: { title: 'Label Detective', desc: 'Read and compare nutrition labels for 5 different packaged foods.' }
-  },
-  11: {
-    title: 'Week 11: Building Long-term Habits',
-    body: 'Lasting change comes from small, repeatable habits. Focus on progress, not perfection, and build routines that fit your lifestyle.',
-    quiz: {
-      q: 'What is the best strategy for building lasting habits?',
-      opts: ['Radical overnight change', 'Small, consistent actions', 'Avoiding all treats', 'Copying others'],
-      ans: 1
-    },
-    challenge: { title: 'Habit Stack', desc: 'Add one new healthy habit to an existing morning routine.' }
-  },
-  12: {
-    title: 'Week 12: Program Review & Next Steps',
-    body: 'You have completed the 12-week DiabetesGuard program. Review your progress, celebrate your achievements, and plan how to maintain these healthy habits long-term.',
-    quiz: {
-      q: 'What is the most important takeaway from this program?',
-      opts: ['Diabetes cannot be prevented', 'Small consistent changes prevent Type 2 diabetes', 'Only medicine works', 'You must be perfect'],
-      ans: 1
-    },
-    challenge: { title: 'Future Plan', desc: 'Write down 3 healthy habits you will continue beyond this program.' }
-  }
-};
-
-function loadModule() {
-  const sel   = document.getElementById('weekSelector');
-  const week  = parseInt(sel?.value) || 1;
-
-  if (week > userCurrentWeek) {
-    renderLockedWeekState(week);
-    return;
-  }
-
-  const data = MODULE_CONTENT[week] || MODULE_CONTENT[1];
-
-  if (data.push_notification) {
-    triggerBrowserNotificationMock(data.push_notification);
-  }
-
-  const moduleEl = document.getElementById('moduleTarget') || document.getElementById('moduleContent');
-  if (moduleEl) {
-    moduleEl.innerHTML = `
-      <strong>${data.title}</strong>
-      <p style="margin-top:8px;color:var(--muted,#5A7A67);line-height:1.5;">${data.body}</p>
-      <div class="interactive-activity-box" style="margin-top:12px;padding:10px;background:#F4F9F6;border-left:3px solid #1A7A4A;border-radius:6px;font-size:13px;color:#0F2419;margin-bottom:12px;">
-        <strong>⚙️ Interactive Activity:</strong> Review the key points above and complete the weekly quiz.
-      </div>
-      <div class="challenge-box" style="margin-top:12px;padding:10px;background:#FEF9E7;border-left:3px solid #F5C842;border-radius:6px;font-size:13px;">
-        <strong>📝 Reflection:</strong> Think about how this week&rsquo;s topic applies to your daily life.
-      </div>
-    `;
-  }
-
-  if (data.quiz) renderQuiz(data.quiz);
-
-  const chalTitle = document.getElementById('challengeTitle');
-  const chalDesc  = document.getElementById('challengeDesc');
-  if (chalTitle) chalTitle.textContent = data.challenge?.title || 'Weekly Challenge';
-  if (chalDesc)  chalDesc.textContent  = data.challenge?.desc || '';
-
-  const chalFb = document.getElementById('challengeFeedback');
-  if (chalFb) chalFb.classList.add('hidden');
-
-  const completeBtn = document.getElementById('markCompleteBtn');
-  if (completeBtn) {
-    completeBtn.innerHTML = '<i class="fas fa-check-circle"></i> Mark as Complete (+30 pts)';
-    completeBtn.disabled  = false;
-    completeBtn.style.background = '';
-  }
-}
-
-/**
- * Renders an informative UI view if future/unearned weeks are programmatically requested.
- */
-function renderLockedWeekState(week) {
-  const moduleEl = document.getElementById('moduleTarget') || document.getElementById('moduleContent');
-  if (moduleEl) {
-    moduleEl.innerHTML = `
-      <div class="locked-week-notice" style="padding:20px; text-align:center; background:#F9F9F9; border:1px solid var(--border,#D4EBE0); border-radius:8px; color:var(--muted,#5A7A67);">
-        <i class="fas fa-lock" aria-hidden="true" style="margin-right:6px; color:#C0392B;"></i>
-        Week ${week} unlocks once you reach it in the 12-week program.
-        You're currently on Week ${userCurrentWeek}.
-      </div>
-    `;
-  }
-
-  const quizEl = document.getElementById('quizContent');
-  if (quizEl) {
-    quizEl.innerHTML = `<div class="locked-week-notice" style="text-align:center; padding:10px; color:#A0A0A0;"><i class="fas fa-lock" aria-hidden="true"></i> Not available yet.</div>`;
-  }
-
-  const chalTitle = document.getElementById('challengeTitle');
-  const chalDesc  = document.getElementById('challengeDesc');
-  if (chalTitle) chalTitle.textContent = 'Locked';
-  if (chalDesc)  chalDesc.textContent  = `This challenge unlocks in week ${week}.`;
-
-  const completeBtn = document.getElementById('markCompleteBtn');
-  if (completeBtn) {
-    completeBtn.innerHTML = '<i class="fas fa-lock"></i> Locked';
-    completeBtn.disabled  = true;
-    completeBtn.style.background = '#A0A0A0';
-  }
-}
-
-// Dropdown handler mappings
-function loadWeekModule() { loadModule(); }
-
-/**
- * Injects a visual mock popup representation for weekly push notifications
- */
-function triggerBrowserNotificationMock(messageText) {
-  let mockToast = document.getElementById('notificationToastMock');
-  if (!mockToast) {
-    mockToast = document.createElement('div');
-    mockToast.id = 'notificationToastMock';
-    mockToast.style.cssText = 'position:fixed; top:20px; right:20px; background:#0F2419; color:#FFF; padding:14px 18px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); z-index:9999; font-size:13px; max-width:320px; display:flex; flex-direction:column; gap:4px; border-left:4px solid #1A7A4A; transition: opacity 0.3s ease;';
-    document.body.appendChild(mockToast);
-  }
-  
-  mockToast.innerHTML = `<span style="font-weight:700; color:#D4EBE0; font-size:11px; text-transform:uppercase; tracking-letter:1px;">Push Notification Alert</span><div>${messageText}</div>`;
-  mockToast.style.opacity = '1';
-  mockToast.style.display = 'block';
-
-  setTimeout(() => {
-    mockToast.style.opacity = '0';
-    setTimeout(() => { mockToast.style.display = 'none'; }, 300);
-  }, 4500);
-}
-
-function renderQuiz(quiz) {
-  const el = document.getElementById('quizContent');
-  if (!el) return;
-
-  el.innerHTML = `
-    <p class="quiz-question" style="font-size:14px;font-weight:600;margin-bottom:10px">${quiz.q}</p>
-    <div class="quiz-options" style="display:flex;flex-direction:column;gap:8px">
-      ${quiz.opts.map((opt, i) =>
-        `<button class="quiz-option" onclick="answerQuiz(${i}, ${quiz.ans}, this)"
-          style="background:var(--green-pale,#EFF8F2);border:1.5px solid var(--border,#D4EBE0);border-radius:10px;
-                 padding:12px 14px;font-size:13px;cursor:pointer;text-align:left;color:var(--text,#0F2419); width:100%;">
-          ${opt}
-        </button>`
-      ).join('')}
-    </div>
-    <div id="quizResult" style="display:none;margin-top:10px;font-size:13px;font-weight:700;
-         text-align:center;padding:8px;border-radius:8px"></div>
-  `;
-}
-
-async function answerQuiz(chosen, correct, btn) {
-  document.querySelectorAll('.quiz-option').forEach(o => { o.disabled = true; });
-  const resultEl = document.getElementById('quizResult');
-
-  if (chosen === correct) {
-    btn.style.cssText += 'background:#E8F8F0;border-color:#1A7A4A;color:#0D4A2F;font-weight:700;';
-    if (resultEl) {
-      resultEl.textContent = '✅ Correct! +20 pts';
-      resultEl.style.cssText = 'display:block;background:#E8F8F0;color:#1A7A4A';
-    }
-    await submitMetric('quiz', { correct: true });
-  } else {
-    btn.style.cssText += 'background:#FDECEA;border-color:#E74C3C;color:#C0392B';
-    const opts = document.querySelectorAll('.quiz-option');
-    if (opts[correct]) opts[correct].style.cssText += 'background:#E8F8F0;border-color:#1A7A4A;color:#0D4A2F;font-weight:700;';
-    if (resultEl) {
-      resultEl.textContent = `❌ Incorrect. Correct answer: "${opts[correct]?.textContent.trim()}"`;
-      resultEl.style.cssText = 'display:block;background:#FDECEA;color:#C0392B';
-    }
-    await submitMetric('quiz', { correct: false });
-  }
-}
-
-async function markModuleComplete() {
-  const week = parseInt(document.getElementById('weekSelector')?.value) || 1;
-  if (week > userCurrentWeek) return; 
-  await submitMetric('module', { week });
-
-  const btn = document.getElementById('markCompleteBtn');
-  if (btn) {
-    btn.innerHTML  = '<i class="fas fa-check-circle"></i> Completed ✓';
-    btn.disabled   = true;
-    btn.style.background = '#5A7A67';
-  }
-}
-
-async function completeChallenge() {
-  const week = parseInt(document.getElementById('weekSelector')?.value) || 1;
-  if (week > userCurrentWeek) return; 
-  await submitMetric('challenge', { week });
-  showFeedback('challengeFeedback', '🏆 Challenge complete! +50 pts added.');
-}
-
-function openResource(type, e) {
-  if (e) e.preventDefault();
-  const msgs = {
-    video:       '📹 Video lessons will be available once the research team uploads content. Check back soon!',
-    infographic: '🖼️ Infographic packs are being prepared by the research coordinator.',
-    faq:         'Q: Can I prevent diabetes?\nA: Yes! Type 2 is largely preventable. This program shows you how.\n\nQ: How do I know if I\'m at risk?\nA: Key indicators: high BMI, poor diet, inactivity, smoking, family history.\n\nQ: What if I miss a day?\nA: Just pick up where you left off. Consistency over time matters more than perfection.',
-  };
-  alert(msgs[type] || 'Resource loading...');
-}
 
 // ═══════════════════════════════════════════════════════════════
 // GAMIFICATION — Leaderboard
@@ -948,7 +772,12 @@ async function loadLeaderboard() {
                       font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">
             ${i + 1}
           </div>
-          <span style="flex:1;font-size:13px;font-weight:600">${safeAlias}</span>
+          <span style="flex:1;min-width:0;font-size:13px;font-weight:600">${safeAlias}
+            <span class="leaderboard-badges">${(row.badges || []).map(badge => {
+              const presentation = getBadgePresentation(badge);
+              return `<span class="leaderboard-badge" title="${escapeHtml(presentation.label)}">${presentation.emoji}</span>`;
+            }).join('')}</span>
+          </span>
           ${isMe ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:#0D4A2F;padding:2px 6px;border-radius:999px">You</span>' : ''}
           <span style="font-size:13px;font-weight:800;color:#1A7A4A">${row.total_points} pts</span>
         </div>
@@ -975,12 +804,15 @@ async function loadProfile() {
   try {
     const data = await api('/profile');
 
+    PROFILE_FULL_NAME = data.username || SESSION?.username || '';
+
     setText('profileFullName', data.username || SESSION?.username || '—');
     setText('profileEmail',    data.email    || '—');
     setText('profileAlias',    data.anon_handle || SESSION?.anon_handle || '—');
 
   } catch (err) {
     console.warn('[loadProfile]', err.message);
+    PROFILE_FULL_NAME = SESSION?.username || '';
     // Fall back to whatever we already have in the session so the
     // tab isn't left saying "Loading..." forever on a network blip
     setText('profileFullName', SESSION?.username    || '—');
@@ -1021,69 +853,75 @@ function downloadCertificate() {
   }
 
   const { jsPDF } = window.jspdf;
+  const canvas = createCertificateCanvas();
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const W = 297, H = 210;
+  doc.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, W, H);
+  doc.save(`Dia_Shield_Certificate_${certificateName().replace(/\s+/g, '_')}.pdf`);
+}
 
-  // Background
-  doc.setFillColor(13, 74, 47);
-  doc.rect(0, 0, W, H, 'F');
+function certificateName() {
+  return PROFILE_FULL_NAME || SESSION?.username || 'Program Participant';
+}
 
-  // Gold border
-  doc.setDrawColor(245, 200, 66);
-  doc.setLineWidth(3);
-  doc.rect(10, 10, W - 20, H - 20, 'S');
+function createCertificateCanvas() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1600;
+  canvas.height = 1131;
+  const context = canvas.getContext('2d');
+  const center = canvas.width / 2;
 
-  // Title
-  doc.setTextColor(245, 200, 66);
-  doc.setFontSize(26);
-  doc.setFont('helvetica', 'bold');
-  doc.text('CERTIFICATE OF ACHIEVEMENT', W / 2, 48, { align: 'center' });
+  context.fillStyle = '#0d4a2f';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.strokeStyle = '#f5c842';
+  context.lineWidth = 18;
+  context.strokeRect(55, 55, canvas.width - 110, canvas.height - 110);
+  context.textAlign = 'center';
+  context.fillStyle = '#f5c842';
+  context.font = 'bold 68px Georgia';
+  context.fillText('CERTIFICATE OF ACHIEVEMENT', center, 260);
+  context.strokeStyle = '#f5c842';
+  context.lineWidth = 3;
+  context.beginPath();
+  context.moveTo(220, 300);
+  context.lineTo(canvas.width - 220, 300);
+  context.stroke();
+  context.fillStyle = '#ffffff';
+  context.font = '32px Georgia';
+  context.fillText('This certifies that', center, 405);
+  context.fillStyle = '#f5c842';
+  context.font = 'bold 70px Georgia';
+  context.fillText(certificateName(), center, 530);
+  context.fillStyle = '#ffffff';
+  context.font = '30px Georgia';
+  context.fillText('has successfully completed the', center, 635);
+  context.fillStyle = '#2ecc71';
+  context.font = 'bold 43px Georgia';
+  context.fillText('12-Week Dia Shield Lifestyle Intervention Program', center, 720);
+  context.fillStyle = '#ffffff';
+  context.font = '26px Georgia';
+  context.fillText('University of Owerri  ·  Diabetes Prevention Research Cohort', center, 805);
+  context.strokeStyle = '#f5c842';
+  context.beginPath();
+  context.moveTo(220, 885);
+  context.lineTo(canvas.width - 220, 885);
+  context.stroke();
+  context.font = '25px Georgia';
+  context.fillText(`Date Awarded: ${new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}`, center, 950);
+  context.fillStyle = '#f5c842';
+  context.font = '22px Georgia';
+  context.fillText('Dia Shield · Preventing Type 2 Diabetes Through Education & Lifestyle Change', center, 1045);
+  return canvas;
+}
 
-  // Divider line
-  doc.setDrawColor(245, 200, 66);
-  doc.setLineWidth(0.5);
-  doc.line(40, 56, W - 40, 56);
-
-  // Subtitle
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'normal');
-  doc.text('This certifies that', W / 2, 70, { align: 'center' });
-
-  // Participant name
-  doc.setTextColor(245, 200, 66);
-  doc.setFontSize(28);
-  doc.setFont('helvetica', 'bold');
-  doc.text(SESSION?.username || 'Program Participant', W / 2, 88, { align: 'center' });
-
-  // Body
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('has successfully completed the', W / 2, 102, { align: 'center' });
-
-  doc.setFontSize(17);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(46, 204, 113);
-  doc.text('12-Week DiabetesGuard Lifestyle Intervention Program', W / 2, 116, { align: 'center' });
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text('University of Owerri  ·  Diabetes Prevention Research Cohort', W / 2, 130, { align: 'center' });
-
-  // Date
-  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  doc.line(40, 148, W - 40, 148);
-  doc.setFontSize(11);
-  doc.text(`Date Awarded: ${today}`, W / 2, 158, { align: 'center' });
-
-  // Footer
-  doc.setTextColor(245, 200, 66);
-  doc.setFontSize(10);
-  doc.text('DiabetesGuard · Preventing Type 2 Diabetes Through Education & Lifestyle Change', W / 2, 190, { align: 'center' });
-
-  doc.save(`DiabetesGuard_Certificate_${(SESSION?.username || 'Participant').replace(/\s+/g, '_')}.pdf`);
+function downloadCertificateImage(format) {
+  const canvas = createCertificateCanvas();
+  const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+  const extension = format === 'jpeg' ? 'jpg' : 'png';
+  const link = document.createElement('a');
+  link.download = `Dia_Shield_Certificate_${certificateName().replace(/\s+/g, '_')}.${extension}`;
+  link.href = canvas.toDataURL(mimeType, 0.95);
+  link.click();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1121,9 +959,35 @@ function renderBadges(badges) {
     return;
   }
 
-  container.innerHTML = badges.map(badge =>
-    `<span class="badge-unit">${escapeHtml(badge)}</span>`
-  ).join('');
+  container.replaceChildren();
+  badges.forEach(badge => {
+    const badgeCard = document.createElement('div');
+    badgeCard.className = 'badge-unit';
+    const presentation = getBadgePresentation(badge);
+    badgeCard.append(
+      Object.assign(document.createElement('span'), { className: 'badge-emoji', textContent: presentation.emoji }),
+      Object.assign(document.createElement('span'), { className: 'badge-label', textContent: presentation.label }),
+    );
+    container.appendChild(badgeCard);
+  });
+}
+
+function getBadgePresentation(badge) {
+  const daily = String(badge).match(/^daily_w(\d+)_d(\d+)$/);
+  if (daily) return { emoji: '🎯', label: `Daily Champion · Week ${daily[1]}, Day ${daily[2]}` };
+
+  const weekly = String(badge).match(/^weekly_w(\d+)$/);
+  if (weekly) return { emoji: '🏆', label: `Weekly Champion · Week ${weekly[1]}` };
+
+  const standardBadges = {
+    first_log: ['🌱', 'First Healthy Log'], hydration: ['💧', 'Hydration Hero'],
+    active: ['🏃', 'Active Achiever'], streak3: ['🔥', '3-Day Streak'],
+    streak7: ['⚡', '7-Day Streak'], quiz_ace: ['🧠', 'Quiz Ace'],
+    challenge: ['🎖️', 'Challenge Champion'], week1: ['🛡️', 'Week One Complete'],
+    complete: ['🎓', 'Programme Complete'],
+  };
+  const [emoji, label] = standardBadges[badge] || ['🏅', String(badge).replace(/_/g, ' ')];
+  return { emoji, label };
 }
 
 function capitalize(str) {

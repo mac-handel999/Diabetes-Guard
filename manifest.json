@@ -1,21 +1,28 @@
 {
-  "short_name": "DiaShield",
-  "name": "DiaShield - Diabetes Prevention Program",
+  "id": "/",
+  "lang": "en",
+  "short_name": "Dia Shield",
+  "name": "Dia Shield — Diabetes Prevention Program",
+  "description": "A 12-week diabetes prevention and health tracking programme.",
   "icons": [
     {
-      "src": "Images/diabetes-guard-logo.png",
+      "src": "/Images/dia-shield-icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "Images/diabetes-guard-logo.png",
+      "src": "/Images/dia-shield-icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": "/",
-  "background_color": "#ffffff",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "background_color": "#eaf3f1",
   "theme_color": "#1A7A4A",
+  "display_override": ["window-controls-overlay", "standalone"],
   "display": "standalone",
   "orientation": "portrait"
 }

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dia Shield — Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin-theme.css">
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    .admin-participant-badges { display:inline-flex; gap:3px; margin-left:6px; vertical-align:middle; }
+    .admin-participant-badge { display:inline-grid; width:20px; height:20px; place-items:center; border-radius:50%; background:#e8f8f0; font-size:12px; }
+    .table-action { padding:5px 8px; border:1px solid #d4ebe0; border-radius:6px; color:#0b4f4a; background:#fff; cursor:pointer; font:inherit; font-size:11px; font-weight:700; }
+    .danger-action { color:#b42318; border-color:#f2c5bf; }
+    .detail-modal { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:20px; background:#0b4f4a66; }
+    .detail-modal-card { width:min(100%, 980px); max-height:90vh; overflow:auto; padding:20px; border-radius:14px; background:#fff; box-shadow:0 20px 60px #0b4f4a33; }
+    .detail-modal-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px; }
+    .detail-modal-header h2 { margin:0; color:#0b4f4a; }
+    .detail-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-bottom:18px; }
+    .detail-modal-card h3 { margin:18px 0 10px; color:#0b4f4a; font-size:15px; }
+    .detail-badge-list { min-height:24px; }
+    @media(max-width:600px){.detail-summary{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  </style>
+</head>
+<body>
+  <main class="admin-shell">
+    <section id="adminLogin" class="admin-login-panel">
+      <div class="brand-mark"><img src="Images/dia-shield-logo.svg" alt="Dia Shield logo" class="admin-logo" onerror="this.onerror=null;this.src='Images/dia-shield-icon-192.png'"></div>
+      <p class="eyebrow">Research administration</p>
+      <h1>Dia Shield Admin Dashboard</h1>
+      <p>Sign in with an authorised research-team account.</p>
+      <form id="adminLoginForm">
+        <label>Email<input id="adminEmail" type="email" autocomplete="username" required></label>
+        <label>Password<input id="adminPassword" type="password" autocomplete="current-password" required></label>
+        <button class="primary-button" type="submit">Sign in</button>
+        <p id="adminLoginMessage" class="form-message" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="adminApp" hidden>
+      <header class="admin-header">
+        <div class="admin-brand"><img src="Images/dia-shield-logo.svg" alt="Dia Shield logo" class="admin-logo" onerror="this.onerror=null;this.src='Images/dia-shield-icon-192.png'"><div><p class="eyebrow">Research administration</p><h1>Dia Shield Admin Dashboard</h1></div></div>
+        <div class="header-actions"><span class="user"><i class="fas fa-user" aria-hidden="true"></i><span id="adminIdentity">Research team</span></span><button id="adminLogout" class="logout-btn">Log out</button></div>
+      </header>
+
+      <nav class="admin-nav" aria-label="Admin sections">
+        <button class="nav-button active" data-section="overview">Overview</button>
+        <button class="nav-button" data-section="participants">Participants</button>
+        <button class="nav-button" data-section="delivery">Intervention Delivery</button>
+        <button class="nav-button" data-section="learning">Module Learning</button>
+        <button class="nav-button" data-section="challenges">Goals &amp; Challenges</button>
+        <button class="nav-button" data-section="engagement">Engagement</button>
+        <button class="nav-button" data-section="outcomes">Research Outcomes</button>
+        <button class="nav-button" data-section="alerts">Alerts</button>
+      </nav>
+
+      <p id="adminStatus" class="admin-status" role="status"></p>
+
+      <section id="section-overview" class="admin-section active">
+        <div class="section-heading"><div><p class="eyebrow">Study overview</p><h2>Cohort progress and retention</h2></div><button id="refreshDashboard" class="ghost-button"><i class="fas fa-rotate"></i> Refresh</button></div>
+        <div id="overviewCards" class="metric-grid"></div>
+        <div class="dashboard-grid"><article class="panel"><h3>12-week intervention progress</h3><div id="overviewWeeks" class="table-wrap"></div></article><article class="panel"><h3>Automatic alerts</h3><div id="overviewAlerts"></div></article></div>
+      </section>
+
+      <section id="section-participants" class="admin-section">
+        <div class="section-heading"><div><p class="eyebrow">Participants</p><h2>Participant engagement register</h2></div><button id="exportParticipants" class="ghost-button">Export CSV</button></div>
+        <article class="panel"><div class="table-wrap"><table><thead><tr><th>Participant</th><th>Assigned</th><th>Opened</th><th>Completed</th><th>Quiz</th><th>Challenges</th><th>Last login</th><th>Status</th><th>Actions</th></tr></thead><tbody id="participantsTable"></tbody></table></div></article>
+      </section>
+
+      <section id="section-delivery" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Intervention delivery</p><h2>Weekly module exposure</h2></div></div><article class="panel"><div id="deliveryTable" class="table-wrap"></div></article></section>
+      <section id="section-learning" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Module learning</p><h2>Quiz performance by week</h2></div></div><article class="panel"><div id="learningTable" class="table-wrap"></div></article></section>
+      <section id="section-challenges" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Goals &amp; challenges</p><h2>Challenge completion</h2></div></div><article class="panel"><div id="challengeTable" class="table-wrap"></div></article></section>
+      <section id="section-engagement" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Engagement and retention</p><h2>Activity health</h2></div></div><div id="engagementCards" class="metric-grid"></div><article class="panel"><div id="engagementTable" class="table-wrap"></div></article></section>
+
+      <section id="section-outcomes" class="admin-section">
+        <div class="section-heading"><div><p class="eyebrow">Research outcomes</p><h2>Baseline and endline assessments</h2></div><button id="exportOutcomes" class="ghost-button">Export JSON</button></div>
+        <article class="panel"><p class="panel-note">Apply <code>supabase/admin-schema.sql</code> before entering outcomes. BMI is calculated automatically when weight and height are supplied.</p><form id="assessmentForm" class="assessment-form"><label>Participant<select id="assessmentParticipant" required></select></label><label>Phase<select id="assessmentPhase"><option value="baseline">Baseline</option><option value="endline">Endline</option></select></label><label>Measured date<input id="measuredDate" type="date" required></label><label>Measured time<input id="measuredTime" type="time"></label><label>Weight (kg)<input id="weight" type="number" min="0" step="0.1"></label><label>Height (cm)<input id="height" type="number" min="0" step="0.1"></label><label>BMI<input id="bmi" type="number" min="0" step="0.1" readonly></label><label>Blood glucose value<input id="glucose" type="number" min="0" step="0.1"></label><label>Fasting/random status<input id="glucoseStatus" placeholder="Fasting or random"></label><label>Total knowledge score<input id="knowledgeScore" type="number" min="0" step="0.1"></label><label>Knowledge domain scores<input id="knowledgeDomains" placeholder="JSON or notes"></label><label>Total perception score<input id="perceptionScore" type="number" min="0" step="0.1"></label><label>Perception subscales<input id="perceptionSubscales" placeholder="JSON or notes"></label><label>Family history<input id="familyHistory"></label><label>Physical activity<input id="physicalActivity"></label><label>Dietary practices<input id="dietaryPractices"></label><label>Smoking<input id="smoking"></label><label>Alcohol<input id="alcohol"></label><button class="primary-button" type="submit">Save assessment</button><p id="assessmentMessage" class="form-message"></p></form></article>
+        <article class="panel"><h3>Recorded assessments and baseline → endline change</h3><div id="outcomesTable" class="table-wrap"></div></article>
+      </section>
+
+      <section id="section-alerts" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Alerts</p><h2>Follow-up queue</h2></div></div><article class="panel"><div id="alertsTable"></div></article></section>
+
+      <div id="participantDetailModal" class="detail-modal" hidden role="dialog" aria-modal="true" aria-labelledby="participantDetailTitle">
+        <div class="detail-modal-card">
+          <div class="detail-modal-header"><h2 id="participantDetailTitle">Participant details</h2><button id="closeParticipantDetail" class="ghost-button" type="button">Close</button></div>
+          <div id="participantDetailContent"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>

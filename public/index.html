@@ -4,22 +4,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DiaShield — Diabetes Prevention & Health Tracker</title>
-<meta name="title" content="DiaShield — Diabetes Prevention & Health Tracker" />
+<title>Dia Shield — Diabetes Prevention & Health Tracker</title>
+<meta name="title" content="Dia Shield — Diabetes Prevention & Health Tracker" />
 <meta name="description"
   content="Empowering young adults and students with interactive diabetes prevention, daily health habits, risk assessments, and lifestyle tracking." />
 <meta name="keywords"
-  content="diabetes prevention, DiaShield, young adult health, Type 2 diabetes risk, student wellness, diabetes education, healthy habits tracker, BMI calculator, lifestyle intervention" />
+  content="diabetes prevention, Dia Shield, young adult health, Type 2 diabetes risk, student wellness, diabetes education, healthy habits tracker, BMI calculator, lifestyle intervention" />
 <meta name="author" content="Fabian Codes HQ" />
-  <link rel="icon" href="Images/diabetes-guard-logo.png" type="image/png">
+  <link rel="icon" href="Images/dia-shield-logo.svg" type="image/svg">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 
   <!-- Inside <head> -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1A7A4A">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="apple-touch-icon" href="Images/diabetes-guard-logo.png">
+  <link rel="apple-touch-icon" href="Images/dia-shield-icon-192.png">
 </head>
 
 <body>
@@ -29,10 +28,10 @@
     <div id="authGateway" class="auth-wrapper">
       <div class="app-header">
         <div class="app-logo">
-          <img src="Images/diabetes-guard-logo-Photoroom.png" alt="Diabetes Guard Logo" class="logo-image"
+          <img src="Images/dia-shield-logo.svg" alt="Dia Shield Logo" class="logo-image"
             onerror="this.closest('.app-logo').style.display='none'">
         </div>
-        <!-- <h1><i class="fas fa-shield-alt" aria-hidden="true"></i> Diabetes Guard</h1> -->
+        <!-- <h1><i class="fas fa-shield-alt" aria-hidden="true"></i> Dia Shield</h1> -->
         <p>Authentication Panel</p>
       </div>
 
@@ -69,10 +68,20 @@
     </div>
 
     <div id="cohortWorkspace" style="display: none;">
-      <div class="app-header">
+      <div class="app-header dashboard-header">
         <div class="app-logo">
-          <img src="Images/diabetes-guard-logo-Photoroom.png" alt="Diabetes Guard Logo" class="logo-image"
-            onerror="this.closest('.app-logo').style.display='none'">
+        <!-- DiaShield Header Brand Component -->
+        <a href="#" class="brand-logo" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none;">
+          <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 50,5 L 85,20 C 85,60 70,85 50,98 C 30,85 15,60 15,20 Z" fill="#0F2419" stroke="#00F5A0"
+              stroke-width="3" />
+            <path d="M 28,50 L 38,50 L 43,38 L 49,62 L 55,42 L 59,52 L 63,50 L 72,50" stroke="#00F5A0" stroke-width="4"
+              stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span style="font-size: 20px; font-weight: 800; color: #0F2419; letter-spacing: -0.5px;">
+            Dia<span style="font-weight: 400; color: #1A7A4A;">Shield</span>
+          </span>
+        </a>
         </div>
         <div class="header-top-row">
           <span class="user"><i class="fas fa-user" aria-hidden="true"></i>
@@ -170,6 +179,17 @@
             <option value="12">Week 12: Program Review &amp; Next Steps</option>
           </select>
 
+          <label for="daySelector" class="visually-hidden">Select curriculum day</label>
+          <select id="daySelector" onchange="loadDayModule()" style="margin-top:10px;">
+            <option value="1">Day 1</option>
+            <option value="2">Day 2</option>
+            <option value="3">Day 3</option>
+            <option value="4">Day 4</option>
+            <option value="5">Day 5</option>
+            <option value="6">Day 6</option>
+            <option value="7">Day 7</option>
+          </select>
+
           <div id="moduleTarget" class="curriculum-display-box">Loading...</div>
 
           <button id="markCompleteBtn" class="action-btn wide-btn" onclick="markModuleComplete()"
@@ -179,8 +199,17 @@
         </div>
 
         <div class="card">
-          <h3><i class="fas fa-question-circle" aria-hidden="true"></i> Weekly Quiz</h3>
+          <h3><i class="fas fa-question-circle" aria-hidden="true"></i> Daily Quiz</h3>
           <div id="quizContent" role="status" aria-live="polite">Loading quiz...</div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-calendar-check" aria-hidden="true"></i> Daily Challenge</h3>
+          <p id="dailyChallengeTitle" class="challenge-title"></p>
+          <p id="dailyChallengeDesc" class="card-subtitle"></p>
+          <button id="completeDailyChallengeBtn" class="action-btn wide-btn" onclick="completeDailyChallenge()">
+            <i class="fas fa-star" aria-hidden="true"></i> Complete Daily Challenge (+20 pts)
+          </button>
         </div>
 
         <div class="card">
@@ -220,6 +249,16 @@
           <div class="profile-field">
             <span class="profile-label">Leaderboard Alias</span>
             <span id="profileAlias" class="profile-value">Loading...</span>
+          </div>
+        </div>
+
+        <div id="certCard" class="card certificate-card" style="display:none;">
+          <h3><i class="fas fa-certificate" aria-hidden="true"></i> Certificate of Completion</h3>
+          <p class="card-subtitle">Download your Dia Shield completion certificate using your registered full name.</p>
+          <div class="certificate-actions">
+            <button class="action-btn" onclick="downloadCertificate()"><i class="fas fa-file-pdf" aria-hidden="true"></i> Download PDF</button>
+            <button class="action-btn" onclick="downloadCertificateImage('png')"><i class="fas fa-image" aria-hidden="true"></i> Download PNG</button>
+            <button class="action-btn" onclick="downloadCertificateImage('jpeg')"><i class="fas fa-image" aria-hidden="true"></i> Download JPEG</button>
           </div>
         </div>
 
@@ -289,11 +328,12 @@ t">
   </div>
 
   <footer class="app-footer">
-    <p>&copy; 2026 Diabetes Guard. All rights reserved.</p>
+    <p>&copy; 2026 Dia Shield. All rights reserved.</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="main.js"></script>
   <script src="pwa.js"></script>
-</body>
+  <script src="modules.js"></script>
 
 </html>

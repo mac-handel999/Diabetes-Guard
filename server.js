@@ -1,5 +1,5 @@
 /**
- * DiabetesGuard — server.js
+ * Dia Shield — server.js
  * Version: 2.2 (Correction pass)
  *
  * Correction in this pass:
@@ -46,11 +46,17 @@ const cors      = require('cors');
 const helmet    = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path      = require('path');
+const crypto    = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const WebSocket = require('ws');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const ADMIN_EMAILS = new Set(
+  (process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')
+    .split(',').map(email => email.trim().toLowerCase()).filter(Boolean),
+);
 
 // ─────────────────────────────────────────────
 // SUPABASE  (service role — server-side only)
@@ -74,6 +80,47 @@ const supabase = createClient(
   }
 
 );
+
+const SESSION_TICKET_SECRET = process.env.SESSION_TICKET_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function createSessionTicket(userId, expiresAt) {
+  const payload = Buffer.from(JSON.stringify({ userId, expiresAt })).toString('base64url');
+  const signature = crypto.createHmac('sha256', SESSION_TICKET_SECRET).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+function verifySessionTicket(ticket) {
+  if (typeof ticket !== 'string') return null;
+
+  const [payload, signature] = ticket.split('.');
+  if (!payload || !signature) return null;
+
+  const expected = crypto.createHmac('sha256', SESSION_TICKET_SECRET).update(payload).digest('base64url');
+  const receivedBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expected);
+  if (receivedBuffer.length !== expectedBuffer.length ||
+      !crypto.timingSafeEqual(receivedBuffer, expectedBuffer)) return null;
+
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!data.userId || !Number.isFinite(data.expiresAt) || Date.now() >= data.expiresAt) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+async function buildSessionResponse(authSession, userId, profile, sessionTicket, expiresAt) {
+  return {
+    access_token:    authSession.access_token,
+    refresh_token:   authSession.refresh_token,
+    user_id:         userId,
+    username:        profile.username,
+    anon_handle:     profile.anon_handle,
+    session_ticket:  sessionTicket,
+    session_expires_at: expiresAt,
+  };
+}
 
 // ─────────────────────────────────────────────
 // MIDDLEWARE
@@ -120,6 +167,10 @@ const POINTS_MAP = {
   module:    30,
   quiz:      20,   // only awarded on correct answers (checked in route)
   challenge: 50,
+  daily_challenge: 20,
+  weekly_challenge: 50,
+  module_opened:    0,
+  behaviour:        0,
 };
 
 /**
@@ -137,6 +188,8 @@ const DAILY_METRIC_CAP = {
   module:    3,
   quiz:      12,
   challenge: 1,
+  daily_challenge: 1,
+  weekly_challenge: 1,
 };
 
 /** All badge definitions + their unlock conditions */
@@ -196,15 +249,37 @@ async function verifyJWT(req, res, next) {
   }
 
   const token = header.split(' ')[1];
+  const sessionTicket = verifySessionTicket(req.headers['x-session-ticket']);
+  if (!sessionTicket) {
+    return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
+  }
+
   const { data: { user }, error } = await supabase.auth.getUser(token);
 
   if (error || !user) {
     return res.status(403).json({ error: 'Invalid or expired session. Please sign in again.' });
   }
 
+  if (sessionTicket.userId !== user.id) {
+    return res.status(403).json({ error: 'Invalid session. Please sign in again.' });
+  }
+
   req.user = user;
   req.token = token; // needed by /auth/logout to attempt server-side revocation
   next();
+}
+
+async function verifyAdmin(req, res, next) {
+  await verifyJWT(req, res, () => {
+    if (!ADMIN_EMAILS.size) {
+      return res.status(503).json({ error: 'Admin access is not configured. Set ADMIN_EMAILS in the server environment.' });
+    }
+    const email = req.user?.email?.toLowerCase();
+    if (!email || !ADMIN_EMAILS.has(email)) {
+      return res.status(403).json({ error: 'Administrator access is required.' });
+    }
+    next();
+  });
 }
 
 // ─────────────────────────────────────────────
@@ -361,18 +436,77 @@ app.post('/api/v1/auth/login', async (req, res) => {
       return res.status(404).json({ error: 'Profile not found. Please contact support.' });
     }
 
+    await supabase.from('research_analytics').insert({
+      user_id: authData.user.id,
+      metric_type: 'login',
+      metadata: {},
+      logged_date: todayStr(),
+      logged_at: new Date().toISOString(),
+    });
+
+    const sessionExpiresAt = Date.now() + SESSION_TTL_MS;
+    const sessionTicket = createSessionTicket(authData.user.id, sessionExpiresAt);
+
     return res.json({
-      session: {
-        access_token: authData.session.access_token,
-        user_id:      authData.user.id,
-        username:     profile.username,
-        anon_handle:  profile.anon_handle,   // ← needed for leaderboard "You" label
-      },
+      session: await buildSessionResponse(
+        authData.session,
+        authData.user.id,
+        profile,
+        sessionTicket,
+        sessionExpiresAt,
+      ),
     });
 
   } catch (err) {
     console.error('[login]', err.message);
     return res.status(500).json({ error: 'Login failed. Please try again.' });
+  }
+});
+
+/**
+ * POST /api/v1/auth/refresh
+ * Refreshes Supabase's short-lived access token while preserving the
+ * server-enforced seven-day absolute session lifetime.
+ */
+app.post('/api/v1/auth/refresh', async (req, res) => {
+  const { refreshToken, sessionTicket } = req.body || {};
+  const ticket = verifySessionTicket(sessionTicket);
+
+  if (!refreshToken || !ticket) {
+    return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
+  }
+
+  try {
+    const { data, error } = await supabase.auth.refreshSession({ refresh_token: refreshToken });
+    const refreshedUser = data?.user;
+    const refreshedSession = data?.session;
+
+    if (error || !refreshedUser || !refreshedSession || refreshedUser.id !== ticket.userId) {
+      return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('username, anon_handle')
+      .eq('id', refreshedUser.id)
+      .single();
+
+    if (profileError || !profile) {
+      return res.status(404).json({ error: 'Profile not found. Please contact support.' });
+    }
+
+    return res.json({
+      session: await buildSessionResponse(
+        refreshedSession,
+        refreshedUser.id,
+        profile,
+        sessionTicket,
+        ticket.expiresAt,
+      ),
+    });
+  } catch (err) {
+    console.error('[refresh]', err.message);
+    return res.status(401).json({ error: 'Your session has expired. Please sign in again.' });
   }
 });
 
@@ -473,7 +607,7 @@ app.delete('/api/v1/account', verifyJWT, async (req, res) => {
  * Returns: { success, points, badges }
  */
 app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
-  const { metric_type, correct, ...extra } = req.body;
+  const { metric_type, correct, badge, ...extra } = req.body;
   const uid   = req.user.id;
   const today = todayStr();
 
@@ -567,7 +701,7 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
       }, { onConflict: 'user_id' });
     }
 
-    if (metric_type === 'challenge') {
+    if (['challenge', 'daily_challenge', 'weekly_challenge'].includes(metric_type)) {
       await supabase.from('program_progress').upsert({
         user_id:         uid,
         challenges_done: (prog?.challenges_done ?? 0) + 1,
@@ -589,11 +723,19 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
       activity_total:    logs.filter(l => l.metric_type === 'activity').length,
       streak:            newStreak,
       quiz_correct:      logs.filter(l => l.metric_type === 'quiz' && l.metadata?.correct === true).length,
-      challenge_total:   logs.filter(l => l.metric_type === 'challenge').length,
+      challenge_total:   logs.filter(l => ['challenge', 'daily_challenge', 'weekly_challenge'].includes(l.metric_type)).length,
       modules_complete:  (prog?.modules_complete ?? 0) + (metric_type === 'module' ? 1 : 0),
     };
 
-    const { allBadges } = evaluateBadges(prog?.badges ?? [], snapshot);
+    const { allBadges: evaluatedBadges } = evaluateBadges(prog?.badges ?? [], snapshot);
+    const expectedBadge = metric_type === 'daily_challenge'
+      ? /^daily_w(?:[1-9]|1[0-2])_d[1-7]$/
+      : metric_type === 'weekly_challenge'
+        ? /^weekly_w(?:[1-9]|1[0-2])$/
+        : null;
+    const allBadges = expectedBadge?.test(badge) && !evaluatedBadges.includes(badge)
+      ? [...evaluatedBadges, badge]
+      : evaluatedBadges;
 
     // ── 8. Persist badges if any new ones were earned ────────
     if (allBadges.length !== (prog?.badges ?? []).length) {
@@ -674,11 +816,18 @@ app.get('/api/v1/metrics/leaderboard', async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('user_points')
-      .select('total_points, profiles(anon_handle)')
+      .select('user_id, total_points, profiles(anon_handle)')
       .order('total_points', { ascending: false })
       .limit(20);
 
     if (error) throw error;
+
+    const userIds = (data || []).map(row => row.user_id).filter(Boolean);
+    const { data: progressRows, error: progressError } = userIds.length
+      ? await supabase.from('program_progress').select('user_id, badges').in('user_id', userIds)
+      : { data: [], error: null };
+    if (progressError) throw progressError;
+    const badgesByUser = new Map((progressRows || []).map(row => [row.user_id, row.badges || []]));
 
     // Filter out any rows where the profiles join returned null
     const board = (data || [])
@@ -686,6 +835,7 @@ app.get('/api/v1/metrics/leaderboard', async (req, res) => {
       .map(row => ({
         anon_handle:  row.profiles.anon_handle,
         total_points: row.total_points,
+        badges:      badgesByUser.get(row.user_id) || [],
       }));
 
     return res.json(board);
@@ -731,6 +881,231 @@ app.get('/api/v1/program/week', verifyJWT, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
+// ADMIN DASHBOARD
+// ─────────────────────────────────────────────
+
+function percent(value, total) {
+  return total ? Math.round((value / total) * 1000) / 10 : 0;
+}
+
+function daysSince(date) {
+  if (!date) return null;
+  return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 86400000));
+}
+
+app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
+  try {
+    const [profilesRes, pointsRes, progressRes, logsRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, anon_handle, enrolled_at'),
+      supabase.from('user_points').select('user_id, total_points, streak, last_log_date'),
+      supabase.from('program_progress').select('user_id, current_week, modules_complete, challenges_done, badges'),
+      supabase.from('research_analytics').select('user_id, metric_type, metadata, logged_date, logged_at'),
+    ]);
+
+    const firstError = [profilesRes, pointsRes, progressRes, logsRes].find(result => result.error)?.error;
+    if (firstError) throw firstError;
+
+    const profiles = profilesRes.data || [];
+    const pointsByUser = new Map((pointsRes.data || []).map(row => [row.user_id, row]));
+    const progressByUser = new Map((progressRes.data || []).map(row => [row.user_id, row]));
+    const logs = logsRes.data || [];
+    const logsByUser = new Map();
+    logs.forEach(log => {
+      if (!logsByUser.has(log.user_id)) logsByUser.set(log.user_id, []);
+      logsByUser.get(log.user_id).push(log);
+    });
+
+    const participantRows = profiles.map(profile => {
+      const userLogs = logsByUser.get(profile.id) || [];
+      const progress = progressByUser.get(profile.id) || {};
+      const userPoints = pointsByUser.get(profile.id) || {};
+      const lastActivity = userLogs.reduce((latest, log) =>
+        !latest || new Date(log.logged_at) > new Date(latest.logged_at) ? log : latest, null);
+      const loginLogs = userLogs.filter(log => log.metric_type === 'login');
+      const quizLogs = userLogs.filter(log => log.metric_type === 'quiz');
+      const challenges = userLogs.filter(log => ['challenge', 'daily_challenge', 'weekly_challenge'].includes(log.metric_type));
+      const inactiveDays = daysSince(lastActivity?.logged_at || profile.enrolled_at);
+      const currentWeek = progress.current_week || 1;
+      const moduleCompleted = progress.modules_complete || userLogs.filter(log => log.metric_type === 'module').length;
+      const recentLogs = userLogs.filter(log => daysSince(log.logged_at) < 7 && log.metric_type !== 'login').length;
+      const previousLogs = userLogs.filter(log => { const age = daysSince(log.logged_at); return age >= 7 && age < 14 && log.metric_type !== 'login'; }).length;
+
+      return {
+        id: profile.id,
+        participant: profile.anon_handle || profile.username || profile.id,
+        username: profile.username,
+        badges: progress.badges || [],
+        moduleAssigned: Math.min(12, Math.max(1, progress.current_week || 1)),
+        moduleOpened: userLogs.filter(log => log.metric_type === 'module_opened').length,
+        moduleCompleted,
+        activitiesCompleted: userLogs.filter(log => ['activity', 'food', 'water', 'weight', 'behaviour'].includes(log.metric_type)).length,
+        quizCompleted: new Set(quizLogs.map(log => `${log.metadata?.week || ''}-${log.metadata?.day || ''}`)).size,
+        quizScore: percent(quizLogs.filter(log => log.metadata?.correct === true).length, quizLogs.length),
+        quizAttempts: quizLogs.length,
+        challengesCompleted: challenges.filter(log => log.metric_type !== 'challenge' || log.metadata?.completed !== false).length,
+        lastLogin: loginLogs.at(-1)?.logged_at || null,
+        lastActivity: lastActivity?.logged_at || null,
+        daysInactive: inactiveDays,
+        status: inactiveDays >= 14 ? 'inactive' : 'active',
+        completedProgram: moduleCompleted >= 12,
+        missedModules: currentWeek >= 3 && moduleCompleted < currentWeek - 1,
+        decliningEngagement: previousLogs >= 2 && recentLogs < previousLogs,
+      };
+    });
+
+    const weekMetrics = Array.from({ length: 12 }, (_, index) => {
+      const week = index + 1;
+      const weekLogs = logs.filter(log => Number(log.metadata?.week) === week);
+      const opened = new Set(weekLogs.filter(log => log.metric_type === 'module_opened').map(log => log.user_id)).size;
+      const completed = new Set(weekLogs.filter(log => log.metric_type === 'module').map(log => log.user_id)).size;
+      const quizzes = weekLogs.filter(log => log.metric_type === 'quiz');
+      const quizParticipants = new Set(quizzes.map(log => log.user_id)).size;
+      const activities = new Set(weekLogs.filter(log => ['activity', 'food', 'water', 'weight', 'behaviour'].includes(log.metric_type)).map(log => log.user_id)).size;
+      const challenges = new Set(weekLogs.filter(log => ['challenge', 'weekly_challenge'].includes(log.metric_type)).map(log => log.user_id)).size;
+
+      return {
+        week,
+        assigned: profiles.length,
+        opened,
+        completed,
+        completionRate: percent(completed, profiles.length),
+        quizCompleted: quizParticipants,
+        averageQuizScore: percent(quizzes.filter(log => log.metadata?.correct === true).length, quizzes.length),
+        dailyActivitiesCompleted: activities,
+        weeklyChallengeCompleted: challenges,
+      };
+    });
+
+    const challengeGroups = {};
+    logs.filter(log => ['challenge', 'daily_challenge', 'weekly_challenge'].includes(log.metric_type)).forEach(log => {
+      const name = log.metadata?.challenge_type || log.metadata?.challenge ||
+        (log.metric_type === 'weekly_challenge' ? 'Weekly challenge' : 'Daily challenge');
+      if (!challengeGroups[name]) challengeGroups[name] = { name, assigned: profiles.length, attempted: new Set(), completed: new Set() };
+      challengeGroups[name].attempted.add(log.user_id);
+      if (log.metadata?.completed !== false) challengeGroups[name].completed.add(log.user_id);
+    });
+
+    const activeUsers = participantRows.filter(row => row.daysInactive !== null && row.daysInactive < 14).length;
+    return res.json({
+      overview: {
+        participants: profiles.length,
+        activeUsers,
+        retentionRate: percent(activeUsers, profiles.length),
+        modulesCompleted: participantRows.filter(row => row.completedProgram).length,
+        quizzesCompleted: participantRows.reduce((sum, row) => sum + row.quizCompleted, 0),
+        challengesCompleted: participantRows.reduce((sum, row) => sum + row.challengesCompleted, 0),
+        alerts: participantRows.filter(row => row.daysInactive >= 14 || row.completedProgram || row.missedModules || row.decliningEngagement).length,
+      },
+      weeks: weekMetrics,
+      challenges: Object.values(challengeGroups).map(group => ({
+        name: group.name,
+        assigned: group.assigned,
+        attempted: group.attempted.size,
+        completed: group.completed.size,
+        completionRate: percent(group.completed.size, group.assigned),
+      })),
+      participants: participantRows,
+      alerts: participantRows.filter(row => row.daysInactive >= 14 || row.completedProgram || row.missedModules || row.decliningEngagement).map(row => ({
+        participant: row.participant,
+        type: row.completedProgram ? 'completed' : row.daysInactive >= 14 ? 'inactive' : row.missedModules ? 'missed' : 'declining',
+        message: row.completedProgram ? 'Completed all 12 weeks.' : row.daysInactive >= 14 ? `No activity for ${row.daysInactive} days.` : row.missedModules ? 'Missed two or more consecutive modules.' : 'Engagement is declining compared with the previous 7 days.',
+      })),
+    });
+  } catch (err) {
+    console.error('[admin/overview]', err.message);
+    return res.status(500).json({ error: 'Could not load admin dashboard data.' });
+  }
+});
+
+app.get('/api/v1/admin/assessments', verifyAdmin, async (req, res) => {
+  const { data, error } = await supabase
+    .from('research_assessments')
+    .select('id, participant_id, phase, data, measured_at, created_at')
+    .order('measured_at', { ascending: false });
+  if (error) return res.status(500).json({ error: 'Research assessment storage is not ready. Apply the admin schema migration.' });
+  return res.json(data || []);
+});
+
+app.post('/api/v1/admin/assessments', verifyAdmin, async (req, res) => {
+  const records = Array.isArray(req.body) ? req.body : [req.body];
+  if (!records.length || records.some(record => !record.participant_id || !['baseline', 'endline'].includes(record.phase))) {
+    return res.status(400).json({ error: 'Each assessment needs participant_id and phase (baseline or endline).' });
+  }
+
+  const rows = records.map(record => ({
+    participant_id: record.participant_id,
+    phase: record.phase,
+    data: record.data || {},
+    measured_at: record.measured_at || new Date().toISOString(),
+    recorded_by: req.user.id,
+  }));
+  const { data, error } = await supabase
+    .from('research_assessments')
+    .upsert(rows, { onConflict: 'participant_id,phase' })
+    .select('id, participant_id, phase, data, measured_at, created_at');
+  if (error) return res.status(500).json({ error: 'Could not save research assessments.' });
+  return res.json(data || []);
+});
+
+app.get('/api/v1/admin/participants/:participantId', verifyAdmin, async (req, res) => {
+  const participantId = req.params.participantId;
+  try {
+    const [profileRes, pointsRes, progressRes, logsRes, assessmentsRes] = await Promise.all([
+      supabase.from('profiles').select('id, username, anon_handle, enrolled_at').eq('id', participantId).maybeSingle(),
+      supabase.from('user_points').select('total_points, streak, last_log_date').eq('user_id', participantId).maybeSingle(),
+      supabase.from('program_progress').select('current_week, modules_complete, challenges_done, badges, updated_at').eq('user_id', participantId).maybeSingle(),
+      supabase.from('research_analytics').select('metric_type, metadata, logged_date, logged_at').eq('user_id', participantId).order('logged_at', { ascending: false }),
+      supabase.from('research_assessments').select('phase, data, measured_at').eq('participant_id', participantId).order('measured_at', { ascending: false }),
+    ]);
+
+    if (profileRes.error) throw profileRes.error;
+    if (!profileRes.data) return res.status(404).json({ error: 'Participant not found.' });
+    if (logsRes.error) throw logsRes.error;
+
+    return res.json({
+      profile: profileRes.data,
+      points: pointsRes.data || {},
+      progress: progressRes.data || {},
+      logs: logsRes.data || [],
+      assessments: assessmentsRes.error ? [] : assessmentsRes.data || [],
+    });
+  } catch (err) {
+    console.error('[admin/participant]', err.message);
+    return res.status(500).json({ error: 'Could not load participant details.' });
+  }
+});
+
+app.delete('/api/v1/admin/participants/:participantId', verifyAdmin, async (req, res) => {
+  const participantId = req.params.participantId;
+  if (participantId === req.user.id) {
+    return res.status(400).json({ error: 'You cannot delete your own administrator account.' });
+  }
+
+  try {
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles').select('id, enrolled_at').eq('id', participantId).maybeSingle();
+    if (profileError || !profile) return res.status(404).json({ error: 'Participant not found.' });
+
+    const { data: latestLog, error: logError } = await supabase
+      .from('research_analytics').select('logged_at').eq('user_id', participantId)
+      .order('logged_at', { ascending: false }).limit(1).maybeSingle();
+    if (logError) throw logError;
+
+    const inactiveDays = daysSince(latestLog?.logged_at || profile.enrolled_at);
+    if (inactiveDays < 14) {
+      return res.status(409).json({ error: `Participant is not inactive for 14 days yet (${inactiveDays} days).` });
+    }
+
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(participantId);
+    if (deleteError) throw deleteError;
+    return res.json({ success: true, participant_id: participantId });
+  } catch (err) {
+    console.error('[admin/delete-participant]', err.message);
+    return res.status(500).json({ error: 'Could not delete participant.' });
+  }
+});
+
+// ─────────────────────────────────────────────
 // CATCH-ALL → SPA  (must be last)
 // Ensures page refresh on any URL still serves index.html
 // ─────────────────────────────────────────────
@@ -742,7 +1117,7 @@ app.get('*', (req, res) => {
 // START
 // ─────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n✅  DiabetesGuard server running → http://localhost:${PORT}`);
+  console.log(`\n✅  Dia Shield server running → http://localhost:${PORT}`);
   console.log(`    Supabase: ${process.env.SUPABASE_URL}`);
   console.log(`    Env:      ${process.env.NODE_ENV || 'development'}\n`);
 });
