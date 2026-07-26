@@ -511,8 +511,8 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex: 0 1 260px;
-    width: min(100%, 260px);
+    flex: 0 1 220px;
+    width: min(100%, 220px);
     min-width: 0;
     max-width: 100%;
     border: 2px solid var(--neutral-border);
@@ -651,6 +651,22 @@ select:focus {
 
 .certificate-actions .action-btn {
     flex: 1 1 160px;
+}
+
+.documentation-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    color: var(--primary-teal);
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.documentation-link:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
 }
 
 .offline-banner {

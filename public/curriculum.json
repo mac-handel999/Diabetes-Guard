@@ -4,7 +4,7 @@
   "weeks": [
     {
       "weekNumber": 1,
-      "theme": "UNDERSTANDING DIABETES AND PERSONAL RISK",
+      "theme": "Understanding diabetes",
       "weeklyGoal": "Participants will understand diabetes, recognize the risks to young adults, and appreciate the importance of prevention.",
       "learningOutcomes": [
         "Define diabetes mellitus.",
@@ -184,7 +184,7 @@
     },
     {
       "weekNumber": 2,
-      "theme": "Know Your Risk, Reduce Your Risk",
+      "theme": "Understanding your diabetes risk",
       "weeklyGoal": "To help participants understand the factors that increase the risk of developing Type 2 diabetes and enable them to identify their personal risk factors.",
       "learningOutcomes": [
         "Define diabetes risk factors.",
@@ -327,7 +327,7 @@
     },
     {
       "weekNumber": 3,
-      "theme": "Food is Medicine: Eating Your Way to Better Health",
+      "theme": "Healthy eating and diabetes prevention",
       "weeklyGoal": "To equip participants with practical knowledge and skills for making healthy dietary choices that reduce the risk of Type 2 diabetes.",
       "learningOutcomes": [
         "Explain the role of healthy eating in diabetes prevention.",
@@ -480,7 +480,7 @@
     },
     {
       "weekNumber": 4,
-      "theme": "Hidden Sugars, Hidden Risks",
+      "theme": "Understanding sugar and sweetened drinks",
       "weeklyGoal": "To increase awareness of sugar consumption and reduce intake of sugar-sweetened beverages.",
       "learningOutcomes": [
         "Participants should:",
@@ -635,7 +635,7 @@
     },
     {
       "weekNumber": 5,
-      "theme": "Move More, Live Better",
+      "theme": "Physical activity and diabetes prevention",
       "weeklyGoal": "To increase physical activity and reduce sedentary behavior among students.",
       "learningOutcomes": [
         "Understand how exercise prevents diabetes.",
@@ -776,7 +776,7 @@
     },
     {
       "weekNumber": 6,
-      "theme": "Achieving a Healthy Weight for Lifelong Health",
+      "theme": "Weight management and BMI",
       "weeklyGoal": "To help participants understand the relationship between body weight and diabetes risk and develop practical skills for healthy weight management.",
       "learningOutcomes": [
         "Define BMI and its significance.",
@@ -923,7 +923,7 @@
     },
     {
       "weekNumber": 7,
-      "theme": "Become a Smart Consumer",
+      "theme": "Reading food labels and smart food choices",
       "weeklyGoal": "To teach participants how to interpret nutrition labels and make healthier food choices.",
       "days": [
         {
@@ -1002,7 +1002,7 @@
     },
     {
       "weekNumber": 8,
-      "theme": "Lifestyle Choices Matter",
+      "theme": "Smoking, alcohol and diabetes risk",
       "weeklyGoal": "To increase awareness of how smoking and alcohol affect diabetes risk.",
       "days": [
         {
@@ -1080,7 +1080,7 @@
     },
     {
       "weekNumber": 9,
-      "theme": "Healthy Mind, Healthy Body",
+      "theme": "Stress, sleep and diabetes prevention",
       "days": [
         {
           "dayNumber": 1,
@@ -1153,7 +1153,7 @@
     },
     {
       "weekNumber": 10,
-      "theme": "Small Actions Create Big Results",
+      "theme": "Building healthy habits",
       "days": [
         {
           "dayNumber": 1,
@@ -1227,7 +1227,7 @@
     },
     {
       "weekNumber": 11,
-      "theme": "Maintaining Success",
+      "theme": "Preventing diabetes long-term",
       "days": [
         {
           "dayNumber": 1,
@@ -1301,7 +1301,7 @@
     },
     {
       "weekNumber": 12,
-      "theme": "My Diabetes Prevention Journey",
+      "theme": "Graduation",
       "overview": "Congratulations! You have reached the final week of your diabetes prevention programme. Over the past 12 weeks, you have learned how healthy eating, regular physical activity, quality sleep, stress management, and other healthy lifestyle choices can reduce your risk of developing Type 2 diabetes.\nThis week is an opportunity to reflect on your progress, celebrate your achievements, assess the positive changes you have made, and create a plan to continue living a healthy lifestyle long after the programme ends.",
       "days": [
         {

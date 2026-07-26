@@ -12,6 +12,9 @@ const ASSETS_TO_CACHE = [
   '/admin.css',
   '/admin-theme.css',
   '/admin.js',
+  '/documentation.html',
+  '/documentation.css',
+  '/admin-documentation.html',
   '/Images/diabetes-guard-logo-Photoroom.png',
   '/Images/dia-shield-logo.svg',
   '/Images/dia-shield-icon-192.png',
@@ -60,7 +63,9 @@ self.addEventListener('fetch', (e) => {
   if (requestUrl.pathname.startsWith('/api/')) return;
 
   if (e.request.mode === 'navigate') {
-    const fallbackUrl = requestUrl.pathname === '/admin.html' ? '/admin.html' : '/index.html';
+    const fallbackUrl = ['/admin.html', '/documentation.html', '/admin-documentation.html'].includes(requestUrl.pathname)
+      ? requestUrl.pathname
+      : '/index.html';
     e.respondWith(
       fetch(e.request)
         .then(response => {
