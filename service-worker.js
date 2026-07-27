@@ -21,6 +21,7 @@ const ASSETS_TO_CACHE = [
   '/Images/dia-shield-icon-512.png'
 ];
 
+// Cache the app shell during installation; one unavailable optional asset must not block install.
 // 1. Install Event - Cache Core Assets
 self.addEventListener('install', (e) => {
   e.waitUntil(
@@ -55,7 +56,7 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// 3. Fetch Event - Serve from Cache, Fallback to Network
+// 3. Fetch Event - Network-first pages, cache-first static assets, and no API caching.
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
 

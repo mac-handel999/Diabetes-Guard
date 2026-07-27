@@ -6,13 +6,13 @@
   "description": "A 12-week diabetes prevention and health tracking programme.",
   "icons": [
     {
-      "src": "/Images/dia-shield-icon-192.png",
+      "src": "public/Images/dia-shield-icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "/Images/dia-shield-icon-512.png",
+      "src": "public/Images/dia-shield-icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any maskable"

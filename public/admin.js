@@ -1,5 +1,6 @@
 'use strict';
 
+// Admin API location and in-memory state for the current administrator.
 const ADMIN_API = (
   location.hostname === 'localhost' || location.hostname === '127.0.0.1'
 ) ? 'http://localhost:3000/api/v1' : `${location.origin}/api/v1`;
@@ -12,6 +13,7 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '
 const formatDate = value => value ? new Date(value).toLocaleDateString() : '—';
 const formatDateTime = value => value ? new Date(value).toLocaleString() : '—';
 
+// Shared status and network helpers keep error handling consistent across admin sections.
 function showMessage(element, message, isError = true) {
   element.textContent = message;
   element.style.color = isError ? 'var(--danger)' : 'var(--green)';
@@ -36,6 +38,7 @@ function showApp() {
   $('adminIdentity').textContent = adminSession?.username || 'Research team';
 }
 
+// Admin authentication uses the same Supabase session as the participant app.
 async function login(event) {
   event.preventDefault();
   const message = $('adminLoginMessage');
@@ -57,6 +60,7 @@ function logout() {
   location.reload();
 }
 
+// Load the cohort summary first; outcomes are loaded separately when needed.
 async function loadDashboard() {
   showMessage($('adminStatus'), 'Loading dashboard…', false);
   try {
@@ -84,6 +88,7 @@ function renderAll() {
   renderOverview(); renderParticipants(); renderWeeks(); renderChallenges(); renderEngagement(); renderOutcomes(); renderAlerts(); populateParticipantSelect();
 }
 
+// Reusable metric-card and table renderers for the dashboard sections.
 function cards(items) {
   return items.map(item => `<div class="metric-card"><strong>${escapeHtml(item.value)}</strong><span>${escapeHtml(item.label)}</span></div>`).join('');
 }
@@ -99,6 +104,7 @@ function renderOverview() {
   $('overviewAlerts').innerHTML = alertList(dashboardData.alerts.slice(0, 6));
 }
 
+// Weekly intervention delivery, learning, challenge, and engagement views.
 function weekTable(weeks) {
   return `<table><thead><tr><th>Week</th><th>Assigned</th><th>Opened</th><th>Completed</th><th>Rate</th><th>Quiz</th><th>Activities</th><th>Challenge</th></tr></thead><tbody>${weeks.map(week => `<tr><td>Week ${week.week}</td><td>${week.assigned}</td><td>${week.opened}</td><td>${week.completed}</td><td>${week.completionRate}%</td><td>${week.quizCompleted}</td><td>${week.dailyActivitiesCompleted}</td><td>${week.weeklyChallengeCompleted}</td></tr>`).join('')}</tbody></table>`;
 }
@@ -109,6 +115,7 @@ function renderParticipants() {
   document.querySelectorAll('[data-delete-user]').forEach(button => button.addEventListener('click', () => deleteParticipant(button.dataset.deleteUser)));
 }
 
+// Display badges as small, readable icons beside anonymous participant aliases.
 function renderParticipantBadges(badges = []) {
   if (!badges.length) return '';
   const badgeIcons = { first_log: '🌱', hydration: '💧', active: '🏃', streak3: '🔥', streak7: '⚡', quiz_ace: '🧠', challenge: '🎖️', week1: '🛡️', complete: '🎓' };
@@ -119,6 +126,7 @@ function renderParticipantBadges(badges = []) {
   }).join('')}</span>`;
 }
 
+// Open a participant's private research record in the detail modal.
 async function viewParticipant(participantId) {
   const content = $('participantDetailContent');
   $('participantDetailModal').hidden = false;
@@ -146,6 +154,7 @@ async function viewParticipant(participantId) {
   }
 }
 
+// Render detailed research outcomes and event history for one participant.
 function renderDetailAssessments(records) {
   if (!records.length) return '<p class="panel-note">No baseline or endline assessment recorded.</p>';
   return `<div class="table-wrap"><table><thead><tr><th>Phase</th><th>Measured</th><th>Weight</th><th>BMI</th><th>Glucose</th><th>Knowledge</th><th>Perception</th></tr></thead><tbody>${records.map(record => { const data = record.data || {}; return `<tr><td>${escapeHtml(record.phase)}</td><td>${formatDate(record.measured_at)}</td><td>${escapeHtml(data.weight)}</td><td>${escapeHtml(data.bmi)}</td><td>${escapeHtml(data.blood_glucose)}</td><td>${escapeHtml(data.knowledge_score)}</td><td>${escapeHtml(data.perception_score)}</td></tr>`; }).join('')}</tbody></table></div>`;
@@ -168,6 +177,7 @@ async function deleteParticipant(participantId) {
   }
 }
 
+// Render the remaining dashboard tabs and the baseline/endline form.
 function renderWeeks() {
   $('deliveryTable').innerHTML = weekTable(dashboardData.weeks);
   $('learningTable').innerHTML = `<table><thead><tr><th>Week</th><th>Quiz completed</th><th>Average quiz score</th><th>Participants assigned</th></tr></thead><tbody>${dashboardData.weeks.map(week => `<tr><td>Week ${week.week}</td><td>${week.quizCompleted}</td><td>${week.averageQuizScore}%</td><td>${week.assigned}</td></tr>`).join('')}</tbody></table>`;
@@ -209,6 +219,7 @@ async function saveAssessment(event) {
   } catch (error) { showMessage(message, error.message); }
 }
 
+// Research outcomes are optional until the assessment table migration is installed.
 async function loadAssessments() {
   try {
     assessments = await request('/admin/assessments');
@@ -239,6 +250,7 @@ function download(filename, content, type) { const link = document.createElement
 
 function exportOutcomes() { download('dia-shield-research-outcomes.json', JSON.stringify(assessments, null, 2), 'application/json'); }
 
+// Wire controls and restore a previously authenticated admin session on page load.
 document.addEventListener('DOMContentLoaded', async () => {
   $('adminLoginForm').addEventListener('submit', login); $('adminLogout').addEventListener('click', logout); $('refreshDashboard').addEventListener('click', loadDashboard); $('assessmentForm').addEventListener('submit', saveAssessment); $('exportParticipants').addEventListener('click', exportCsv); $('exportOutcomes').addEventListener('click', exportOutcomes);
   $('closeParticipantDetail').addEventListener('click', () => { $('participantDetailModal').hidden = true; });

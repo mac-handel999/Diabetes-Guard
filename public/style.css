@@ -57,6 +57,7 @@ body {
 }
 
 .dashboard-header {
+    position: relative;
     flex-wrap: wrap;
 }
 
@@ -496,29 +497,29 @@ select:focus {
 
 .header-top-row {
     display: flex;
-    flex: 1 1 320px;
+    flex: 0 1 230px;
     min-width: 0;
-    justify-content: flex-end;
-    align-items: center;
-    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
     width: auto;
     padding: 0;
     margin: 0;
-    gap: 10px;
+    gap: 8px;
 }
 
 .user {
     display: flex;
     align-items: center;
-    gap: 6px;
-    flex: 0 1 220px;
-    width: min(100%, 220px);
-    min-width: 0;
-    max-width: 100%;
+    gap: 10px;
+
+    width: 150px;
+    height: 60px;
+    
     border: 2px solid var(--neutral-border);
-    padding: 8px 12px;
+    padding: 10px 12px;
     border-radius: 20px;
-    overflow-wrap: anywhere;
+    
 }
 
 #welcomeUser {
@@ -528,11 +529,12 @@ select:focus {
 
 .logout-btn {
     flex: 0 0 auto;
+    align-self: flex-end;
     white-space: nowrap;
     background: rgba(255, 255, 255, 0.18);
     border: 1px solid #fff;
     color: #fff;
-    padding: 4px 10px;
+    padding: 14px 13px;
     border-radius: 10px;
     cursor: pointer;
     font-size: 11px;
@@ -559,12 +561,18 @@ select:focus {
 
     .dashboard-header .header-top-row {
         width: 100%;
+        flex: 1 1 auto;
+        align-items: stretch;
         justify-content: center;
     }
 
     .dashboard-header .user {
         flex: 1 1 180px;
-        width: auto;
+        width: 100%;
+    }
+
+    .dashboard-header .logout-btn {
+        align-self: center;
     }
 }
 
@@ -693,10 +701,8 @@ select:focus {
 }
 
 .install-app-button {
-    position: fixed;
-    right: 16px;
-    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
-    z-index: 10000;
+    position: static;
+    order: -1;
     display: flex;
     gap: 8px;
     align-items: center;
@@ -705,18 +711,18 @@ select:focus {
     border-radius: 999px;
     color: #ffffff;
     background: var(--primary-dark);
-    box-shadow: 0 5px 14px rgba(6, 44, 40, 0.22);
+    width: 100%;
+    box-shadow: 0 3px 9px rgba(6, 44, 40, 0.18);
     cursor: pointer;
     font-size: 12px;
     font-weight: bold;
-    opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    opacity: 1;
+    transform: none;
+    transition: background-color 0.2s ease;
 }
 
 .install-app-button.is-visible {
-    opacity: 1;
-    transform: translateY(0);
+    display: flex;
 }
 
 .install-app-button:hover {

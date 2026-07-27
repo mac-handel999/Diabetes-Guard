@@ -17,7 +17,9 @@
 
   <!-- Inside <head> -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#1A7A4A">
+<meta name="theme-color" content="#1A7A4A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="apple-touch-icon" href="Images/dia-shield-icon-192.png">
 </head>
 
@@ -67,6 +69,7 @@
       </div>
     </div>
 
+    <!-- Authenticated participant workspace: header, trackers, learning, leaderboard, and profile. -->
     <div id="cohortWorkspace" style="display: none;">
       <div class="app-header dashboard-header">
         <div class="app-logo">
@@ -84,7 +87,8 @@
         </a>
         </div>
         <div class="header-top-row">
-          <span class="user"><i class="fas fa-user" aria-hidden="true"></i>
+          <span class="user">
+            <i class="fas fa-user" aria-hidden="true"></i>
           <span id="welcomeUser"> 
           <span aria-hidden="true">👋</span> Loading Session...</span>
           </span>
@@ -280,32 +284,7 @@
         </div>
       </div>
 
-
-      <div class="nav-tabs" role="tablis
-/* ===== NAVIGATION MODULE TABS ===== */
-.nav-tabs {
-    display: flex;
-    background: var(--accent-mint);
-    border-bottom: 1px solid var(--neutral-border);
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0; /* stick to bottom of the viewport */
-    z-index: 9999;
-}
-
-.tab-link {
-    flex: 1;
-    text-align: center;
-    padding: 10px 6px;
-    cursor: pointer;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--primary-dark);
-    background: none;
-    border: none;
-    display: flex;
-t">
+<div class="nav-tabs" role="tablist">
         <button class="tab-link active" role="tab" aria-selected="true" aria-controls="trackers"
           onclick="switchTab('trackers', this)"><i class="fas fa-heartbeat"
             aria-hidden="true"></i><span>Trackers</span>

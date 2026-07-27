@@ -26,6 +26,7 @@
 </head>
 <body>
   <main class="admin-shell">
+    <!-- Admin sign-in is restricted on the server to the configured research-team emails. -->
     <section id="adminLogin" class="admin-login-panel">
       <div class="brand-mark"><img src="Images/dia-shield-logo.svg" alt="Dia Shield logo" class="admin-logo" onerror="this.onerror=null;this.src='Images/dia-shield-icon-192.png'"></div>
       <p class="eyebrow">Research administration</p>
@@ -45,6 +46,7 @@
         <div class="header-actions"><span class="user"><i class="fas fa-user" aria-hidden="true"></i><span id="adminIdentity">Research team</span></span><button id="adminLogout" class="logout-btn">Log out</button></div>
       </header>
 
+      <!-- Each button reveals one focused research-management section. -->
       <nav class="admin-nav" aria-label="Admin sections">
         <button class="nav-button active" data-section="overview">Overview</button>
         <button class="nav-button" data-section="participants">Participants</button>

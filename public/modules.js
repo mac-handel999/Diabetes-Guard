@@ -2,6 +2,7 @@
 // LEARNING — Curriculum renderer
 // ═══════════════════════════════════════════════════════════════
 
+// Cache curriculum data in memory, local storage, and the service worker for offline lessons.
 let MODULE_CONTENT_CACHE = null;
 
 /**
@@ -46,6 +47,7 @@ function getCurriculumWeeks(curriculumData) {
   return [...(curriculumData.weeks || []), ...(curriculumData.additionalWeeks || [])];
 }
 
+// Small DOM helpers keep lesson rendering safe by using textContent instead of raw HTML.
 function createElement(tagName, className, text) {
   const element = document.createElement(tagName);
   if (className) element.className = className;
@@ -65,6 +67,7 @@ function getSelectedDayNumber() {
   return parseInt(document.getElementById('daySelector')?.value, 10) || 1;
 }
 
+// Convert one curriculum day into lesson, infographic, quiz, and challenge content.
 function getVisibleDayContent(day) {
   return (day.lesson || day.content || '')
     .replace(/\n(?:Interactive Activity|Knowledge Check|Weekly Quiz|Quiz)\b[\s\S]*$/i, '')
@@ -187,6 +190,7 @@ async function loadModule({ forceNotification = false } = {}) {
   showDayNotification(week, day, forceNotification);
 }
 
+// These handlers connect the week/day selectors and participant action buttons.
 function loadWeekModule() {
   const selector = document.getElementById('daySelector');
   if (selector) selector.value = '1';
