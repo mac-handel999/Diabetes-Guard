@@ -21,6 +21,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-size:23px;
     font-family: Georgia, 'Times New Roman', Times, serif, -apple-system, Arial, sans-serif;
 }
 
@@ -28,6 +29,7 @@ body {
     background: #eaf3f1;
     color: var(--text-dark);
     min-height: 100vh;
+    font-size: 23px;
 }
 
 .app-container {
