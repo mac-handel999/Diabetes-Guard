@@ -118,6 +118,13 @@ function renderDay(day) {
   return section;
 }
 
+function getWeeklyQuiz(week, dayNumber) {
+  if (dayNumber !== 7) return [];
+  const day7 = (week.days || []).find(d => Number(d.dayNumber) === 7);
+  if (!day7?.quiz?.questions) return [];
+  return day7.quiz.questions.filter(item => Array.isArray(item.options) && item.options.length > 1);
+}
+
 function getDailyQuiz(day) {
   const questions = (day.quiz?.questions || day.interactiveActivity?.questions || [])
     .filter(item => Array.isArray(item.options) && item.options.length > 1);
@@ -184,7 +191,7 @@ async function loadModule({ forceNotification = false } = {}) {
     moduleElement.appendChild(renderDay(day));
   }
 
-  renderQuiz(getDailyQuiz(day), { weekNumber: week.weekNumber, dayNumber: day.dayNumber });
+  renderWeeklyQuizCard(week, day.dayNumber);
   renderDailyChallenge(week, day);
   renderWeeklyChallenge(week, day);
   showDayNotification(week, day, forceNotification);
@@ -199,6 +206,24 @@ function loadWeekModule() {
 
 function loadDayModule() {
   loadModule();
+}
+
+function renderWeeklyQuizCard(week, dayNumber) {
+  const element = document.getElementById('quizContent');
+  if (!element) return;
+  if (dayNumber !== 7) {
+    element.replaceChildren();
+    element.appendChild(createElement('p', 'quiz-progress', 'Weekly Quiz'));
+    element.appendChild(createElement('p', '', 'The weekly quiz is available on Day 7 (Weekly Review). Complete Days 1–6 to unlock it.'));
+    return;
+  }
+  const questions = getWeeklyQuiz(week, dayNumber);
+  if (!questions.length) {
+    element.replaceChildren();
+    element.appendChild(createElement('p', '', 'No quiz available for this week.'));
+    return;
+  }
+  renderQuiz(questions, { weekNumber: week.weekNumber, dayNumber: 7 });
 }
 
 function renderDailyChallenge(week, day) {
