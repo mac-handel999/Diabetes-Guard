@@ -854,7 +854,7 @@ select:focus {
 
 .quiz-completion p {
     margin: 0;
-    font-size: 13px;
+    font-size: 19px;
 }
 
 .quiz-completion-emoji {
@@ -872,13 +872,13 @@ select:focus {
 .module-day-title {
     margin: 0 0 10px;
     color: var(--primary-dark);
-    font-size: 14px;
+    font-size: 19px;
 }
 
 .module-day-lesson {
     margin: 0;
     color: var(--text-dark);
-    font-size: 13px;
+    font-size: 19px;
     line-height: 1.55;
 }
 
@@ -888,7 +888,7 @@ select:focus {
     background: var(--bg-light);
     border-left: 3px solid var(--primary-green);
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 19px;
 }
 
 .infographic-card {
