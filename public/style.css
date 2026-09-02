@@ -1027,7 +1027,7 @@ select:focus {
 
 /* ===== LEARNING / COURSES ===== */
 .week-progress-label {
-    font-size: 16px;
+    font-size: 20px;
     color: var(--text-muted);
     margin-bottom: 6px;
 }
@@ -1036,7 +1036,7 @@ select:focus {
     text-align: center;
     padding: 20px 14px;
     color: var(--text-muted);
-    font-size: 16px;
+    font-size: 20px;
     background: #ffffff;
     border: 1px dashed var(--neutral-border);
     border-radius: 10px;
@@ -1044,7 +1044,7 @@ select:focus {
 
 .locked-week-notice i {
     display: block;
-    font-size: 16px;
+    font-size: 20px;
     margin-bottom: 8px;
     color: var(--primary-teal);
 }
