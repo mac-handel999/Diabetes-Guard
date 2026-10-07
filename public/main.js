@@ -181,6 +181,35 @@ function toggleAuthForm(mode) {
 // Keep backwards-compatible alias used in index.html onclick
 function showAuthTab(mode) { toggleAuthForm(mode); }
 
+// Toggle password visibility for password input fields
+function togglePasswordVisibility(targetId) {
+  const input = document.getElementById(targetId);
+  const button = document.querySelector(`.toggle-password[data-target="${targetId}"]`);
+  if (!input || !button) return;
+
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  const icon = button.querySelector('i');
+  if (icon) {
+    icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+  }
+  button.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+}
+
+// Attach event listeners to all password toggle buttons
+function initPasswordToggles() {
+  document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', () => {
+      togglePasswordVisibility(button.dataset.target);
+    });
+  });
+}
+
+// Initialize password toggles when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  initPasswordToggles();
+});
+
 function clearAuthMsg() {
   const el = document.getElementById('authMsg') || document.getElementById('authMessage');
   if (!el) return;

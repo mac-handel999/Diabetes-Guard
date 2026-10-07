@@ -52,8 +52,13 @@
 
         <form id="loginForm" role="tabpanel" onsubmit="handleAuthSubmit(event, 'login')">
           <input type="email" id="loginEmail" placeholder="E-mail (example@gmail.com)" autocomplete="email" required>
-          <input type="password" id="loginPassword" placeholder="Enter Password (********)" autocomplete="current-password"
-            required>
+          <div class="password-field">
+            <input type="password" id="loginPassword" placeholder="Enter Password (********)" autocomplete="current-password"
+              required>
+            <button type="button" class="toggle-password" data-target="loginPassword" aria-label="Toggle password visibility">
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </button>
+          </div>
           <button type="submit" class="action-btn wide-btn">Sign In To Dashboard</button>
         </form>
 
@@ -61,8 +66,13 @@
           <input type="email" id="registerEmail" placeholder="E-mail (example@gmail.com)" autocomplete="email" required>
           <input type="text" id="registerUsername" placeholder="Full Name or Student ID (e.g. John Doe or 2024....)" autocomplete="name" required>
           <input type="text" id="registerAnonHandle" placeholder="Leaderboard userAlias (e.g. FutoRunner)" required>
-          <input type="password" id="registerPassword" placeholder="Create Strong Password (********)" minlength="8"
-            autocomplete="new-password" required>
+          <div class="password-field">
+            <input type="password" id="registerPassword" placeholder="Create Strong Password (********)" minlength="8"
+              autocomplete="new-password" required>
+            <button type="button" class="toggle-password" data-target="registerPassword" aria-label="Toggle password visibility">
+              <i class="fas fa-eye" aria-hidden="true"></i>
+            </button>
+          </div>
           <button type="submit" class="action-btn wide-btn">Submit Registration</button>
         </form>
         <div id="authMessage" class="auth-status-msg" role="status" aria-live="polite"></div>
