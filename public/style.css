@@ -481,6 +481,10 @@ select:focus {
     border-radius: 10px;
 }
 
+.auth-card .password-field input {
+    margin-bottom: 0;
+}
+
 .wide-btn {
     width: 100%;
     padding: 12px;
@@ -540,9 +544,11 @@ select:focus {
     position: relative;
     display: flex;
     align-items: center;
+    margin-bottom: 12px;
 }
 
 .password-field input {
+    flex: 1;
     width: 100%;
     padding-right: 42px;
     padding-left: 12px;
@@ -555,6 +561,8 @@ select:focus {
     background: var(--surface);
     color: var(--text-dark);
     transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    margin: 0;
 }
 
 .password-field input:focus {
@@ -564,11 +572,13 @@ select:focus {
 
 .toggle-password {
     position: absolute;
-    right: 10px;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
-    padding: 6px;
+    padding: 8px;
     color: var(--text-muted);
     font-size: 16px;
     display: flex;
@@ -576,6 +586,7 @@ select:focus {
     justify-content: center;
     border-radius: 4px;
     transition: color 0.2s ease, background 0.2s ease;
+    z-index: 2;
 }
 
 .toggle-password:hover {
@@ -584,7 +595,7 @@ select:focus {
 }
 
 .toggle-password:active {
-    transform: scale(0.95);
+    transform: translateY(-50%) scale(0.95);
 }
 
 .logout-btn {
