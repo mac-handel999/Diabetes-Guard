@@ -543,15 +543,12 @@ select:focus {
 /* ===== PASSWORD FIELD WRAPPER ===== */
 .password-field {
     position: relative;
-    display: flex;
-    align-items: center;
+    display: block;
     margin-bottom: 12px;
 }
 
 .password-field input {
-    flex: 1 1 auto;
     width: 100%;
-    min-width: 0;
     padding-right: 42px;
     padding-left: 12px;
     padding-top: 12px;
@@ -565,7 +562,6 @@ select:focus {
     transition: border-color 0.2s ease;
     box-sizing: border-box;
     margin: 0;
-    display: block;
     height: 44px;
 }
 
