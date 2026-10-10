@@ -476,7 +476,8 @@ select:focus {
     border-bottom: 3px solid var(--primary-teal);
 }
 
-.auth-card input {
+.auth-card > form > input:not(.password-field input),
+.auth-card > form > select {
     margin-bottom: 12px;
     border-radius: 10px;
 }
@@ -548,8 +549,9 @@ select:focus {
 }
 
 .password-field input {
-    flex: 1;
+    flex: 1 1 auto;
     width: 100%;
+    min-width: 0;
     padding-right: 42px;
     padding-left: 12px;
     padding-top: 12px;
@@ -563,6 +565,8 @@ select:focus {
     transition: border-color 0.2s ease;
     box-sizing: border-box;
     margin: 0;
+    display: block;
+    height: 44px;
 }
 
 .password-field input:focus {
