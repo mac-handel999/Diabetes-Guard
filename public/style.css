@@ -962,47 +962,196 @@ select:focus {
 
 .infographic-card {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 14px;
-    padding: 14px;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 16px;
     background: var(--accent-mint);
     border: 1px solid var(--primary-teal);
-    border-radius: 10px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.infographic-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 118, 110, 0.15);
+}
+
+.infographic-card:focus {
+    outline: 2px solid var(--primary-teal);
+    outline-offset: 2px;
 }
 
 .infographic-icon {
     display: grid;
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     place-items: center;
     background: var(--surface);
     border-radius: 50%;
-    font-size: 24px;
+    font-size: 28px;
+    margin: 0 auto;
 }
 
 .infographic-image {
-    width: 84px;
-    height: 84px;
-    flex: 0 0 84px;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
     border-radius: 8px;
     object-fit: cover;
     background: var(--surface);
+    border: 1px solid var(--neutral-border);
 }
 
 .infographic-image.is-missing {
     display: none;
 }
 
-.infographic-card strong,
-.infographic-card p {
+.infographic-card .infographic-content {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    text-align: center;
+}
+
+.infographic-card strong {
     margin: 0;
+    font-size: 15px;
+    color: var(--text-dark);
 }
 
 .infographic-card p {
-    margin-top: 3px;
+    margin: 0;
     color: var(--text-muted);
-    font-size: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+@media (min-width: 480px) {
+    .infographic-card {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+    }
+    
+    .infographic-image {
+        width: 120px;
+        flex: 0 0 120px;
+        height: 90px;
+        aspect-ratio: 4 / 3;
+    }
+    
+    .infographic-card .infographic-content {
+        text-align: left;
+    }
+}
+
+@media (min-width: 768px) {
+    .infographic-image {
+        width: 160px;
+        flex: 0 0 160px;
+        height: 120px;
+    }
+}
+
+.infographic-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.infographic-modal-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.infographic-modal {
+    background: var(--surface);
+    border-radius: 16px;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.infographic-modal-overlay.is-open .infographic-modal {
+    transform: scale(1);
+}
+
+.infographic-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--neutral-border);
+    flex-shrink: 0;
+}
+
+.infographic-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text-dark);
+}
+
+.infographic-modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    line-height: 1;
+    border-radius: 50%;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.infographic-modal-close:hover {
+    background: var(--neutral-bg);
+    color: var(--text-dark);
+}
+
+.infographic-modal-body {
+    overflow: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.infographic-modal-image {
+    max-width: 100%;
+    max-height: 70vh;
+    height: auto;
+    border-radius: 8px;
+    object-fit: contain;
+    background: var(--neutral-bg);
+}
+
+.infographic-modal-caption {
+    margin-top: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
 }
 
 .notification-toast {

@@ -5,6 +5,12 @@
 // Cache curriculum data in memory, local storage, and the service worker for offline lessons.
 let MODULE_CONTENT_CACHE = null;
 
+// Modal state for infographic full-screen view
+let infographicModal = null;
+let infographicModalImage = null;
+let infographicModalCaption = null;
+let infographicModalTitle = null;
+
 /**
  * Asynchronously fetches curriculum data with Service Worker / Cache Storage fallback.
  */
@@ -87,26 +93,111 @@ function getInfographicTitle(day) {
 
 function renderInfographic(day) {
   const title = getInfographicTitle(day);
-  if (!title) return null;
+  const image = day.interactiveActivity?.image;
+  if (!title && !image?.src) return null;
 
   const card = createElement('section', 'infographic-card');
-  card.setAttribute('aria-label', `Infographic: ${title}`);
-  const image = day.interactiveActivity?.image;
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', `Infographic: ${title || 'View full size'}`);
+  
   if (image?.src) {
     const imageElement = document.createElement('img');
     imageElement.className = 'infographic-image';
     imageElement.src = image.src;
     imageElement.alt = image.alt || title;
+    imageElement.loading = 'lazy';
     imageElement.addEventListener('error', () => imageElement.classList.add('is-missing'));
     card.appendChild(imageElement);
   } else {
     card.appendChild(createElement('span', 'infographic-icon', '📊'));
   }
-  const body = createElement('div');
-  body.appendChild(createElement('strong', '', title));
-  body.appendChild(createElement('p', '', image?.caption || 'Review this infographic, then complete the daily quiz.'));
+  
+  const body = createElement('div', 'infographic-content');
+  body.appendChild(createElement('strong', '', title || 'Infographic'));
+  body.appendChild(createElement('p', '', image?.caption || 'Tap to view full size'));
   card.appendChild(body);
+  
+  // Add click and keyboard handlers for modal
+  const openModal = () => openInfographicModal(image?.src, image?.alt || title, image?.caption);
+  card.addEventListener('click', openModal);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openModal();
+    }
+  });
+  
   return card;
+}
+
+function openInfographicModal(src, alt, caption) {
+  if (!src) return;
+  
+  // Create modal if it doesn't exist
+  if (!infographicModal) {
+    createInfographicModal();
+  }
+  
+  infographicModalImage.src = src;
+  infographicModalImage.alt = alt;
+  infographicModalTitle.textContent = alt;
+  infographicModalCaption.textContent = caption || '';
+  
+  infographicModal.classList.add('is-open');
+  document.body.style.overflow = 'hidden';
+  
+  // Focus the close button for accessibility
+  setTimeout(() => {
+    document.querySelector('.infographic-modal-close')?.focus();
+  }, 100);
+}
+
+function closeInfographicModal() {
+  if (!infographicModal) return;
+  infographicModal.classList.remove('is-open');
+  document.body.style.overflow = '';
+}
+
+function createInfographicModal() {
+  const overlay = document.createElement('div');
+  overlay.className = 'infographic-modal-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'infographicModalTitle');
+  
+  overlay.innerHTML = `
+    <div class="infographic-modal">
+      <header class="infographic-modal-header">
+        <h3 id="infographicModalTitle"></h3>
+        <button type="button" class="infographic-modal-close" aria-label="Close infographic">&times;</button>
+      </header>
+      <div class="infographic-modal-body">
+        <img class="infographic-modal-image" src="" alt="" />
+        <p class="infographic-modal-caption"></p>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  infographicModal = overlay;
+  infographicModalImage = overlay.querySelector('.infographic-modal-image');
+  infographicModalCaption = overlay.querySelector('.infographic-modal-caption');
+  infographicModalTitle = overlay.querySelector('#infographicModalTitle');
+  
+  // Close handlers
+  overlay.querySelector('.infographic-modal-close').addEventListener('click', closeInfographicModal);
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) closeInfographicModal();
+  });
+  
+  // Keyboard handlers
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && infographicModal?.classList.contains('is-open')) {
+      closeInfographicModal();
+    }
+  });
 }
 
 function renderDay(day) {
