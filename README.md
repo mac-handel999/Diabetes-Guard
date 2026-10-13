@@ -11,7 +11,7 @@ Set `ADMIN_EMAILS` (or `ADMIN_EMAIL`) in the server environment as a comma-separ
 - `server.js` — Express server, Supabase access, authentication, session validation, participant APIs, admin APIs, exports, and static-file hosting.
 - `public/index.html` — Participant page structure: sign-in forms, dashboard header, trackers, courses, leaderboard, profile, certificate controls, and navigation.
 - `public/main.js` — Participant authentication, API calls, dashboard rendering, metrics, badges, certificate downloads, session expiry, and offline metric queueing.
-- `public/modules.js` — Curriculum loading, offline lesson fallback, day/module rendering, quizzes, daily challenges, and weekly challenges.
+- `public/modules.js` — Curriculum loading, offline lesson fallback, day/module rendering, quizzes, infographic viewer, risk checklist, and food diary.
 - `public/style.css` — Participant dashboard layout, colors, typography, responsive header, cards, navigation, certificate controls, and offline banner.
 - `public/admin.html` — Admin page structure and dashboard sections for overview, participants, learning, outcomes, alerts, and exports.
 - `public/admin.js` — Admin login, dashboard requests, tables, participant detail modal, assessment entry, participant deletion, and downloads.

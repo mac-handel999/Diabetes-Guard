@@ -518,15 +518,22 @@ select:focus {
 .user {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
 
-    width: 150px;
-    height: 60px;
+    width: auto;
+    max-width: 150px;
+    min-height: 40px;
+    height: auto;
 
     border: 2px solid var(--neutral-border);
-    padding: 10px 12px;
+    padding: 5px 10px;
     border-radius: 20px;
 
+}
+
+.user > i {
+    flex: 0 0 auto;
+    font-size: 14px;
 }
 
 #welcomeUser {
@@ -534,7 +541,7 @@ select:focus {
     overflow-wrap: anywhere;
     font-size: 11px;
     line-height: 1.3;
-    max-width: 120px;
+    max-width: 100px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -638,8 +645,9 @@ select:focus {
     }
 
     .dashboard-header .user {
-        flex: 1 1 180px;
-        width: 100%;
+        flex: 0 1 auto;
+        width: auto;
+        max-width: 100%;
     }
 
     .dashboard-header .logout-btn {
@@ -1055,6 +1063,137 @@ select:focus {
         flex: 0 0 160px;
         height: 120px;
     }
+}
+
+/* Interactive lesson components: risk checklist (W2D6) and food diary (W3D6) */
+.risk-checklist-card,
+.food-diary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid #D4EBE0;
+    border-radius: 12px;
+    background: #F4FAF7;
+}
+
+.risk-checklist-title,
+.food-diary-title {
+    font-size: 16px;
+    color: var(--text-dark);
+}
+
+.risk-checklist-card > p,
+.food-diary-card > p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.risk-checklist-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.risk-checklist-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.risk-checklist-toggle {
+    display: flex;
+    gap: 6px;
+}
+
+.risk-checklist-btn {
+    width: auto;
+    min-height: 36px;
+    min-width: 72px;
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.risk-checklist-btn.is-selected {
+    border-color: var(--primary-teal);
+    background: var(--accent-mint);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.22);
+    opacity: 1;
+}
+
+.risk-checklist-result {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-green, #1A7A4A);
+}
+
+.food-diary-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.food-diary-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.food-diary-input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #D4EBE0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.food-diary-input:focus-visible {
+    outline: none;
+    border-color: var(--primary-teal);
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.22);
+}
+
+.food-diary-save {
+    align-self: flex-start;
+    margin-top: 2px;
+}
+
+.food-diary-feedback {
+    margin: 0;
+    font-size: 13px;
+}
+
+.food-diary-entries {
+    margin-top: 4px;
+}
+
+.food-diary-entry-list {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+}
+
+.food-diary-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
 }
 
 .infographic-modal-overlay {

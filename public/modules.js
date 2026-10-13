@@ -11,6 +11,10 @@ let infographicModalImage = null;
 let infographicModalCaption = null;
 let infographicModalTitle = null;
 
+// The week currently rendered in the Courses view, so the
+// quiz-completion handler can fire the week's push notification.
+let CURRENT_WEEK = null;
+
 /**
  * Asynchronously fetches curriculum data with Service Worker / Cache Storage fallback.
  */
@@ -61,11 +65,66 @@ function createElement(tagName, className, text) {
   return element;
 }
 
+// Curriculum data is authored with "•"/"-" bullet lines, embedded
+// <ul>/<li> blocks, and **bold** / <strong> inline markup. These
+// helpers convert that text into real DOM nodes (never innerHTML),
+// so bullets and bold render correctly in the app UI while the
+// text itself stays escaped.
+
+function renderInlineMarkup(parent, text) {
+  const pattern = /(\*\*.+?\*\*|<strong>[\s\S]*?<\/strong>|<b>[\s\S]*?<\/b>)/gi;
+  let lastIndex = 0;
+  let match;
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) parent.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+    const inner = match[0].replace(/^\*\*|\*\*$/g, '').replace(/<\/?[a-z]+>/gi, '');
+    parent.appendChild(createElement('strong', '', inner));
+    lastIndex = pattern.lastIndex;
+  }
+  if (lastIndex < text.length) parent.appendChild(document.createTextNode(text.slice(lastIndex)));
+  return parent;
+}
+
+function normalizeCurriculumText(text) {
+  return text
+    .replace(/<ul[^>]*>/gi, '\n')
+    .replace(/<\/ul>/gi, '\n')
+    .replace(/<\/li>[ \t]*\n?/gi, '')
+    .replace(/<li[^>]*>\s*(?:•\s*)?/gi, '\n• ');
+}
+
+function renderCurriculumText(text) {
+  const container = document.createDocumentFragment();
+  let list = null;
+  let paragraph = null;
+
+  const closeList = () => { if (list) { container.appendChild(list); list = null; } };
+  const closeParagraph = () => { if (paragraph) { container.appendChild(paragraph); paragraph = null; } };
+
+  for (const rawLine of normalizeCurriculumText(text).split('\n')) {
+    const line = rawLine.trim();
+    const bullet = line.match(/^[•·-]\s+(.+)$/);
+    if (bullet) {
+      closeParagraph();
+      if (!list) list = createElement('ul');
+      list.appendChild(renderInlineMarkup(createElement('li'), bullet[1]));
+      continue;
+    }
+    closeList();
+    if (!line) { closeParagraph(); continue; }
+    if (!paragraph) paragraph = createElement('p');
+    else paragraph.appendChild(document.createElement('br'));
+    renderInlineMarkup(paragraph, line);
+  }
+  closeList();
+  closeParagraph();
+  return container;
+}
+
 function appendTextBlock(parent, text, className) {
   if (!text) return;
-  const block = createElement('p', className);
-  block.style.whiteSpace = 'pre-line';
-  block.textContent = text;
+  const block = createElement('div', className);
+  block.appendChild(renderCurriculumText(text));
   parent.appendChild(block);
 }
 
@@ -200,12 +259,182 @@ function createInfographicModal() {
   });
 }
 
+// ─────────────────────────────────────────────
+// INTERACTIVE — Diabetes Risk Checklist (Week 2, Day 6)
+// ─────────────────────────────────────────────
+function riskChecklistKey() {
+  const user = (typeof SESSION !== 'undefined' && SESSION?.user_id) || 'anonymous';
+  return `dg_risk_checklist:${user}:w2:d6`;
+}
+
+function readRiskChecklistAnswers() {
+  try { return JSON.parse(localStorage.getItem(riskChecklistKey()) || '{}'); }
+  catch { return {}; }
+}
+
+function renderRiskChecklist(day) {
+  const config = day.riskChecklist;
+  if (!config || !Array.isArray(config.items) || !config.items.length) return null;
+
+  const card = createElement('section', 'risk-checklist-card');
+  card.appendChild(createElement('strong', 'risk-checklist-title', config.title || 'Risk checklist'));
+  if (config.description) card.appendChild(createElement('p', '', config.description));
+
+  const answers = readRiskChecklistAnswers();
+  const list = createElement('ul', 'risk-checklist-items');
+
+  const updateResult = () => {
+    const yesCount = config.items.filter((_, index) => answers[index] === true).length;
+    const category = (config.categories || []).find(c => yesCount >= c.min && yesCount <= c.max);
+    result.textContent = category
+      ? `${yesCount} of ${config.items.length} risk factors — ${category.label}`
+      : `${yesCount} of ${config.items.length} risk factors`;
+  };
+
+  const result = createElement('p', 'risk-checklist-result');
+  config.items.forEach((item, index) => {
+    const row = createElement('li', 'risk-checklist-item');
+    row.appendChild(createElement('span', 'risk-checklist-label', item));
+    const toggle = createElement('div', 'risk-checklist-toggle');
+    ['Yes', 'No'].forEach(answer => {
+      const isYes = answer === 'Yes';
+      const button = createElement('button', 'quiz-option risk-checklist-btn', answer);
+      button.type = 'button';
+      button.setAttribute('aria-pressed', String(answers[index] === isYes));
+      if (answers[index] === isYes) button.classList.add('is-selected');
+      button.addEventListener('click', () => {
+        answers[index] = isYes;
+        localStorage.setItem(riskChecklistKey(), JSON.stringify(answers));
+        toggle.querySelectorAll('.risk-checklist-btn').forEach(btn => {
+          btn.classList.remove('is-selected');
+          btn.setAttribute('aria-pressed', 'false');
+        });
+        button.classList.add('is-selected');
+        button.setAttribute('aria-pressed', 'true');
+        updateResult();
+      });
+      toggle.appendChild(button);
+    });
+    row.appendChild(toggle);
+    list.appendChild(row);
+  });
+
+  card.appendChild(list);
+  card.appendChild(result);
+  updateResult();
+  return card;
+}
+
+// ─────────────────────────────────────────────
+// INTERACTIVE — Food Diary (Week 3, Day 6)
+// Entries persist in localStorage (survives refresh
+// and logout) and sync to the research database via
+// the existing /api/v1/metrics/log pipeline.
+// ─────────────────────────────────────────────
+function foodDiaryStorageKey() {
+  const today = new Date();
+  const date = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const user = (typeof SESSION !== 'undefined' && SESSION?.user_id) || 'anonymous';
+  return `dg_food_diary:${user}:${date}`;
+}
+
+function readFoodDiaryEntries() {
+  try { return JSON.parse(localStorage.getItem(foodDiaryStorageKey()) || '[]'); }
+  catch { return []; }
+}
+
+function renderFoodDiaryEntries(container, entries) {
+  container.replaceChildren();
+  if (!entries.length) {
+    container.appendChild(createElement('p', 'food-diary-empty', 'No entries saved yet today.'));
+    return;
+  }
+  const list = createElement('ul', 'food-diary-entry-list');
+  entries.forEach(entry => {
+    const row = createElement('li', 'food-diary-entry');
+    row.appendChild(createElement('strong', '', `${entry.meal}: `));
+    row.appendChild(document.createTextNode(entry.text));
+    list.appendChild(row);
+  });
+  container.appendChild(list);
+}
+
+function renderFoodDiary(day) {
+  const config = day.foodDiary;
+  if (!config || !Array.isArray(config.meals) || !config.meals.length) return null;
+
+  const card = createElement('section', 'food-diary-card');
+  card.appendChild(createElement('strong', 'food-diary-title', config.title || 'Food Diary'));
+  if (config.description) card.appendChild(createElement('p', '', config.description));
+
+  let entries = readFoodDiaryEntries();
+
+  const entriesContainer = createElement('div', 'food-diary-entries');
+  renderFoodDiaryEntries(entriesContainer, entries);
+
+  const form = createElement('form', 'food-diary-form');
+  config.meals.forEach(meal => {
+    const field = meal.toLowerCase();
+    const row = createElement('label', 'food-diary-row');
+    row.appendChild(createElement('span', 'food-diary-meal', meal));
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'food-diary-input';
+    input.name = field;
+    input.placeholder = `What did you have for ${field}?`;
+    input.setAttribute('aria-label', meal);
+    row.appendChild(input);
+    form.appendChild(row);
+  });
+
+  const feedback = createElement('p', 'food-diary-feedback');
+  feedback.hidden = true;
+  const saveButton = createElement('button', 'action-btn wide-btn food-diary-save', 'Save Diary Entry');
+  saveButton.type = 'submit';
+  form.appendChild(saveButton);
+  form.appendChild(feedback);
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const saved = [];
+    for (const meal of config.meals) {
+      const text = (formData.get(meal.toLowerCase()) || '').toString().trim();
+      if (!text) continue;
+      const entry = { meal, text, saved_at: new Date().toISOString() };
+      entries.push(entry);
+      saved.push(entry);
+    }
+    if (!saved.length) {
+      feedback.textContent = '⚠️ Enter something for at least one meal.';
+      feedback.hidden = false;
+      return;
+    }
+    localStorage.setItem(foodDiaryStorageKey(), JSON.stringify(entries));
+    renderFoodDiaryEntries(entriesContainer, entries);
+    form.reset();
+    feedback.textContent = `✅ ${saved.length} ${saved.length === 1 ? 'entry' : 'entries'} saved.`;
+    feedback.hidden = false;
+    for (const entry of saved) {
+      await submitMetric('food', { meal: entry.meal, entry: entry.text });
+    }
+  });
+
+  card.appendChild(form);
+  card.appendChild(entriesContainer);
+  return card;
+}
+
 function renderDay(day) {
   const section = createElement('section', 'module-day');
   section.appendChild(createElement('h4', 'module-day-title', `Day ${day.dayNumber}: ${day.topic || 'Daily lesson'}`));
   appendTextBlock(section, getVisibleDayContent(day), 'module-day-lesson');
   const infographic = renderInfographic(day);
   if (infographic) section.appendChild(infographic);
+  const riskChecklist = renderRiskChecklist(day);
+  if (riskChecklist) section.appendChild(riskChecklist);
+  const foodDiary = renderFoodDiary(day);
+  if (foodDiary) section.appendChild(foodDiary);
   return section;
 }
 
@@ -261,6 +490,8 @@ async function loadModule({ forceNotification = false } = {}) {
   const day = (week.days || []).find(item => Number(item.dayNumber) === dayNumber) || week.days?.[0];
   if (!day) return renderErrorState(`No content found for Week ${weekNumber}, Day ${dayNumber}.`);
 
+  CURRENT_WEEK = week;
+
   if (typeof submitMetric === 'function') {
     submitMetric('module_opened', { week: weekNumber, day: day.dayNumber }).catch(error =>
       console.warn('[module_opened]', error.message));
@@ -283,8 +514,6 @@ async function loadModule({ forceNotification = false } = {}) {
   }
 
   renderWeeklyQuizCard(week, day.dayNumber);
-  renderDailyChallenge(week, day);
-  renderWeeklyChallenge(week, day);
   showDayNotification(week, day, forceNotification);
 }
 
@@ -315,32 +544,6 @@ function renderWeeklyQuizCard(week, dayNumber) {
     return;
   }
   renderQuiz(questions, { weekNumber: week.weekNumber, dayNumber: 7 });
-}
-
-function renderDailyChallenge(week, day) {
-  const title = document.getElementById('dailyChallengeTitle');
-  const description = document.getElementById('dailyChallengeDesc');
-  const button = document.getElementById('completeDailyChallengeBtn');
-  if (title) title.textContent = `Day ${day.dayNumber} Challenge`;
-  if (description) description.textContent = day.dailyChallenge || 'Complete today\'s lesson and interactive quiz.';
-  if (button) {
-    button.disabled = false;
-    button.dataset.week = week.weekNumber;
-    button.dataset.day = day.dayNumber;
-    button.innerHTML = '<i class="fas fa-star" aria-hidden="true"></i> Complete Daily Challenge (+20 pts)';
-  }
-}
-
-function renderWeeklyChallenge(week, day) {
-  const title = document.getElementById('challengeTitle');
-  const description = document.getElementById('challengeDesc');
-  if (title) title.textContent = getBadgeTitle(week.weeklyBadge) || 'Weekly Challenge';
-  if (description) description.textContent = week.weeklyChallenge || day.dailyChallenge || 'Complete this week\'s lessons and activities.';
-  document.getElementById('challengeFeedback')?.classList.add('hidden');
-}
-
-function getBadgeTitle(value) {
-  return value?.split('\n').map(line => line.replace(/^"|"$/g, '').trim()).find(Boolean) || '';
 }
 
 function renderLockedWeekState(week) {
@@ -452,20 +655,29 @@ async function answerQuiz(chosen, correct, button, state) {
       renderQuiz(state.questions, state.context, state.questionIndex + 1, updatedCorrectCount);
       return;
     }
-    renderQuizCompletion(state.questions.length, updatedCorrectCount);
+    renderQuizCompletion(state.questions.length, updatedCorrectCount, state.context);
   });
   result?.appendChild(nextButton);
 }
 
-function renderQuizCompletion(totalQuestions, correctCount) {
+function renderQuizCompletion(totalQuestions, correctCount, context) {
   const element = document.getElementById('quizContent');
   if (!element) return;
   element.replaceChildren();
   const result = createElement('div', 'quiz-completion');
   result.appendChild(createElement('span', 'quiz-completion-emoji', correctCount === totalQuestions ? '🌟' : '👏'));
-  result.appendChild(createElement('strong', '', 'Daily quiz complete!'));
+  result.appendChild(createElement('strong', '', 'Weekly quiz complete!'));
   result.appendChild(createElement('p', '', `You answered ${correctCount} of ${totalQuestions} correctly.`));
   element.appendChild(result);
+
+  // Finishing the Day 7 quiz closes the week — fire the
+  // week's push notification when the curriculum defines one.
+  if (context?.dayNumber === 7 && CURRENT_WEEK?.pushNotification) {
+    triggerBrowserNotificationMock(
+      CURRENT_WEEK.pushNotification,
+      `Week ${context.weekNumber} complete`
+    );
+  }
 }
 
 async function markModuleComplete() {
@@ -474,22 +686,6 @@ async function markModuleComplete() {
   if (typeof submitMetric === 'function') await submitMetric('module', { week });
   const button = document.getElementById('markCompleteBtn');
   if (button) { button.innerHTML = '<i class="fas fa-check-circle"></i> Completed ✓'; button.disabled = true; }
-}
-
-async function completeDailyChallenge() {
-  const button = document.getElementById('completeDailyChallengeBtn');
-  const week = Number(button?.dataset.week);
-  const day = Number(button?.dataset.day);
-  if (!week || !day || (typeof userCurrentWeek !== 'undefined' && week > userCurrentWeek)) return;
-  if (typeof submitMetric === 'function') await submitMetric('daily_challenge', { week, day, badge: `daily_w${week}_d${day}` });
-  if (button) { button.innerHTML = '<i class="fas fa-check-circle"></i> Daily Challenge Completed ✓'; button.disabled = true; }
-}
-
-async function completeChallenge() {
-  const week = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
-  if (typeof userCurrentWeek !== 'undefined' && week > userCurrentWeek) return;
-  if (typeof submitMetric === 'function') await submitMetric('weekly_challenge', { week, badge: `weekly_w${week}` });
-  if (typeof showFeedback === 'function') showFeedback('challengeFeedback', '🏆 Weekly challenge complete! Your badge has been added.');
 }
 
 function openResource(type, event) {

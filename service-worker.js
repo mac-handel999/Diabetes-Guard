@@ -1,4 +1,4 @@
-const CACHE_NAME = 'diashield-v2';
+const CACHE_NAME = 'diashield-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -18,7 +18,11 @@ const ASSETS_TO_CACHE = [
   '/Images/diabetes-guard-logo-Photoroom.png',
   '/Images/dia-shield-logo.svg',
   '/Images/dia-shield-icon-192.png',
-  '/Images/dia-shield-icon-512.png'
+  '/Images/dia-shield-icon-512.png',
+  '/Images/week1-day2.png',
+  '/Images/week1-day4.png',
+  '/Images/week4-day3.png',
+  '/Images/week6-day3.png'
 ];
 
 // Cache the app shell during installation; one unavailable optional asset must not block install.
@@ -62,6 +66,23 @@ self.addEventListener('fetch', (e) => {
 
   const requestUrl = new URL(e.request.url);
   if (requestUrl.pathname.startsWith('/api/')) return;
+
+  // Curriculum content changes without a new app version, so always prefer
+  // the network for it and keep the last good copy as offline fallback.
+  if (requestUrl.pathname.endsWith('/curriculum.json')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(e.request))
+    );
+    return;
+  }
 
   if (e.request.mode === 'navigate') {
     const fallbackUrl = ['/admin.html', '/documentation.html', '/admin-documentation.html'].includes(requestUrl.pathname)

@@ -23,7 +23,6 @@
             "type": "activity",
             "instructions": "Participant Profile Setup\nComplete:\n• Age\n• Sex\n• University\n• Faculty\n• Level of study"
           },
-          "dailyChallenge": "Log into the app twice today.",
           "pushNotification": "\"Welcome! Your journey toward diabetes prevention begins today.\""
         },
         {
@@ -37,11 +36,10 @@
             "image": {
               "src": "Images/week1-day2.png",
               "alt": "Understanding Diabetes infographic",
-              "caption": "Add the Week 1 Day 2 Understanding Diabetes infographic at this path."
+              "caption": "  "
             }
           },
           "knowledgeCheck": "What is glucose? \nAns: Glucose is the body's main source of energy.\nWhat hormone regulates blood sugar? \nAns: Insulin",
-          "dailyChallenge": "Tell one friend something new you learned about diabetes.",
           "pushNotification": "\"What you learn today can protect your health tomorrow.\""
         },
         {
@@ -54,7 +52,6 @@
             "instructions": "Drag-and-drop classification exercise.\nDrag-and-Drop Classification Exercise\nActivity Instructions\nDrag each statement into the correct type of diabetes.\nCategories (Drop Zones)\nType 1 Diabetes \nType 2 Diabetes \nGestational Diabetes\nDraggable Cards\nAutoimmune condition \nBody stops producing insulin \nUsually begins in childhood or adolescence \nCannot currently be prevented \nMost common form of diabetes \nBody becomes resistant to insulin \nStrongly linked to lifestyle \nOften preventable \nOccurs during pregnancy \nIncreases future diabetes risk\nCorrect Classification\n🟦 Type 1 Diabetes\nAutoimmune condition \nBody stops producing insulin \nUsually begins in childhood or adolescence \nCannot currently be prevented \n🟩 Type 2 Diabetes\nMost common form of diabetes \nBody becomes resistant to insulin \nStrongly linked to lifestyle \nOften preventable \n🟨 Gestational Diabetes\nOccurs during pregnancy \nIncreases future diabetes risk\nInstant Feedback\n✅ Correct Placement\nExcellent! You correctly matched this characteristic to the appropriate type of diabetes.\n❌ Incorrect Placement\nNot quite. Review the lesson and try again. Think about when this type of diabetes occurs and what causes it.\n\nCompletion Feedback\n🌟 Perfect Score (10/10)\nExcellent work! You can now distinguish between the three main types of diabetes.\n👍 Score: 7–9/10\nGreat job! Review the few characteristics you missed to strengthen your understanding.\n📚 Score: Below 7/10\nGood effort! Revisit the lesson and try the activity again. Understanding the different types of diabetes is an important first step in learning how Type 2 diabetes can be prevented.\n\nGamification \n🏆 Reward: 20 points \n🎖 Badge: Diabetes Detective \n⭐ Bonus: Earn an extra 5 points for completing the activity without any incorrect attempts."
           },
           "reflectionQuestion": "Before today, did you know there were different types of diabetes?",
-          "dailyChallenge": "Share one difference between Type 1 and Type 2 diabetes.",
           "pushNotification": "\"Most diabetes cases worldwide are Type 2, and many are preventable.\""
         },
         {
@@ -68,11 +65,10 @@
             "image": {
               "src": "Images/week1-day4.png",
               "alt": "Diabetes facts for Nigerian students infographic",
-              "caption": "Add the Week 1 Day 4 diabetes facts infographic at this path."
+              "caption": " "
             }
           },
           "knowledgeCheck": "True or False:\nYoung adults cannot develop Type 2 diabetes.",
-          "dailyChallenge": "Identify one unhealthy habit you would like to improve.",
           "pushNotification": "\"Diabetes is increasing among young adults. Prevention starts now.\""
         },
         {
@@ -85,7 +81,6 @@
             "instructions": "Symptom Recognition Quiz\nSymptom Recognition Quiz: Could You Recognize Diabetes Warning Signs?\nInstructions: Select the correct answer for each question.\nQuestion 1\nWhich of the following is a common symptom of diabetes?\nA. Increased energy\nB. Excessive thirst\nC. Better eyesight\nD. Reduced appetite\n✅ Correct Answer: B. Excessive thirst\nExplanation: High blood glucose levels can cause the body to lose more water, leading to increased thirst.\n\nQuestion 2\nA person with diabetes may experience frequent urination because:\nA. The body tries to remove excess glucose through urine\nB. The person drinks too little water\nC. The kidneys stop working immediately\nD. The person exercises too much\n✅ Correct Answer: A. The body tries to remove excess glucose through urine\nExplanation: When blood glucose levels are high, the kidneys work to remove excess sugar, causing frequent urination.\n\nQuestion 3\nWhich combination of symptoms may suggest a possible diabetes warning sign?\nA. Excessive thirst, frequent urination, and unexplained weight loss\nB. Increased strength and improved vision\nC. Better sleep and increased energy\nD. Reduced hunger and weight gain\n✅ Correct Answer: A. Excessive thirst, frequent urination, and unexplained weight loss\nExplanation: These are common signs that may occur when blood glucose levels are not well controlled.\n\nQuestion 4\nTrue or False:\n\"Everyone with Type 2 diabetes will notice symptoms immediately.\"\nA. True\nB. False\n✅ Correct Answer: B. False\nExplanation: Some people with Type 2 diabetes may have no symptoms for years, which is why awareness and regular screening are important.\n\nRemember the warning signs:\n💧 Excessive thirst\n🚽 Frequent urination\n🍽️ Excessive hunger\n⚖️ Unexplained weight loss\n😴 Fatigue\n👁️ Blurred vision\nEarly recognition can support early testing, prevention, and better health outcomes."
           },
           "reflectionQuestion": "Have you ever experienced any of these symptoms?",
-          "dailyChallenge": "Discuss diabetes symptoms with a family member.",
           "pushNotification": "\"Knowing the signs can help prevent complications.\""
         },
         {
@@ -97,14 +92,13 @@
             "type": "activity",
             "instructions": "Myth vs Fact Game"
           },
-          "dailyChallenge": "Correct one diabetes myth when you hear it.",
           "pushNotification": "\"Knowledge defeats myths.\""
         },
         {
           "dayNumber": 7,
           "topic": "Weekly Review and Self-Assessment",
           "lesson": "Review:\n<ul>\n<li>• What diabetes is</li>\n<li>• Types of diabetes</li>\n<li>• Diabetes burden</li>\n<li>• Symptoms</li>\n<li>• Prevention importance</li>\n</ul>\nSelf-Evaluation:\nRate:\n• My understanding of diabetes (1–5)\n• My confidence in preventing diabetes (1–5)",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Diabetes Awareness Champion\n\nWeekly Challenge\nIdentify and write down:\nThree things you learned about diabetes.\nThree actions you will take to prevent diabetes.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Diabetes Awareness Champion",
           "pushNotification": "\"Congratulations! You completed Week 1.",
           "quiz": {
             "questions": [
@@ -185,7 +179,8 @@
           }
         }
       ],
-      "weeklyBadge": "\"Diabetes Awareness Champion\"\nWeekly Challenge Completion\nCompleted all modules? Earn 50 points.\nPush Notification\n\"Congratulations! You completed Week 1."
+      "weeklyBadge": "\"Diabetes Awareness Champion\"",
+      "pushNotification": "\"Congratulations! You completed Week 1.\""
     },
     {
       "weekNumber": 2,
@@ -214,8 +209,8 @@
         {
           "dayNumber": 2,
           "topic": "FAMILY HISTORY AND GENETIC RISK",
-          "lesson": "One of the strongest predictors of Type 2 diabetes is family history.\nGenes influence how the body:\nProduces insulin\nUses insulin\nStores body fat\nRegulates blood sugar\nIf one or both parents have diabetes, your risk is higher than someone without a family history.\nHowever, genetics is not destiny.\nThink of genes as loading the gun and lifestyle as pulling the trigger.\nA person with a family history who maintains healthy habits may never develop diabetes, while a person without a family history may develop diabetes due to unhealthy lifestyle choices.\nFamily History Categories:\nLow Risk:\nNo parent or sibling has diabetes.\nModerate Risk:\nOne close relative has diabetes.\nHigh Risk:\nMultiple close relatives have diabetes.\nWhy Knowing Family History Matters:\n<ul>\n<li>Knowing your family history allows you to:</li>\n<li>Screen earlier</li>\n<li>Improve lifestyle habits</li>\n<li>Monitor weight</li>\n<li>Seek preventive care</li>\n</ul>\nKey Takeaway:\n<ul>\n<li>You cannot change your genes, but you can change your lifestyle.</li>\n</ul>",
-          "content": "Daily Topic\nDoes Diabetes Run in Families?\nEducational Lesson\nOne of the strongest predictors of Type 2 diabetes is family history.\nGenes influence how the body:\nProduces insulin\nUses insulin\nStores body fat\nRegulates blood sugar\nIf one or both parents have diabetes, your risk is higher than someone without a family history.\nHowever, genetics is not destiny.\nThink of genes as loading the gun and lifestyle as pulling the trigger.\nA person with a family history who maintains healthy habits may never develop diabetes, while a person without a family history may develop diabetes due to unhealthy lifestyle choices.\nFamily History Categories:\nLow Risk:\nNo parent or sibling has diabetes.\nModerate Risk:\nOne close relative has diabetes.\nHigh Risk:\nMultiple close relatives have diabetes.\nWhy Knowing Family History Matters:\n<ul>\n<li>Knowing your family history allows you to:</li>\n<li>Screen earlier</li>\n<li>Improve lifestyle habits</li>\n<li>Monitor weight</li>\n<li>Seek preventive care</li>\n</ul>\nKey Takeaway:\n<ul>\n<li>You cannot change your genes, but you can change your lifestyle.</li>\n<li>Interactive Activity</li>\n<li>Family History Assessment</li>\n<li>Does your:</li>\n<li>Mother have diabetes?</li>\n<li>Father have diabetes?</li>\n<li>Brother/sister have diabetes?</li>\n<li>Grandparent have diabetes?</li>\n<li>Reflection Question</li>\n<li>Were you aware of your family's diabetes history before today?</li>\n<li>Daily Challenge</li>\n<li>Ask at least one family member about diabetes history in your family.</li>\n<li>Push Notification</li>\n<li>\"Family history increases risk, but healthy habits reduce it.\"</li>\n</ul>",
+          "lesson": "One of the strongest predictors of Type 2 diabetes is family history.\nGenes influence how the body:\n• Produces insulin\n• Uses insulin\n• Stores body fat\n• Regulates blood sugar\nIf one or both parents have diabetes, your risk is higher than someone without a family history.\nHowever, genetics is not destiny.\nThink of genes as loading the gun and lifestyle as pulling the trigger.\nA person with a family history who maintains healthy habits may never develop diabetes, while a person without a family history may develop diabetes due to unhealthy lifestyle choices.\nFamily History Categories:\nLow Risk:\n• No parent or sibling has diabetes.\nModerate Risk:\n• One close relative has diabetes.\nHigh Risk:\n• Multiple close relatives have diabetes.\nWhy Knowing Family History Matters:\n<ul>\n<li>Knowing your family history allows you to:</li>\n<li>Screen earlier</li>\n<li>Improve lifestyle habits</li>\n<li>Monitor weight</li>\n<li>Seek preventive care</li>\n</ul>\nKey Takeaway:\n<ul>\n<li>You cannot change your genes, but you can change your lifestyle.</li>\n</ul>",
+          "content": "Daily Topic\nDoes Diabetes Run in Families?\nEducational Lesson\nOne of the strongest predictors of Type 2 diabetes is family history.\nGenes influence how the body:\n• Produces insulin\n• Uses insulin\n• Stores body fat\n• Regulates blood sugar\nIf one or both parents have diabetes, your risk is higher than someone without a family history.\nHowever, genetics is not destiny.\nThink of genes as loading the gun and lifestyle as pulling the trigger.\nA person with a family history who maintains healthy habits may never develop diabetes, while a person without a family history may develop diabetes due to unhealthy lifestyle choices.\nFamily History Categories:\nLow Risk:\n• No parent or sibling has diabetes.\nModerate Risk:\n• One close relative has diabetes.\nHigh Risk:\n• Multiple close relatives have diabetes.\nWhy Knowing Family History Matters:\n<ul>\n<li>Knowing your family history allows you to:</li>\n<li>Screen earlier</li>\n<li>Improve lifestyle habits</li>\n<li>Monitor weight</li>\n<li>Seek preventive care</li>\n</ul>\nKey Takeaway:\n<ul>\n<li>You cannot change your genes, but you can change your lifestyle.</li>\n<li>Interactive Activity</li>\n<li>Family History Assessment</li>\n<li>Does your:</li>\n<li>Mother have diabetes?</li>\n<li>Father have diabetes?</li>\n<li>Brother/sister have diabetes?</li>\n<li>Grandparent have diabetes?</li>\n<li>Reflection Question</li>\n<li>Were you aware of your family's diabetes history before today?</li>\n<li>Daily Challenge</li>\n<li>Ask at least one family member about diabetes history in your family.</li>\n<li>Push Notification</li>\n<li>\"Family history increases risk, but healthy habits reduce it.\"</li>\n</ul>",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Family History Assessment\nDoes your:\nMother have diabetes?\nFather have diabetes?\nBrother/sister have diabetes?\nGrandparent have diabetes?"
@@ -226,8 +221,8 @@
         {
           "dayNumber": 3,
           "topic": "OVERWEIGHT, OBESITY AND DIABETES",
-          "lesson": "Excess body fat, especially around the waist, increases the risk of developing Type 2 diabetes.\nFat tissue is not just a storage site for energy. It releases substances that affect insulin action.\nWhen excess fat accumulates:\nCells become resistant to insulin.\nBlood glucose rises.\nThe pancreas works harder.\nDiabetes risk increases.\n\nWhy Waist Size Matters:\nAbdominal fat is particularly dangerous because it is strongly associated with insulin resistance.\n\n**Low Risk (Healthy):** For men, a waist circumference of 37 inches (94 cm) or less is considered low risk. For women, a waist circumference of 31.5 inches (80 cm) or less is considered low risk.\n\n**Increased Risk:** For men, a waist circumference of 37.1–39.9 inches (94.1–101.9 cm) indicates increased risk. For women, a waist circumference of 31.6–34.9 inches (80.1–87.9 cm) indicates increased risk.\n\n**High Risk (Abdominal Obesity):** For men, a waist circumference of 40 inches (102 cm) or more indicates high risk. For women, a waist circumference of 35 inches (88 cm) or more indicates high risk.\n\nKey Takeaway:\n<ul>\n<li>Maintaining a healthy weight significantly reduces diabetes risk.</li>\n</ul>",
-          "content": "Daily Topic\nWhy Body Weight Matters\nEducational Lesson\nExcess body fat, especially around the waist, increases the risk of developing Type 2 diabetes.\nFat tissue is not just a storage site for energy. It releases substances that affect insulin action.\nWhen excess fat accumulates:\nCells become resistant to insulin.\nBlood glucose rises.\nThe pancreas works harder.\nDiabetes risk increases.\n\nWhy Waist Size Matters:\nAbdominal fat is particularly dangerous because it is strongly associated with insulin resistance.\n\n**Low Risk (Healthy):** For men, a waist circumference of 37 inches (94 cm) or less is considered low risk. For women, a waist circumference of 31.5 inches (80 cm) or less is considered low risk.\n\n**Increased Risk:** For men, a waist circumference of 37.1–39.9 inches (94.1–101.9 cm) indicates increased risk. For women, a waist circumference of 31.6–34.9 inches (80.1–87.9 cm) indicates increased risk.\n\n**High Risk (Abdominal Obesity):** For men, a waist circumference of 40 inches (102 cm) or more indicates high risk. For women, a waist circumference of 35 inches (88 cm) or more indicates high risk.\n\nKey Takeaway:\n<ul>\n<li>Maintaining a healthy weight significantly reduces diabetes risk.</li>\n<li>Interactive Activity</li>\n<li>Measure your waist circumference and check it against the health risk table.</li>\n<li>Reflection Question</li>\n<li>Were you surprised by your waist circumference result?</li>\n<li>Daily Challenge</li>\n<li>Record your weight and waist circumference.</li>\n<li>Push Notification</li>\n<li>\"Small weight changes can produce big improvements in health.\"</li>\n</ul>",
+          "lesson": "Excess body fat, especially around the waist, increases the risk of developing Type 2 diabetes.\nFat tissue is not just a storage site for energy. It releases substances that affect insulin action.\nWhen excess fat accumulates:\n• Cells become resistant to insulin.\n• Blood glucose rises.\n• The pancreas works harder.\n• Diabetes risk increases.\n\nWhy Waist Size Matters:\nAbdominal fat is particularly dangerous because it is strongly associated with insulin resistance.\n\n**Low Risk (Healthy):**\n• For men, a waist circumference of 37 inches (94 cm) or less is considered low risk.\n• For women, a waist circumference of 31.5 inches (80 cm) or less is considered low risk.\n\n**Increased Risk:**\n• For men, a waist circumference of 37.1–39.9 inches (94.1–101.9 cm) indicates increased risk.\n• For women, a waist circumference of 31.6–34.9 inches (80.1–87.9 cm) indicates increased risk.\n\n**High Risk (Abdominal Obesity):**\n• For men, a waist circumference of 40 inches (102 cm) or more indicates high risk.\n• For women, a waist circumference of 35 inches (88 cm) or more indicates high risk.\n\nKey Takeaway:\n<ul>\n<li>Maintaining a healthy weight significantly reduces diabetes risk.</li>\n</ul>",
+          "content": "Daily Topic\nWhy Body Weight Matters\nEducational Lesson\nExcess body fat, especially around the waist, increases the risk of developing Type 2 diabetes.\nFat tissue is not just a storage site for energy. It releases substances that affect insulin action.\nWhen excess fat accumulates:\n• Cells become resistant to insulin.\n• Blood glucose rises.\n• The pancreas works harder.\n• Diabetes risk increases.\n\nWhy Waist Size Matters:\nAbdominal fat is particularly dangerous because it is strongly associated with insulin resistance.\n\n**Low Risk (Healthy):**\n• For men, a waist circumference of 37 inches (94 cm) or less is considered low risk.\n• For women, a waist circumference of 31.5 inches (80 cm) or less is considered low risk.\n\n**Increased Risk:**\n• For men, a waist circumference of 37.1–39.9 inches (94.1–101.9 cm) indicates increased risk.\n• For women, a waist circumference of 31.6–34.9 inches (80.1–87.9 cm) indicates increased risk.\n\n**High Risk (Abdominal Obesity):**\n• For men, a waist circumference of 40 inches (102 cm) or more indicates high risk.\n• For women, a waist circumference of 35 inches (88 cm) or more indicates high risk.\n\nKey Takeaway:\n<ul>\n<li>Maintaining a healthy weight significantly reduces diabetes risk.</li>\n<li>Interactive Activity</li>\n<li>Measure your waist circumference and check it against the health risk table.</li>\n<li>Reflection Question</li>\n<li>Were you surprised by your waist circumference result?</li>\n<li>Daily Challenge</li>\n<li>Record your weight and waist circumference.</li>\n<li>Push Notification</li>\n<li>\"Small weight changes can produce big improvements in health.\"</li>\n</ul>",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Measure your waist circumference and check it against the health risk table."
@@ -238,8 +233,8 @@
         {
           "dayNumber": 4,
           "topic": "PHYSICAL INACTIVITY AND SEDENTARY LIFESTYLE",
-          "lesson": "Modern university life often involves prolonged sitting.\nExamples include:\nAttending lectures\nStudying\nWatching videos\nUsing social media\nGaming\nResearch shows that prolonged sitting decreases insulin sensitivity and increases diabetes risk.\nPhysical activity helps:\nBurn calories\nImprove insulin action\nReduce stress\nMaintain healthy weight\nWHO recommends:\nAt least 150 minutes of moderate physical activity weekly.\nEven short activity breaks improve health.\nKey Takeaway:\n<ul>\n<li>Every movement counts.</li>\n</ul>",
-          "content": "Daily Topic\nSitting Too Much Can Harm Your Health\nEducational Lesson\nModern university life often involves prolonged sitting.\nExamples include:\nAttending lectures\nStudying\nWatching videos\nUsing social media\nGaming\nResearch shows that prolonged sitting decreases insulin sensitivity and increases diabetes risk.\nPhysical activity helps:\nBurn calories\nImprove insulin action\nReduce stress\nMaintain healthy weight\nWHO recommends:\nAt least 150 minutes of moderate physical activity weekly.\nEven short activity breaks improve health.\nKey Takeaway:\n<ul>\n<li>Every movement counts.</li>\n<li>Interactive Activity</li>\n<li>Daily Sitting-Time Survey</li>\n<li>How many hours did you sit yesterday?</li>\n<li>□ Less than 4 hours</li>\n<li>□ 4–6 hours</li>\n<li>□ 7–9 hours</li>\n<li>□ More than 9 hours</li>\n<li>Daily Challenge</li>\n<li>Take a 10-minute walk after your next meal.</li>\n<li>Push Notification</li>\n<li>\"Stand up and move. Your body was designed for activity.\"</li>\n</ul>",
+          "lesson": "Modern university life often involves prolonged sitting.\nExamples include:\n• Attending lectures\n• Studying\n• Watching videos\n• Using social media\n• Gaming\nResearch shows that prolonged sitting decreases insulin sensitivity and increases diabetes risk.\nPhysical activity helps:\n• Burn calories\n• Improve insulin action\n• Reduce stress\n• Maintain healthy weight\nWHO recommends:\nAt least 150 minutes of moderate physical activity weekly.\nEven short activity breaks improve health.\nKey Takeaway:\n<ul>\n<li>Every movement counts.</li>\n</ul>",
+          "content": "Daily Topic\nSitting Too Much Can Harm Your Health\nEducational Lesson\nModern university life often involves prolonged sitting.\nExamples include:\n• Attending lectures\n• Studying\n• Watching videos\n• Using social media\n• Gaming\nResearch shows that prolonged sitting decreases insulin sensitivity and increases diabetes risk.\nPhysical activity helps:\n• Burn calories\n• Improve insulin action\n• Reduce stress\n• Maintain healthy weight\nWHO recommends:\nAt least 150 minutes of moderate physical activity weekly.\nEven short activity breaks improve health.\nKey Takeaway:\n<ul>\n<li>Every movement counts.</li>\n<li>Interactive Activity</li>\n<li>Daily Sitting-Time Survey</li>\n<li>How many hours did you sit yesterday?</li>\n<li>□ Less than 4 hours</li>\n<li>□ 4–6 hours</li>\n<li>□ 7–9 hours</li>\n<li>□ More than 9 hours</li>\n<li>Daily Challenge</li>\n<li>Take a 10-minute walk after your next meal.</li>\n<li>Push Notification</li>\n<li>\"Stand up and move. Your body was designed for activity.\"</li>\n</ul>",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Daily Sitting-Time Survey\nHow many hours did you sit yesterday?\n□ Less than 4 hours\n□ 4–6 hours\n□ 7–9 hours\n□ More than 9 hours"
@@ -249,8 +244,8 @@
         {
           "dayNumber": 5,
           "topic": "FOOD CHOICES AND DIABETES RISK",
-          "lesson": "What we eat directly affects body weight, blood sugar regulation, and diabetes risk.\nFoods associated with increased risk include:\nSugary beverages\nFast foods\nFried foods\nRefined grains\nHighly processed snacks\nProtective foods include:\nVegetables:\nFruits\nBeans\nWhole grains\nNuts\nHealthy eating is not about perfection but about making better choices consistently.\nKey Takeaway:\n<ul>\n<li>Every meal is an opportunity to improve health.</li>\n</ul>",
-          "content": "Daily Topic\nHow Food Influences Your Risk\nEducational Lesson\nWhat we eat directly affects body weight, blood sugar regulation, and diabetes risk.\nFoods associated with increased risk include:\nSugary beverages\nFast foods\nFried foods\nRefined grains\nHighly processed snacks\nProtective foods include:\nVegetables:\nFruits\nBeans\nWhole grains\nNuts\nHealthy eating is not about perfection but about making better choices consistently.\nKey Takeaway:\n<ul>\n<li>Every meal is an opportunity to improve health.</li>\n<li>Interactive Activity</li>\n<li>24-Hour Food Recall</li>\n<li>Participants record everything consumed in the last day.</li>\n<li>Reflection Question</li>\n<li>Which food habits would you like to improve?</li>\n<li>Daily Challenge</li>\n<li>Replace one unhealthy snack with fruit.</li>\n<li>Push Notification</li>\n<li>\"Your next meal can move you closer to health.\"</li>\n</ul>",
+          "lesson": "What we eat directly affects body weight, blood sugar regulation, and diabetes risk.\nFoods associated with increased risk include:\n• Sugary beverages\n• Fast foods\n• Fried foods\n• Refined grains\n• Highly processed snacks\nProtective foods include:\n• Vegetables\n• Fruits\n• Beans\n• Whole grains\n• Nuts\nHealthy eating is not about perfection but about making better choices consistently.\nKey Takeaway:\n<ul>\n<li>Every meal is an opportunity to improve health.</li>\n</ul>",
+          "content": "Daily Topic\nHow Food Influences Your Risk\nEducational Lesson\nWhat we eat directly affects body weight, blood sugar regulation, and diabetes risk.\nFoods associated with increased risk include:\n• Sugary beverages\n• Fast foods\n• Fried foods\n• Refined grains\n• Highly processed snacks\nProtective foods include:\n• Vegetables\n• Fruits\n• Beans\n• Whole grains\n• Nuts\nHealthy eating is not about perfection but about making better choices consistently.\nKey Takeaway:\n<ul>\n<li>Every meal is an opportunity to improve health.</li>\n<li>Interactive Activity</li>\n<li>24-Hour Food Recall</li>\n<li>Participants record everything consumed in the last day.</li>\n<li>Reflection Question</li>\n<li>Which food habits would you like to improve?</li>\n<li>Daily Challenge</li>\n<li>Replace one unhealthy snack with fruit.</li>\n<li>Push Notification</li>\n<li>\"Your next meal can move you closer to health.\"</li>\n</ul>",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "24-Hour Food Recall\nParticipants record everything consumed in the last day."
@@ -268,13 +263,44 @@
             "instructions": "Diabetes Risk Checklist\nYes/No Responses:\nFamily history of diabetes\nBMI ≥ 25\nWaist circumference above recommended levels\nPhysically inactive\nSugary drinks consumed regularly\nPoor fruit and vegetable intake\nSmoking\nExcess alcohol use\nRisk Categories\n0–2 factors = Low Risk\n3–5 factors = Moderate Risk\n6 or more factors = High Risk"
           },
           "reflectionQuestion": "What concerns you most about your diabetes risk result?",
-          "pushNotification": "\"Awareness creates opportunity for change.\""
+          "pushNotification": "\"Awareness creates opportunity for change.\"",
+          "riskChecklist": {
+            "title": "Diabetes Risk Checklist",
+            "description": "Answer Yes or No to each item. Your risk category updates as you go.",
+            "items": [
+              "Family history of diabetes",
+              "BMI ≥ 25",
+              "Waist circumference above recommended levels",
+              "Physically inactive",
+              "Sugary drinks consumed regularly",
+              "Poor fruit and vegetable intake",
+              "Smoking",
+              "Excess alcohol use"
+            ],
+            "categories": [
+              {
+                "min": 0,
+                "max": 2,
+                "label": "Low Risk"
+              },
+              {
+                "min": 3,
+                "max": 5,
+                "label": "Moderate Risk"
+              },
+              {
+                "min": 6,
+                "max": 99,
+                "label": "High Risk"
+              }
+            ]
+          }
         },
         {
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW AND KNOWLEDGE ASSESSMENT",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Risk Awareness Champion\n\nWeekly Challenge\nIdentify and write down:\nThree personal diabetes risk factors.\nThree actions you will take to reduce those risks.\n\nEnd-of-Week Motivational Message\n\"You cannot change your family history, but you can change your future. Every healthy choice you make today reduces your risk tomorrow.\"",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Risk Awareness Champion\nEnd-of-Week Motivational Message\n\"You cannot change your family history, but you can change your future. Every healthy choice you make today reduces your risk tomorrow.\"",
           "quiz": {
             "questions": [
               {
@@ -336,8 +362,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Risk Awareness Champion",
-      "weeklyChallenge": "Identify and write down:\nThree personal diabetes risk factors.\nThree actions you will take to reduce those risks.\n\nEnd-of-Week Motivational Message\n\"You cannot change your family history, but you can change your future. Every healthy choice you make today reduces your risk tomorrow.\""
+      "weeklyBadge": "🏅 Risk Awareness Champion"
     },
     {
       "weekNumber": 3,
@@ -365,8 +390,8 @@
         {
           "dayNumber": 2,
           "topic": "UNDERSTANDING FOOD GROUPS",
-          "lesson": "Food provides nutrients required for healthy body functioning.\nCarbohydrates:\nExamples:\n<ul>\n<li>Rice</li>\n<li>Bread</li>\n<li>Garri</li>\n<li>Yam</li>\n</ul>\nFunction:\nPrimary source of energy.\nProteins:\nExamples:\n<ul>\n<li>Fish</li>\n<li>Meat</li>\n<li>Eggs</li>\n<li>Beans</li>\n</ul>\nFunction:\nGrowth and tissue repair.\nHealthy Fats:\nExamples:\n<ul>\n<li>Groundnuts</li>\n<li>Avocado</li>\n<li>Vegetable oils</li>\n</ul>\nFunction:\nHormone production and nutrient absorption.\nVitamins and Minerals:\nExamples:\n<ul>\n<li>Fruits</li>\n</ul>\nVegetables:\nFunction:\nSupport immunity and body processes.\nFibre:\nExamples:\nVegetables:\nBeans\nWhole grains\nFunction:\nPromotes digestion and blood sugar control.",
-          "content": "Educational Lesson\nFood provides nutrients required for healthy body functioning.\nCarbohydrates:\nExamples:\n<ul>\n<li>Rice</li>\n<li>Bread</li>\n<li>Garri</li>\n<li>Yam</li>\n</ul>\nFunction:\nPrimary source of energy.\nProteins:\nExamples:\n<ul>\n<li>Fish</li>\n<li>Meat</li>\n<li>Eggs</li>\n<li>Beans</li>\n</ul>\nFunction:\nGrowth and tissue repair.\nHealthy Fats:\nExamples:\n<ul>\n<li>Groundnuts</li>\n<li>Avocado</li>\n<li>Vegetable oils</li>\n</ul>\nFunction:\nHormone production and nutrient absorption.\nVitamins and Minerals:\nExamples:\n<ul>\n<li>Fruits</li>\n</ul>\nVegetables:\nFunction:\nSupport immunity and body processes.\nFibre:\nExamples:\nVegetables:\nBeans\nWhole grains\nFunction:\nPromotes digestion and blood sugar control.\nInteractive Activity\nList three other foods in each Food Group.\nReflection\nWhich food group do you consume most often?\nDaily Challenge\nEat foods from at least four food groups today.",
+          "lesson": "Food provides nutrients required for healthy body functioning.\nCarbohydrates:\nExamples:\n<ul>\n<li>Rice</li>\n<li>Bread</li>\n<li>Garri</li>\n<li>Yam</li>\n</ul>\nFunction:\nPrimary source of energy.\nProteins:\nExamples:\n<ul>\n<li>Fish</li>\n<li>Meat</li>\n<li>Eggs</li>\n<li>Beans</li>\n</ul>\nFunction:\nGrowth and tissue repair.\nHealthy Fats:\nExamples:\n<ul>\n<li>Groundnuts</li>\n<li>Avocado</li>\n<li>Vegetable oils</li>\n</ul>\nFunction:\nHormone production and nutrient absorption.\nVitamins and Minerals:\nExamples:\n<ul>\n<li>Fruits</li>\n</ul>\nVegetables:\nFunction:\nSupport immunity and body processes.\nFibre:\nExamples:\n• Vegetables\n• Beans\n• Whole grains\nFunction:\nPromotes digestion and blood sugar control.",
+          "content": "Educational Lesson\nFood provides nutrients required for healthy body functioning.\nCarbohydrates:\nExamples:\n<ul>\n<li>Rice</li>\n<li>Bread</li>\n<li>Garri</li>\n<li>Yam</li>\n</ul>\nFunction:\nPrimary source of energy.\nProteins:\nExamples:\n<ul>\n<li>Fish</li>\n<li>Meat</li>\n<li>Eggs</li>\n<li>Beans</li>\n</ul>\nFunction:\nGrowth and tissue repair.\nHealthy Fats:\nExamples:\n<ul>\n<li>Groundnuts</li>\n<li>Avocado</li>\n<li>Vegetable oils</li>\n</ul>\nFunction:\nHormone production and nutrient absorption.\nVitamins and Minerals:\nExamples:\n<ul>\n<li>Fruits</li>\n</ul>\nVegetables:\nFunction:\nSupport immunity and body processes.\nFibre:\nExamples:\n• Vegetables\n• Beans\n• Whole grains\nFunction:\nPromotes digestion and blood sugar control.\nInteractive Activity\nList three other foods in each Food Group.\nReflection\nWhich food group do you consume most often?\nDaily Challenge\nEat foods from at least four food groups today.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "List three other foods in each Food Group.\nReflection\nWhich food group do you consume most often?"
@@ -398,8 +423,8 @@
         {
           "dayNumber": 5,
           "topic": "HEALTHY SNACKING",
-          "lesson": "Many students consume unhealthy snacks between meals.\nCommon Unhealthy Snacks:\nBiscuits\nCakes\nDoughnuts\nSugary drinks\nCandy\nBetter Alternatives:\nFruits\nGroundnuts\nPopcorn without excess sugar\nYogurt\nCucumber\nBenefits:\n<ul>\n<li>Improved satiety</li>\n<li>Better weight control</li>\n<li>Stable energy levels</li>\n</ul>",
-          "content": "Educational Lesson\nMany students consume unhealthy snacks between meals.\nCommon Unhealthy Snacks:\nBiscuits\nCakes\nDoughnuts\nSugary drinks\nCandy\nBetter Alternatives:\nFruits\nGroundnuts\nPopcorn without excess sugar\nYogurt\nCucumber\nBenefits:\n<ul>\n<li>Improved satiety</li>\n<li>Better weight control</li>\n<li>Stable energy levels</li>\n<li>Activity</li>\n<li>Healthy Snack Swap Challenge.</li>\n<li>Challenge</li>\n<li>Replace one unhealthy snack today.</li>\n</ul>",
+          "lesson": "Many students consume unhealthy snacks between meals.\nCommon Unhealthy Snacks:\n• Biscuits\n• Cakes\n• Doughnuts\n• Sugary drinks\n• Candy\nBetter Alternatives:\n• Fruits\n• Groundnuts\n• Popcorn without excess sugar\n• Yogurt\n• Cucumber\nBenefits:\n<ul>\n<li>Improved satiety</li>\n<li>Better weight control</li>\n<li>Stable energy levels</li>\n</ul>",
+          "content": "Educational Lesson\nMany students consume unhealthy snacks between meals.\nCommon Unhealthy Snacks:\n• Biscuits\n• Cakes\n• Doughnuts\n• Sugary drinks\n• Candy\nBetter Alternatives:\n• Fruits\n• Groundnuts\n• Popcorn without excess sugar\n• Yogurt\n• Cucumber\nBenefits:\n<ul>\n<li>Improved satiety</li>\n<li>Better weight control</li>\n<li>Stable energy levels</li>\n<li>Activity</li>\n<li>Healthy Snack Swap Challenge.</li>\n<li>Challenge</li>\n<li>Replace one unhealthy snack today.</li>\n</ul>",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Healthy Snack Swap Challenge."
@@ -414,13 +439,24 @@
             "type": "activity",
             "instructions": "Complete a 24-hour food diary.\nReflection\nWhich foods appear most often in your diet?"
           },
-          "reflectionQuestion": "Which foods appear most often in your diet?\nChallenge\nRecord all foods consumed today."
+          "reflectionQuestion": "Which foods appear most often in your diet?\nChallenge\nRecord all foods consumed today.",
+          "foodDiary": {
+            "title": "Food Diary",
+            "description": "Record what you ate and drank today. Entries save automatically to this device and to your research log.",
+            "meals": [
+              "Breakfast",
+              "Lunch",
+              "Dinner",
+              "Snacks",
+              "Drinks"
+            ]
+          }
         },
         {
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Smart Eater\n\nWeekly Challenge\nConsume vegetables twice daily for at least 5 days.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Smart Eater",
           "reflectionQuestion": "What dietary habit would you most like to improve?",
           "quiz": {
             "questions": [
@@ -483,8 +519,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Smart Eater",
-      "weeklyChallenge": "Consume vegetables twice daily for at least 5 days."
+      "weeklyBadge": "🏅 Smart Eater"
     },
     {
       "weekNumber": 4,
@@ -502,8 +537,8 @@
         {
           "dayNumber": 1,
           "topic": "THE TRUTH ABOUT SUGAR",
-          "lesson": "Sugar provides energy, but excessive consumption contributes to:\nWeight gain\nObesity\nInsulin resistance\nType 2 diabetes\nCommon Sources:\nSoft drinks\nEnergy drinks\nSweetened tea\nFlavored yogurt\nCakes and pastries",
-          "content": "Educational Lesson\nSugar provides energy, but excessive consumption contributes to:\nWeight gain\nObesity\nInsulin resistance\nType 2 diabetes\nCommon Sources:\nSoft drinks\nEnergy drinks\nSweetened tea\nFlavored yogurt\nCakes and pastries\nActivity\nCheck the sugar content of any drink you buy\nChallenge\nCount how many sugary drinks you consumed yesterday.\nPush Notification\n\"Many drinks contain more sugar than you realize.\"",
+          "lesson": "Sugar provides energy, but excessive consumption contributes to:\n• Weight gain\n• Obesity\n• Insulin resistance\n• Type 2 diabetes\nCommon Sources:\n• Soft drinks\n• Energy drinks\n• Sweetened tea\n• Flavored yogurt\n• Cakes and pastries",
+          "content": "Educational Lesson\nSugar provides energy, but excessive consumption contributes to:\n• Weight gain\n• Obesity\n• Insulin resistance\n• Type 2 diabetes\nCommon Sources:\n• Soft drinks\n• Energy drinks\n• Sweetened tea\n• Flavored yogurt\n• Cakes and pastries\nActivity\nCheck the sugar content of any drink you buy\nChallenge\nCount how many sugary drinks you consumed yesterday.\nPush Notification\n\"Many drinks contain more sugar than you realize.\"",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Check the sugar content of any drink you buy"
@@ -513,8 +548,8 @@
         {
           "dayNumber": 2,
           "topic": "SUGAR IN YOUR DRINKS",
-          "lesson": "Liquid sugars are absorbed rapidly into the bloodstream.\nExamples:\n<ul>\n<li>Soft drinks</li>\n<li>Malt beverages</li>\n<li>Sweetened fruit juices</li>\n<li>Energy drinks</li>\n<li>World Health Organization (WHO) recommends a maximum daily limit of only 6 teaspoons (25 grams) of added sugar for adults.</li>\n<li>Sugar content of popular drinks in Nigeria:</li>\n<li>Lucozade Boost: 60g (equals 15 teaspoons)</li>\n<li>Monster Energy Drink: 48g (equals 12 teaspoons)</li>\n<li>Fanta (Orange): 40g (equals 8 teaspoons)</li>\n<li>Coca-Cola: 35g to 39g (equals 7 to 10 teaspoons)</li>\n<li>Malt Drinks (e.g., Maltina, Amstel Malta): 36g to 42g (equals 6 to 9 teaspoons)</li>\n<li>Chapman (Bottled or served): 30g (equals 7.5 teaspoons)</li>\n</ul>\nWhy This Matters:\n<ul>\n<li>Liquid calories do not satisfy hunger effectively.</li>\n</ul>",
-          "content": "Educational Lesson\nLiquid sugars are absorbed rapidly into the bloodstream.\nExamples:\n<ul>\n<li>Soft drinks</li>\n<li>Malt beverages</li>\n<li>Sweetened fruit juices</li>\n<li>Energy drinks</li>\n<li>World Health Organization (WHO) recommends a maximum daily limit of only 6 teaspoons (25 grams) of added sugar for adults.</li>\n<li>Sugar content of popular drinks in Nigeria:</li>\n<li>Lucozade Boost: 60g (equals 15 teaspoons)</li>\n<li>Monster Energy Drink: 48g (equals 12 teaspoons)</li>\n<li>Fanta (Orange): 40g (equals 8 teaspoons)</li>\n<li>Coca-Cola: 35g to 39g (equals 7 to 10 teaspoons)</li>\n<li>Malt Drinks (e.g., Maltina, Amstel Malta): 36g to 42g (equals 6 to 9 teaspoons)</li>\n<li>Chapman (Bottled or served): 30g (equals 7.5 teaspoons)</li>\n</ul>\nWhy This Matters:\n<ul>\n<li>Liquid calories do not satisfy hunger effectively.</li>\n<li>Activity</li>\n<li>Track our Daily Beverage consumption</li>\n<li>Challenge</li>\n<li>Replace one sugary drink with water.</li>\n</ul>",
+          "lesson": "Liquid sugars are absorbed rapidly into the bloodstream.\nExamples:\n• Soft drinks\n• Malt beverages\n• Sweetened fruit juices\n• Energy drinks\n\nThe World Health Organization (WHO) recommends a maximum daily limit of only 6 teaspoons (25 grams) of added sugar for adults.\n\nSugar content of popular drinks in Nigeria:\n• Lucozade Boost: 60g (equals 15 teaspoons)\n• Monster Energy Drink: 48g (equals 12 teaspoons)\n• Fanta (Orange): 40g (equals 8 teaspoons)\n• Coca-Cola: 35g to 39g (equals 7 to 10 teaspoons)\n• Malt Drinks (e.g., Maltina, Amstel Malta): 36g to 42g (equals 6 to 9 teaspoons)\n• Chapman (bottled or served): 30g (equals 7.5 teaspoons)",
+          "content": "Educational Lesson\nLiquid sugars are absorbed rapidly into the bloodstream.\nExamples:\n• Soft drinks\n• Malt beverages\n• Sweetened fruit juices\n• Energy drinks\n\nThe World Health Organization (WHO) recommends a maximum daily limit of only 6 teaspoons (25 grams) of added sugar for adults.\n\nSugar content of popular drinks in Nigeria:\n• Lucozade Boost: 60g (equals 15 teaspoons)\n• Monster Energy Drink: 48g (equals 12 teaspoons)\n• Fanta (Orange): 40g (equals 8 teaspoons)\n• Coca-Cola: 35g to 39g (equals 7 to 10 teaspoons)\n• Malt Drinks (e.g., Maltina, Amstel Malta): 36g to 42g (equals 6 to 9 teaspoons)\n• Chapman (bottled or served): 30g (equals 7.5 teaspoons)",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Track our Daily Beverage consumption"
@@ -523,8 +558,8 @@
         {
           "dayNumber": 3,
           "topic": "HOW SUGAR AFFECTS BLOOD GLUCOSE",
-          "lesson": "After consuming sugary foods:\nBlood sugar rises rapidly.\nInsulin is released.\nExcess sugar is stored as fat.\nRepeated spikes can eventually lead to insulin resistance.",
-          "content": "Educational Lesson\nAfter consuming sugary foods:\nBlood sugar rises rapidly.\nInsulin is released.\nExcess sugar is stored as fat.\nRepeated spikes can eventually lead to insulin resistance.\nActivity\nWatch Infographic\n\nReflection\nHow often do you consume sugary drinks?",
+          "lesson": "After consuming sugary foods:\n• Blood sugar rises rapidly.\n• Insulin is released.\n• Excess sugar is stored as fat.\n• Repeated spikes can eventually lead to insulin resistance.",
+          "content": "Educational Lesson\nAfter consuming sugary foods:\n• Blood sugar rises rapidly.\n• Insulin is released.\n• Excess sugar is stored as fat.\n• Repeated spikes can eventually lead to insulin resistance.\nActivity\nWatch Infographic\n\nReflection\nHow often do you consume sugary drinks?",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Watch Infographic\n\nReflection\nHow often do you consume sugary drinks?",
@@ -539,8 +574,8 @@
         {
           "dayNumber": 4,
           "topic": "HEALTHY DRINK ALTERNATIVES",
-          "lesson": "Healthier choices include:\nWater\nInfused water\nUnsweetened tea\nCoconut water\nFresh fruit in moderation",
-          "content": "Educational Lesson\nHealthier choices include:\nWater\nInfused water\nUnsweetened tea\nCoconut water\nFresh fruit in moderation\nActivity\nCreate a Healthy Drink Planner. For yourself\nChallenge\nDrink at least 8 glasses of water today.",
+          "lesson": "Healthier choices include:\n• Water\n• Infused water\n• Unsweetened tea\n• Coconut water\n• Fresh fruit in moderation",
+          "content": "Educational Lesson\nHealthier choices include:\n• Water\n• Infused water\n• Unsweetened tea\n• Coconut water\n• Fresh fruit in moderation\nActivity\nCreate a Healthy Drink Planner. For yourself\nChallenge\nDrink at least 8 glasses of water today.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Create a Healthy Drink Planner. For yourself"
@@ -570,7 +605,7 @@
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Sugar Buster\n\nWeekly Challenge\nAvoid sugary drinks for at least 5 days.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Sugar Buster",
           "reflectionQuestion": "What surprised you most about sugar content?",
           "quiz": {
             "questions": [
@@ -633,8 +668,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Sugar Buster",
-      "weeklyChallenge": "Avoid sugary drinks for at least 5 days."
+      "weeklyBadge": "🏅 Sugar Buster"
     },
     {
       "weekNumber": 5,
@@ -651,8 +685,8 @@
         {
           "dayNumber": 1,
           "topic": "WHY PHYSICAL ACTIVITY MATTERS",
-          "lesson": "Physical activity helps:\nImprove insulin sensitivity\nBurn excess calories\nMaintain healthy weight\nImprove mood\nReduce diabetes risk\nResearch shows physically active individuals have significantly lower diabetes risk.",
-          "content": "Educational Lesson\nPhysical activity helps:\nImprove insulin sensitivity\nBurn excess calories\nMaintain healthy weight\nImprove mood\nReduce diabetes risk\nResearch shows physically active individuals have significantly lower diabetes risk.\n\nChallenge\nTrack today's steps.\nPush Notification\n\"Every step counts toward better health.\"",
+          "lesson": "Physical activity helps:\n• Improve insulin sensitivity\n• Burn excess calories\n• Maintain healthy weight\n• Improve mood\n• Reduce diabetes risk\nResearch shows physically active individuals have significantly lower diabetes risk.",
+          "content": "Educational Lesson\nPhysical activity helps:\n• Improve insulin sensitivity\n• Burn excess calories\n• Maintain healthy weight\n• Improve mood\n• Reduce diabetes risk\nResearch shows physically active individuals have significantly lower diabetes risk.\n\nChallenge\nTrack today's steps.\nPush Notification\n\"Every step counts toward better health.\"",
           "pushNotification": "\"Every step counts toward better health.\""
         },
         {
@@ -668,8 +702,8 @@
         {
           "dayNumber": 3,
           "topic": "WALKING FOR HEALTH",
-          "lesson": "Walking is one of the safest and most effective exercises.\nBenefits include:\nBetter glucose control\nImproved cardiovascular health\nReduced stress",
-          "content": "Educational Lesson\nWalking is one of the safest and most effective exercises.\nBenefits include:\nBetter glucose control\nImproved cardiovascular health\nReduced stress\nActivity\n10-Minute Walking Challenge.\nChallenge\nWalk after one meal today.",
+          "lesson": "Walking is one of the safest and most effective exercises.\nBenefits include:\n• Better glucose control\n• Improved cardiovascular health\n• Reduced stress",
+          "content": "Educational Lesson\nWalking is one of the safest and most effective exercises.\nBenefits include:\n• Better glucose control\n• Improved cardiovascular health\n• Reduced stress\nActivity\n10-Minute Walking Challenge.\nChallenge\nWalk after one meal today.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "10-Minute Walking Challenge."
@@ -678,8 +712,8 @@
         {
           "dayNumber": 4,
           "topic": "STRENGTH TRAINING",
-          "lesson": "Muscles use glucose for energy.\nIncreasing muscle mass improves blood sugar regulation.\nSimple Exercises include:\nSquats\nWall push-ups\nLunges\nPlanks",
-          "content": "Educational Lesson\nMuscles use glucose for energy.\nIncreasing muscle mass improves blood sugar regulation.\nSimple Exercises include:\nSquats\nWall push-ups\nLunges\nPlanks\nActivity\nFollow a guided beginner workout.\nChallenge\nPerform one strength exercise session.",
+          "lesson": "Muscles use glucose for energy.\nIncreasing muscle mass improves blood sugar regulation.\nSimple Exercises include:\n• Squats\n• Wall push-ups\n• Lunges\n• Planks",
+          "content": "Educational Lesson\nMuscles use glucose for energy.\nIncreasing muscle mass improves blood sugar regulation.\nSimple Exercises include:\n• Squats\n• Wall push-ups\n• Lunges\n• Planks\nActivity\nFollow a guided beginner workout.\nChallenge\nPerform one strength exercise session.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Follow a guided beginner workout."
@@ -688,8 +722,8 @@
         {
           "dayNumber": 5,
           "topic": "REDUCING SITTING TIME",
-          "lesson": "Even physically active individuals can be affected by prolonged sitting.\nTips:\n<ul>\n<li>Stand every 30–60 minutes</li>\n<li>Walk during phone calls</li>\n<li>Use stairs</li>\n</ul>",
-          "content": "Educational Lesson\nEven physically active individuals can be affected by prolonged sitting.\nTips:\n<ul>\n<li>Stand every 30–60 minutes</li>\n<li>Walk during phone calls</li>\n<li>Use stairs</li>\n</ul>\nActivity\nTrack how long you spend just sitting\nChallenge\nTake three movement breaks today.",
+          "lesson": "Even physically active individuals can be affected by prolonged sitting.\nTips:\n<ul>\n<li>Stand every 30–60 minutes</li>\n<li>Walk during phone calls</li>\n<li>Use stairs</li>\n</ul>\n\nActivity\nTrack how long you spend just sitting.",
+          "content": "Educational Lesson\nEven physically active individuals can be affected by prolonged sitting.\nTips:\n<ul>\n<li>Stand every 30–60 minutes</li>\n<li>Walk during phone calls</li>\n<li>Use stairs</li>\n</ul>\n\nActivity\nTrack how long you spend just sitting.\nActivity\nTrack how long you spend just sitting\nChallenge\nTake three movement breaks today.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Track how long you spend just sitting"
@@ -698,14 +732,14 @@
         {
           "dayNumber": 6,
           "topic": "BUILDING AN ACTIVE LIFESTYLE",
-          "lesson": "Exercise does not require a gym.\nIdeas:\nWalking to lectures\nSports\nDancing\nHousehold chores",
-          "content": "Educational Lesson\nExercise does not require a gym.\nIdeas:\nWalking to lectures\nSports\nDancing\nHousehold chores\n\nChallenge\nSchedule activity for next week."
+          "lesson": "Exercise does not require a gym.\nIdeas:\n• Walking to lectures\n• Sports\n• Dancing\n• Household chores",
+          "content": "Educational Lesson\nExercise does not require a gym.\nIdeas:\n• Walking to lectures\n• Sports\n• Dancing\n• Household chores\n\nChallenge\nSchedule activity for next week."
         },
         {
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Active Student\n\nWeekly Challenge\nAchieve 7,000–10,000 steps daily for the next week.\nEnd-of-Week Motivation\n\"You do not have to be an athlete to prevent diabetes. Every step, every walk, and every active choice moves you toward a healthier future.\"",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Active StudentEnd-of-Week Motivation\n\"You do not have to be an athlete to prevent diabetes. Every step, every walk, and every active choice moves you toward a healthier future.\"",
           "reflectionQuestion": "What physical activity did you enjoy most?",
           "quiz": {
             "questions": [
@@ -768,8 +802,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Active Student",
-      "weeklyChallenge": "Achieve 7,000–10,000 steps daily for the next week.\nEnd-of-Week Motivation\n\"You do not have to be an athlete to prevent diabetes. Every step, every walk, and every active choice moves you toward a healthier future.\""
+      "weeklyBadge": "🏅 Active Student"
     },
     {
       "weekNumber": 6,
@@ -828,7 +861,7 @@
           "dayNumber": 5,
           "topic": "HEALTHY WEIGHT MANAGEMENT STRATEGIES",
           "lesson": "",
-          "content": "Lesson\nHealthy weight loss is gradual and sustainable.\nEffective strategies include:\nEating regular meals\nIncreasing vegetables\nReducing sugary drinks\nBeing physically active\nSleeping adequately\n**Activity**\nWeight Management Goal Planner\n**Challenge**\nChoose one weight-management habit to practice.",
+          "content": "Lesson\nHealthy weight loss is gradual and sustainable.\nEffective strategies include:\n• Eating regular meals\n• Increasing vegetables\n• Reducing sugary drinks\n• Being physically active\n• Sleeping adequately\n**Activity**\nWeight Management Goal Planner\n**Challenge**\nChoose one weight-management habit to practice.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Weight Management Goal Planner"
@@ -838,7 +871,7 @@
           "dayNumber": 6,
           "topic": "SELF-MONITORING FOR SUCCESS",
           "lesson": "",
-          "content": "Lesson\nSelf-monitoring increases awareness and accountability.\nTrack:\nWeight\nPhysical activity\nMeals\nWater intake\n**Activity**\nDaily Self-Monitoring Log\n**Challenge**\nRecord all meals and activities today.",
+          "content": "Lesson\nSelf-monitoring increases awareness and accountability.\nTrack:\n• Weight\n• Physical activity\n• Meals\n• Water intake\n**Activity**\nDaily Self-Monitoring Log\n**Challenge**\nRecord all meals and activities today.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Daily Self-Monitoring Log"
@@ -848,7 +881,7 @@
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Healthy Weight Champion\n\nWeekly Challenge\nPractice calorie awareness for the next 7 days.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Healthy Weight Champion",
           "quiz": {
             "questions": [
               {
@@ -910,8 +943,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Healthy Weight Champion",
-      "weeklyChallenge": "Practice calorie awareness for the next 7 days.\n\nDETAILED DAILY MODULES FOR WEEKS 7-12"
+      "weeklyBadge": "🏅 Healthy Weight Champion"
     },
     {
       "weekNumber": 7,
@@ -921,8 +953,8 @@
         {
           "dayNumber": 1,
           "topic": "INTRODUCTION TO FOOD LABELS",
-          "lesson": "Food labels provide important information about the foods and drinks you consume. Learning to read food labels can help you make healthier choices, manage your weight, and reduce your risk of developing Type 2 diabetes. Before buying a packaged food, take a few seconds to look at the nutrition label and ingredient list.\nThe main parts of a food label include:\n<strong>Serving Size</strong>: The amount of food the nutrition information is based on.\n<strong>Calories</strong>: The amount of energy provided in one serving.\n<strong>Nutrients</strong>: Information about carbohydrates, sugars, fats, protein, fibre, sodium, vitamins, and minerals.\n<strong>Ingredients</strong>: Listed from the largest to the smallest amount. Ingredients that appear first are present in the highest quantities.\n<strong>Why This Matters</strong>:\nMany packaged foods that seem healthy may contain large amounts of sugar, salt, or unhealthy fats. Reading food labels helps you make informed decisions.",
-          "content": "Educational Lesson\nFood labels provide important information about the foods and drinks you consume. Learning to read food labels can help you make healthier choices, manage your weight, and reduce your risk of developing Type 2 diabetes. Before buying a packaged food, take a few seconds to look at the nutrition label and ingredient list.\nThe main parts of a food label include:\n<strong>Serving Size</strong>: The amount of food the nutrition information is based on.\n<strong>Calories</strong>: The amount of energy provided in one serving.\n<strong>Nutrients</strong>: Information about carbohydrates, sugars, fats, protein, fibre, sodium, vitamins, and minerals.\n<strong>Ingredients</strong>: Listed from the largest to the smallest amount. Ingredients that appear first are present in the highest quantities.\n<strong>Why This Matters</strong>:\nMany packaged foods that seem healthy may contain large amounts of sugar, salt, or unhealthy fats. Reading food labels helps you make informed decisions.\nActivity\nExplore a sample food label and identify the serving size, calories, sugar, sodium, and ingredients.\nDaily Challenge\nRead the food label on one packaged food or drink before consuming it.",
+          "lesson": "Food labels provide important information about the foods and drinks you consume. Learning to read food labels can help you make healthier choices, manage your weight, and reduce your risk of developing Type 2 diabetes. Before buying a packaged food, take a few seconds to look at the nutrition label and ingredient list.\nThe main parts of a food label include:\n• <strong>Serving Size</strong>: The amount of food the nutrition information is based on.\n• <strong>Calories</strong>: The amount of energy provided in one serving.\n• <strong>Nutrients</strong>: Information about carbohydrates, sugars, fats, protein, fibre, sodium, vitamins, and minerals.\n• <strong>Ingredients</strong>: Listed from the largest to the smallest amount. Ingredients that appear first are present in the highest quantities.\n<strong>Why This Matters</strong>:\nMany packaged foods that seem healthy may contain large amounts of sugar, salt, or unhealthy fats. Reading food labels helps you make informed decisions.",
+          "content": "Educational Lesson\nFood labels provide important information about the foods and drinks you consume. Learning to read food labels can help you make healthier choices, manage your weight, and reduce your risk of developing Type 2 diabetes. Before buying a packaged food, take a few seconds to look at the nutrition label and ingredient list.\nThe main parts of a food label include:\n• <strong>Serving Size</strong>: The amount of food the nutrition information is based on.\n• <strong>Calories</strong>: The amount of energy provided in one serving.\n• <strong>Nutrients</strong>: Information about carbohydrates, sugars, fats, protein, fibre, sodium, vitamins, and minerals.\n• <strong>Ingredients</strong>: Listed from the largest to the smallest amount. Ingredients that appear first are present in the highest quantities.\n<strong>Why This Matters</strong>:\nMany packaged foods that seem healthy may contain large amounts of sugar, salt, or unhealthy fats. Reading food labels helps you make informed decisions.\nActivity\nExplore a sample food label and identify the serving size, calories, sugar, sodium, and ingredients.\nDaily Challenge\nRead the food label on one packaged food or drink before consuming it.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Explore a sample food label and identify the serving size, calories, sugar, sodium, and ingredients."
@@ -972,8 +1004,8 @@
         {
           "dayNumber": 6,
           "topic": "SMART SHOPPING SKILLS",
-          "lesson": "Healthy eating begins before you prepare your meals, it starts while shopping. Making smart choices at the supermarket, campus store, or local market can help you eat healthier every day.\n<strong>When shopping</strong>:\nCompare nutrition labels before choosing a product.\nRead the ingredient list carefully.\nSelect foods with less added sugar, sodium, and unhealthy fats.\nChoose whole foods such as fruits, vegetables, beans, and whole grains whenever possible.\nLimit highly processed snacks and sugary drinks.\nSmall decisions made during shopping can have a big impact on your health over time.\n<strong>Why This Matters</strong>:\nPlanning ahead and choosing healthier foods makes it easier to maintain healthy eating habits and reduce your risk of Type 2 diabetes.",
-          "content": "Educational Lesson\nHealthy eating begins before you prepare your meals, it starts while shopping. Making smart choices at the supermarket, campus store, or local market can help you eat healthier every day.\n<strong>When shopping</strong>:\nCompare nutrition labels before choosing a product.\nRead the ingredient list carefully.\nSelect foods with less added sugar, sodium, and unhealthy fats.\nChoose whole foods such as fruits, vegetables, beans, and whole grains whenever possible.\nLimit highly processed snacks and sugary drinks.\nSmall decisions made during shopping can have a big impact on your health over time.\n<strong>Why This Matters</strong>:\nPlanning ahead and choosing healthier foods makes it easier to maintain healthy eating habits and reduce your risk of Type 2 diabetes.\nActivity\nCompare two similar food products and select the healthier option.\nDaily Challenge\nThe next time you buy food, use the nutrition label to choose the healthier product.",
+          "lesson": "Healthy eating begins before you prepare your meals, it starts while shopping. Making smart choices at the supermarket, campus store, or local market can help you eat healthier every day.\n<strong>When shopping</strong>:\n• Compare nutrition labels before choosing a product.\n• Read the ingredient list carefully.\n• Select foods with less added sugar, sodium, and unhealthy fats.\n• Choose whole foods such as fruits, vegetables, beans, and whole grains whenever possible.\n• Limit highly processed snacks and sugary drinks.\nSmall decisions made during shopping can have a big impact on your health over time.\n<strong>Why This Matters</strong>:\nPlanning ahead and choosing healthier foods makes it easier to maintain healthy eating habits and reduce your risk of Type 2 diabetes.",
+          "content": "Educational Lesson\nHealthy eating begins before you prepare your meals, it starts while shopping. Making smart choices at the supermarket, campus store, or local market can help you eat healthier every day.\n<strong>When shopping</strong>:\n• Compare nutrition labels before choosing a product.\n• Read the ingredient list carefully.\n• Select foods with less added sugar, sodium, and unhealthy fats.\n• Choose whole foods such as fruits, vegetables, beans, and whole grains whenever possible.\n• Limit highly processed snacks and sugary drinks.\nSmall decisions made during shopping can have a big impact on your health over time.\n<strong>Why This Matters</strong>:\nPlanning ahead and choosing healthier foods makes it easier to maintain healthy eating habits and reduce your risk of Type 2 diabetes.\nActivity\nCompare two similar food products and select the healthier option.\nDaily Challenge\nThe next time you buy food, use the nutrition label to choose the healthier product.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Compare two similar food products and select the healthier option."
@@ -983,7 +1015,7 @@
           "dayNumber": 7,
           "topic": "REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Smart Consumer\n\nWeekly Challenge\nMake one healthier food choice every day.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Smart Consumer",
           "quiz": {
             "questions": [
               {
@@ -1045,8 +1077,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Smart Consumer",
-      "weeklyChallenge": "Make one healthier food choice every day."
+      "weeklyBadge": "🏅 Smart Consumer"
     },
     {
       "weekNumber": 8,
@@ -1086,7 +1117,7 @@
         {
           "dayNumber": 4,
           "topic": "SMOKING AND INSULIN RESISTANCE",
-          "lesson": "Smoking can increase the risk of Type 2 diabetes by affecting the way the body uses insulin. Nicotine and other chemicals in tobacco can interfere with glucose metabolism and reduce insulin sensitivity.\nWhen the body becomes less sensitive to insulin, it cannot use glucose effectively. This condition is called insulin resistance, and it causes the body to produce more insulin to maintain normal blood sugar levels.\nOver time, insulin resistance can contribute to increased blood glucose levels and increase the risk of developing Type 2 diabetes.\nYoung adults may start smoking due to:\nPeer pressure\nCuriosity or experimentation\nStress\nSocial influences\nMisconceptions about smoking\n\n<strong>Why This Matters</strong>:\nUnderstanding the connection between smoking and diabetes can help students make healthier decisions and avoid habits that increase future health risks.\n<strong>Reflection</strong>:Why do some students start smoking? What healthier ways can students manage stress or social pressure?",
+          "lesson": "Smoking can increase the risk of Type 2 diabetes by affecting the way the body uses insulin. Nicotine and other chemicals in tobacco can interfere with glucose metabolism and reduce insulin sensitivity.\nWhen the body becomes less sensitive to insulin, it cannot use glucose effectively. This condition is called insulin resistance, and it causes the body to produce more insulin to maintain normal blood sugar levels.\nOver time, insulin resistance can contribute to increased blood glucose levels and increase the risk of developing Type 2 diabetes.\nYoung adults may start smoking due to:\n• Peer pressure\n• Curiosity or experimentation\n• Stress\n• Social influences\n• Misconceptions about smoking\n\n<strong>Why This Matters</strong>:\nUnderstanding the connection between smoking and diabetes can help students make healthier decisions and avoid habits that increase future health risks.\n<strong>Reflection</strong>:Why do some students start smoking? What healthier ways can students manage stress or social pressure?",
           "content": "Educational Lesson\nSmoking can increase the risk of Type 2 diabetes by affecting the way the body uses insulin. Nicotine and other chemicals in tobacco can interfere with glucose metabolism and reduce insulin sensitivity.\nWhen the body becomes less sensitive to insulin, it cannot use glucose effectively. This condition is called insulin resistance, and it causes the body to produce more insulin to maintain normal blood sugar levels.\nOver time, insulin resistance can contribute to increased blood glucose levels and increase the risk of developing Type 2 diabetes.\nYoung adults may start smoking due to:\n<ul>\n<li>Peer pressure</li>\n<li>Curiosity or experimentation</li>\n<li>Stress</li>\n<li>Social influences</li>\n<li>Misconceptions about smoking</li>\n</ul>\n\n<strong>Why This Matters</strong>:\nUnderstanding the connection between smoking and diabetes can help students make healthier decisions and avoid habits that increase future health risks.\n<strong>Reflection</strong>:Why do some students start smoking? What healthier ways can students manage stress or social pressure?\nDaily Challenge\nIdentify one reason people smoke and one healthy alternative behaviour.",
           "reflectionQuestion": "Why do some students start smoking? What healthier ways can students manage stress or social pressure?"
         },
@@ -1104,7 +1135,7 @@
           "dayNumber": 6,
           "topic": "COMMITMENT TO HEALTHIER CHOICES",
           "lesson": "",
-          "content": "Lesson\nBehavior change begins with commitment.\nActivity\nCreate a Personal Lifestyle Commitment Plan\nChallenge\nSet one behavior-change goal.",
+          "content": "**Lesson**\nBehavior change begins with commitment.\n**Activity**\nCreate a Personal Lifestyle Commitment Plan\n**Challenge**\nSet one behavior-change goal.",
           "interactiveActivity": {
             "type": "activity",
             "instructions": "Create a Personal Lifestyle Commitment Plan"
@@ -1114,7 +1145,7 @@
           "dayNumber": 7,
           "topic": "REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Healthy Lifestyle Advocate\n\nWeekly Challenge\nAvoid harmful lifestyle behaviors this week.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Healthy Lifestyle Advocate",
           "quiz": {
             "questions": [
               {
@@ -1176,8 +1207,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Healthy Lifestyle Advocate",
-      "weeklyChallenge": "Avoid harmful lifestyle behaviors this week."
+      "weeklyBadge": "🏅 Healthy Lifestyle Advocate"
     },
     {
       "weekNumber": 9,
@@ -1240,7 +1270,7 @@
           "dayNumber": 7,
           "topic": "REVIEW",
           "lesson": "",
-          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Stress Management Champion\n\nWeekly Challenge\nSleep 7–8 hours nightly.",
+          "content": "REVIEWS LET'S TEST YOUR KNOWLEDGE SO FAR.\n\nAnswer the quiz questions below\n\nWeekly Badge\n🏅 Stress Management Champion",
           "quiz": {
             "questions": [
               {
@@ -1302,8 +1332,7 @@
           }
         }
       ],
-      "weeklyBadge": "🏅 Stress Management Champion",
-      "weeklyChallenge": "Sleep 7–8 hours nightly."
+      "weeklyBadge": "🏅 Stress Management Champion"
     },
     {
       "weekNumber": 10,
@@ -1373,11 +1402,10 @@
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW",
           "lesson": "",
-          "content": "Weekly Summary\nThis week, you learned that healthy habits are built through consistent daily actions. You practiced setting SMART goals, tracking progress, overcoming obstacles, staying motivated, and reviewing your achievements. Every small healthy choice brings you closer to reducing your risk of Type 2 diabetes and improving your overall well-being.\nWeekly Badge\n🏅 Habit Builder\nWeekly Challenge\nTrack at least three healthy habits every day this week (for example, drinking enough water, being physically active, and eating vegetables). Aim for consistency rather than perfection, and celebrate every step toward a healthier lifestyle."
+          "content": "Weekly Summary\nThis week, you learned that healthy habits are built through consistent daily actions. You practiced setting SMART goals, tracking progress, overcoming obstacles, staying motivated, and reviewing your achievements. Every small healthy choice brings you closer to reducing your risk of Type 2 diabetes and improving your overall well-being.\nWeekly Badge\n🏅 Habit Builder"
         }
       ],
-      "weeklyBadge": "🏅 Habit Builder",
-      "weeklyChallenge": "Track at least three healthy habits every day this week (for example, drinking enough water, being physically active, and eating vegetables). Aim for consistency rather than perfection, and celebrate every step toward a healthier lifestyle."
+      "weeklyBadge": "🏅 Habit Builder"
     },
     {
       "weekNumber": 11,
@@ -1447,11 +1475,10 @@
           "dayNumber": 7,
           "topic": "WEEKLY REVIEW",
           "lesson": "",
-          "content": "Weekly Summary\nThis week, you learned how to maintain healthy habits for life by preparing for setbacks, seeking support from others, creating a healthy environment, planning for the future, reviewing your progress, and developing a personal diabetes prevention plan. Long-term success comes from making healthy choices consistently, even when challenges arise.\nWeekly Badge\n🏅 Prevention Planner\nWeekly Challenge\nComplete your written Personal Diabetes Prevention Plan and commit to following it over the next year. Share your goals with someone you trust for encouragement and accountability. Every healthy choice you make today helps protect your future health."
+          "content": "Weekly Summary\nThis week, you learned how to maintain healthy habits for life by preparing for setbacks, seeking support from others, creating a healthy environment, planning for the future, reviewing your progress, and developing a personal diabetes prevention plan. Long-term success comes from making healthy choices consistently, even when challenges arise.\nWeekly Badge\n🏅 Prevention Planner"
         }
       ],
-      "weeklyBadge": "🏅 Prevention Planner",
-      "weeklyChallenge": "Complete your written Personal Diabetes Prevention Plan and commit to following it over the next year. Share your goals with someone you trust for encouragement and accountability. Every healthy choice you make today helps protect your future health."
+      "weeklyBadge": "🏅 Prevention Planner"
     },
     {
       "weekNumber": 12,
@@ -1509,8 +1536,8 @@
         {
           "dayNumber": 7,
           "topic": "GRADUATION DAY 🎓",
-          "lesson": "Congratulations! You have successfully completed the 12-week Diabetes Prevention Programme.\nGraduation is not the end of your journey rather it is the beginning of a lifelong commitment to protecting your health. The knowledge and habits you have developed can reduce your risk of Type 2 diabetes and improve your overall well-being for many years to come.\nContinue making healthy choices, encourage others to do the same, and remember that every small healthy action makes a difference.\nToday's Activities:\n<ul>\n<li>🎁 Receive programme prizes and gifts</li>\n<li>📊 Complete endline data collection</li>\n<li>📸 Group photographs and celebration</li>\n<li>🤝 Share your experience with fellow participants</li>\n<li>Congratulations!</li>\n<li>You are now a Diabetes Prevention Champion. Use what you have learned to make healthier choices, inspire your friends and family, and contribute to a healthier university community.</li>\n<li>FINAL PROGRAMME MESSAGE:</li>\n<li>🌟 Your Journey Continues</li>\n<li>\"The end of this program is the beginning of a healthier future. Every healthy choice you continue to make will help protect you from Type 2 diabetes and improve your quality of life for years to come. Remember that progress not perfection is the key to lifelong health. Keep moving, keep learning, and keep choosing health every day.\"</li>\n<li>🏅 Final Badge:</li>\n<li>Diabetes Prevention Champion</li>\n<li>🎯 Final Weekly Challenge:</li>\n<li>Create a 12-Month Personal Health Commitment by writing down:</li>\n<li>Three healthy habits you will continue every day.</li>\n<li>Two health goals you want to achieve in the next year.</li>\n<li>One trusted person who will support and encourage your healthy lifestyle.</li>\n<li>A reminder to review your progress every month.</li>\n<li>Congratulations on completing your Diabetes Prevention Journey! Your commitment today is an investment in a healthier future.</li>\n</ul>",
-          "content": "Educational Lesson\nCongratulations! You have successfully completed the 12-week Diabetes Prevention Programme.\nGraduation is not the end of your journey rather it is the beginning of a lifelong commitment to protecting your health. The knowledge and habits you have developed can reduce your risk of Type 2 diabetes and improve your overall well-being for many years to come.\nContinue making healthy choices, encourage others to do the same, and remember that every small healthy action makes a difference.\nToday's Activities:\n<ul>\n<li>🎁 Receive programme prizes and gifts</li>\n<li>📊 Complete endline data collection</li>\n<li>📸 Group photographs and celebration</li>\n<li>🤝 Share your experience with fellow participants</li>\n<li>Congratulations!</li>\n<li>You are now a Diabetes Prevention Champion. Use what you have learned to make healthier choices, inspire your friends and family, and contribute to a healthier university community.</li>\n<li>FINAL PROGRAMME MESSAGE:</li>\n<li>🌟 Your Journey Continues</li>\n<li>\"The end of this program is the beginning of a healthier future. Every healthy choice you continue to make will help protect you from Type 2 diabetes and improve your quality of life for years to come. Remember that progress not perfection is the key to lifelong health. Keep moving, keep learning, and keep choosing health every day.\"</li>\n<li>🏅 Final Badge:</li>\n<li>Diabetes Prevention Champion</li>\n<li>🎯 Final Weekly Challenge:</li>\n<li>Create a 12-Month Personal Health Commitment by writing down:</li>\n<li>Three healthy habits you will continue every day.</li>\n<li>Two health goals you want to achieve in the next year.</li>\n<li>One trusted person who will support and encourage your healthy lifestyle.</li>\n<li>A reminder to review your progress every month.</li>\n<li>Congratulations on completing your Diabetes Prevention Journey! Your commitment today is an investment in a healthier future.</li>\n</ul>"
+          "lesson": "Congratulations! You have successfully completed the 12-week Diabetes Prevention Programme.\nGraduation is not the end of your journey rather it is the beginning of a lifelong commitment to protecting your health. The knowledge and habits you have developed can reduce your risk of Type 2 diabetes and improve your overall well-being for many years to come.\nContinue making healthy choices, encourage others to do the same, and remember that every small healthy action makes a difference.\nToday's Activities:\n<ul>\n<li>🎁 Receive programme prizes and gifts</li>\n<li>📊 Complete endline data collection</li>\n<li>📸 Group photographs and celebration</li>\n<li>🤝 Share your experience with fellow participants</li>\n<li>Congratulations!</li>\n<li>You are now a Diabetes Prevention Champion. Use what you have learned to make healthier choices, inspire your friends and family, and contribute to a healthier university community.</li>\n<li>FINAL PROGRAMME MESSAGE:</li>\n<li>🌟 Your Journey Continues</li>\n<li>\"The end of this program is the beginning of a healthier future. Every healthy choice you continue to make will help protect you from Type 2 diabetes and improve your quality of life for years to come. Remember that progress not perfection is the key to lifelong health. Keep moving, keep learning, and keep choosing health every day.\"</li>\n<li>🏅 Final Badge:</li>\n<li>Diabetes Prevention Champion</li>\n<li>Congratulations on completing your Diabetes Prevention Journey! Your commitment today is an investment in a healthier future.</li>\n</ul>",
+          "content": "Educational Lesson\nCongratulations! You have successfully completed the 12-week Diabetes Prevention Programme.\nGraduation is not the end of your journey rather it is the beginning of a lifelong commitment to protecting your health. The knowledge and habits you have developed can reduce your risk of Type 2 diabetes and improve your overall well-being for many years to come.\nContinue making healthy choices, encourage others to do the same, and remember that every small healthy action makes a difference.\nToday's Activities:\n<ul>\n<li>🎁 Receive programme prizes and gifts</li>\n<li>📊 Complete endline data collection</li>\n<li>📸 Group photographs and celebration</li>\n<li>🤝 Share your experience with fellow participants</li>\n<li>Congratulations!</li>\n<li>You are now a Diabetes Prevention Champion. Use what you have learned to make healthier choices, inspire your friends and family, and contribute to a healthier university community.</li>\n<li>FINAL PROGRAMME MESSAGE:</li>\n<li>🌟 Your Journey Continues</li>\n<li>\"The end of this program is the beginning of a healthier future. Every healthy choice you continue to make will help protect you from Type 2 diabetes and improve your quality of life for years to come. Remember that progress not perfection is the key to lifelong health. Keep moving, keep learning, and keep choosing health every day.\"</li>\n<li>🏅 Final Badge:</li>\n<li>Diabetes Prevention Champion</li>\n<li>Congratulations on completing your Diabetes Prevention Journey! Your commitment today is an investment in a healthier future.</li>\n</ul>"
         }
       ]
     }
