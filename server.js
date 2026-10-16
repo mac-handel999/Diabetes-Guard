@@ -533,6 +533,120 @@ app.post('/api/v1/auth/logout', verifyJWT, async (req, res) => {
 // PROFILE / ACCOUNT ROUTES
 // ─────────────────────────────────────────────
 
+app.post('/api/v1/activity/session', verifyJWT, async (req, res) => {
+  try {
+    const { error } = await supabase.from('research_analytics').insert({
+      user_id: req.user.id,
+      metric_type: 'session',
+      metadata: {},
+      logged_date: todayStr(),
+      logged_at: new Date().toISOString(),
+    });
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (err) {
+    console.error('[activity/session]', err.message);
+    return res.status(500).json({ error: 'Could not record app activity.' });
+  }
+});
+
+const ACTIVITY_TRACKER_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const ACTIVITY_DURATIONS = new Set(['<30 min', '30–60 min', '>1 hr', 'N/A']);
+const SITTING_RANGES = new Set(['<2 hrs', '2–4 hrs', '5–7 hrs', '>7 hrs']);
+const DAY_COUNTS = new Set(['0', '1–2', '3–4', '5 or more']);
+const WALK_FREQUENCIES = new Set(['Never', 'Rarely', 'Sometimes', 'Often', 'Every day']);
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function validWeekStart(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value && date.getUTCDay() === 1;
+}
+
+function validateActivityTracker(body) {
+  if (!isRecord(body?.daily_entries) || !isRecord(body?.weekly_checkin)) return null;
+  const dailyEntries = {};
+  for (const day of ACTIVITY_TRACKER_DAYS) {
+    const entry = body.daily_entries[day];
+    if (!isRecord(entry)) return null;
+    const clean = {};
+    for (const field of ['vigorous', 'moderate']) {
+      const answer = entry[field] ?? null;
+      const duration = entry[`${field}_duration`] ?? null;
+      if (answer !== null && !['yes', 'no'].includes(answer)) return null;
+      if (answer === 'yes' && !ACTIVITY_DURATIONS.has(duration)) return null;
+      if (answer !== 'yes' && duration !== null) return null;
+      clean[field] = answer;
+      clean[`${field}_duration`] = duration;
+    }
+    const walked = entry.walked_ten_minutes ?? null;
+    const sitting = entry.sitting_time ?? null;
+    if (walked !== null && !['yes', 'no'].includes(walked)) return null;
+    if (sitting !== null && !SITTING_RANGES.has(sitting)) return null;
+    clean.walked_ten_minutes = walked;
+    clean.sitting_time = sitting;
+    dailyEntries[day] = clean;
+  }
+
+  const checkin = body.weekly_checkin;
+  const cleanCheckin = {};
+  for (const field of ['vigorous_days', 'moderate_days']) {
+    const answer = checkin[field] ?? null;
+    if (answer !== null && !DAY_COUNTS.has(answer)) return null;
+    cleanCheckin[field] = answer;
+  }
+  const walkFrequency = checkin.walk_frequency ?? null;
+  const sports = checkin.sports ?? null;
+  const nextActivity = checkin.next_activity ?? '';
+  if (walkFrequency !== null && !WALK_FREQUENCIES.has(walkFrequency)) return null;
+  if (sports !== null && !['yes', 'no'].includes(sports)) return null;
+  if (typeof nextActivity !== 'string' || nextActivity.length > 500) return null;
+  cleanCheckin.walk_frequency = walkFrequency;
+  cleanCheckin.sports = sports;
+  cleanCheckin.next_activity = nextActivity;
+  return { dailyEntries, cleanCheckin };
+}
+
+app.get('/api/v1/physical-activity-tracker', verifyJWT, async (req, res) => {
+  const weekStart = req.query.week_start;
+  if (!validWeekStart(weekStart)) return res.status(400).json({ error: 'week_start must be a Monday in YYYY-MM-DD format.' });
+  try {
+    const { data, error } = await supabase.from('physical_activity_weeks')
+      .select('week_start, daily_entries, weekly_checkin, updated_at')
+      .eq('user_id', req.user.id).eq('week_start', weekStart).maybeSingle();
+    if (error) throw error;
+    return res.json(data || { week_start: weekStart, daily_entries: {}, weekly_checkin: {}, updated_at: null });
+  } catch (err) {
+    console.error('[physical-activity-tracker/read]', err.message);
+    return res.status(500).json({ error: 'Could not load the activity tracker. Apply supabase/activity-tracker-alerts.sql and try again.' });
+  }
+});
+
+app.put('/api/v1/physical-activity-tracker', verifyJWT, async (req, res) => {
+  const weekStart = req.body?.week_start;
+  if (!validWeekStart(weekStart)) return res.status(400).json({ error: 'week_start must be a Monday in YYYY-MM-DD format.' });
+  const tracker = validateActivityTracker(req.body);
+  if (!tracker) return res.status(400).json({ error: 'Activity tracker answers are invalid. Review the daily entries and weekly check-in.' });
+  try {
+    const { data, error } = await supabase.from('physical_activity_weeks').upsert({
+      user_id: req.user.id,
+      week_start: weekStart,
+      daily_entries: tracker.dailyEntries,
+      weekly_checkin: tracker.cleanCheckin,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,week_start' })
+      .select('week_start, daily_entries, weekly_checkin, updated_at').single();
+    if (error) throw error;
+    return res.json(data);
+  } catch (err) {
+    console.error('[physical-activity-tracker/save]', err.message);
+    return res.status(500).json({ error: 'Could not save the activity tracker. Apply supabase/activity-tracker-alerts.sql and try again.' });
+  }
+});
+
 /**
  * GET /api/v1/profile
  * Returns the logged-in user's full name, email, and leaderboard alias.
@@ -893,22 +1007,154 @@ function daysSince(date) {
   return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 86400000));
 }
 
+async function fetchAllRows(queryBuilder, pageSize = 1000) {
+  const rows = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await queryBuilder().range(from, from + pageSize - 1);
+    if (error) throw error;
+    const page = data || [];
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
+}
+
+const ALERT_TITLES = {
+  inactive: 'No activity for 14 days',
+  missed_modules: 'Missed two consecutive modules',
+  declining: 'Declining engagement',
+  completed: 'Completed all 12 weeks',
+  smart_goal: 'Achieved SMART goal',
+};
+
+const ALERT_STATUSES = {
+  inactive: 'Action required',
+  missed_modules: 'Follow-up needed',
+  declining: 'Monitor participant',
+  completed: 'Milestone reached',
+  smart_goal: 'Goal achieved',
+};
+
+const PWA_ACTIVITY_TYPES = new Set([
+  'login', 'session', 'module_opened', 'module', 'quiz', 'activity',
+  'food', 'water', 'weight', 'behaviour', 'challenge', 'daily_challenge',
+  'weekly_challenge',
+]);
+
+function buildAdminAlertCandidates(profiles, logs, progressRows) {
+  const progressByUser = new Map(progressRows.map(row => [row.user_id, row]));
+  const logsByUser = new Map();
+  for (const log of logs) {
+    if (!logsByUser.has(log.user_id)) logsByUser.set(log.user_id, []);
+    logsByUser.get(log.user_id).push(log);
+  }
+
+  const candidates = [];
+  const now = Date.now();
+  const activeWindowStart = now - 7 * 86400000;
+  const previousWindowStart = now - 14 * 86400000;
+  const oldestWindowStart = now - 21 * 86400000;
+  const weekStart = new Date(now);
+  weekStart.setUTCHours(0, 0, 0, 0);
+  weekStart.setUTCDate(weekStart.getUTCDate() - ((weekStart.getUTCDay() + 6) % 7));
+  const weekKey = weekStart.toISOString().slice(0, 10);
+
+  function addAlert(type, profile, occurrence, timestamp, message) {
+    candidates.push({
+      key: `${type}:${profile.id}:${occurrence}`,
+      type,
+      title: ALERT_TITLES[type],
+      participantId: profile.id,
+      participant: profile.anon_handle || profile.username || profile.id,
+      timestamp,
+      status: 'new',
+      statusLabel: ALERT_STATUSES[type],
+      message,
+    });
+  }
+
+  for (const profile of profiles) {
+    const userLogs = logsByUser.get(profile.id) || [];
+    const engagementLogs = userLogs.filter(log => PWA_ACTIVITY_TYPES.has(log.metric_type));
+    const lastActivity = engagementLogs.reduce((latest, log) =>
+      !latest || new Date(log.logged_at) > new Date(latest.logged_at) ? log : latest, null);
+    const lastActivityAt = lastActivity?.logged_at || profile.enrolled_at;
+    const inactiveDays = daysSince(lastActivityAt);
+    if (inactiveDays !== null && inactiveDays >= 14) {
+      const triggerAt = new Date(new Date(lastActivityAt).getTime() + 14 * 86400000).toISOString();
+      addAlert('inactive', profile, lastActivityAt, triggerAt, `No recorded PWA activity for ${inactiveDays} days.`);
+    }
+
+    const completedWeeks = new Set(userLogs
+      .filter(log => log.metric_type === 'module')
+      .map(log => Number(log.metadata?.week))
+      .filter(week => Number.isInteger(week) && week >= 1 && week <= 12));
+    const progress = progressByUser.get(profile.id) || {};
+    const enrolledAt = profile.enrolled_at ? new Date(profile.enrolled_at).getTime() : NaN;
+    const timelineWeek = Number.isFinite(enrolledAt)
+      ? Math.min(13, Math.floor(Math.max(0, now - enrolledAt) / (7 * 86400000)) + 1)
+      : 1;
+    const currentWeek = Math.min(13, Math.max(timelineWeek, Number(progress.current_week) || 1));
+
+    if (Array.from({ length: 12 }, (_, index) => index + 1).every(week => completedWeeks.has(week))) {
+      const completedAt = userLogs
+        .filter(log => log.metric_type === 'module' && Number(log.metadata?.week) === 12)
+        .reduce((latest, log) => !latest || new Date(log.logged_at) > new Date(latest) ? log.logged_at : latest, null);
+      addAlert('completed', profile, completedAt || 'weeks-1-12', completedAt || profile.enrolled_at || new Date().toISOString(), 'All 12 curriculum weeks have been marked complete.');
+    }
+
+    let missedPair = null;
+    for (let week = 1; week < currentWeek - 1; week += 1) {
+      if (!completedWeeks.has(week) && !completedWeeks.has(week + 1)) missedPair = [week, week + 1];
+    }
+    if (missedPair) {
+      const occurrence = `${missedPair[0]}-${missedPair[1]}`;
+      const triggerAt = Number.isFinite(enrolledAt)
+        ? new Date(enrolledAt + missedPair[1] * 7 * 86400000).toISOString()
+        : new Date().toISOString();
+      addAlert('missed_modules', profile, occurrence, triggerAt, `Modules for weeks ${missedPair[0]} and ${missedPair[1]} have not been completed.`);
+    }
+
+    const activeDays = new Set();
+    const previousDays = new Set();
+    const oldestDays = new Set();
+    for (const log of userLogs) {
+      if (!PWA_ACTIVITY_TYPES.has(log.metric_type) || ['login', 'session'].includes(log.metric_type)) continue;
+      const timestamp = new Date(log.logged_at).getTime();
+      if (!Number.isFinite(timestamp) || timestamp < oldestWindowStart) continue;
+      const day = new Date(timestamp).toISOString().slice(0, 10);
+      if (timestamp >= activeWindowStart) activeDays.add(day);
+      else if (timestamp >= previousWindowStart) previousDays.add(day);
+      else oldestDays.add(day);
+    }
+    if (oldestDays.size > previousDays.size && previousDays.size > activeDays.size) {
+      addAlert('declining', profile, weekKey, new Date().toISOString(),
+        `Active days declined across three weeks from ${oldestDays.size} to ${previousDays.size} to ${activeDays.size}.`);
+    }
+
+    const achievedGoals = userLogs.filter(log =>
+      log.metric_type === 'smart_goal' && log.metadata?.success_criteria_met === true);
+    for (const achievedGoal of achievedGoals) {
+      addAlert('smart_goal', profile, achievedGoal.id || achievedGoal.logged_at, achievedGoal.logged_at,
+        'A SMART goal achievement was explicitly recorded.');
+    }
+  }
+  return candidates;
+}
+
 app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
   try {
-    const [profilesRes, pointsRes, progressRes, logsRes] = await Promise.all([
-      supabase.from('profiles').select('id, username, anon_handle, enrolled_at'),
-      supabase.from('user_points').select('user_id, total_points, streak, last_log_date'),
-      supabase.from('program_progress').select('user_id, current_week, modules_complete, challenges_done, badges'),
-      supabase.from('research_analytics').select('user_id, metric_type, metadata, logged_date, logged_at'),
+    const [profiles, points, progressRows, logs] = await Promise.all([
+      fetchAllRows(() => supabase.from('profiles').select('id, username, anon_handle, enrolled_at').order('id')),
+      fetchAllRows(() => supabase.from('user_points').select('user_id, total_points, streak, last_log_date').order('user_id')),
+      fetchAllRows(() => supabase.from('program_progress').select('user_id, current_week, modules_complete, challenges_done, badges').order('user_id')),
+      fetchAllRows(() => supabase.from('research_analytics')
+        .select('id, user_id, metric_type, metadata, logged_date, logged_at')
+        .order('logged_at', { ascending: true })
+        .order('id', { ascending: true })),
     ]);
 
-    const firstError = [profilesRes, pointsRes, progressRes, logsRes].find(result => result.error)?.error;
-    if (firstError) throw firstError;
-
-    const profiles = profilesRes.data || [];
-    const pointsByUser = new Map((pointsRes.data || []).map(row => [row.user_id, row]));
-    const progressByUser = new Map((progressRes.data || []).map(row => [row.user_id, row]));
-    const logs = logsRes.data || [];
+    const pointsByUser = new Map(points.map(row => [row.user_id, row]));
+    const progressByUser = new Map(progressRows.map(row => [row.user_id, row]));
     const logsByUser = new Map();
     logs.forEach(log => {
       if (!logsByUser.has(log.user_id)) logsByUser.set(log.user_id, []);
@@ -986,6 +1232,7 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
     });
 
     const activeUsers = participantRows.filter(row => row.daysInactive !== null && row.daysInactive < 14).length;
+    const alerts = buildAdminAlertCandidates(profiles, logs, progressRows);
     return res.json({
       overview: {
         participants: profiles.length,
@@ -994,7 +1241,7 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
         modulesCompleted: participantRows.filter(row => row.completedProgram).length,
         quizzesCompleted: participantRows.reduce((sum, row) => sum + row.quizCompleted, 0),
         challengesCompleted: participantRows.reduce((sum, row) => sum + row.challengesCompleted, 0),
-        alerts: participantRows.filter(row => row.daysInactive >= 14 || row.completedProgram || row.missedModules || row.decliningEngagement).length,
+        alerts: alerts.length,
       },
       weeks: weekMetrics,
       challenges: Object.values(challengeGroups).map(group => ({
@@ -1005,15 +1252,68 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
         completionRate: percent(group.completed.size, group.assigned),
       })),
       participants: participantRows,
-      alerts: participantRows.filter(row => row.daysInactive >= 14 || row.completedProgram || row.missedModules || row.decliningEngagement).map(row => ({
-        participant: row.participant,
-        type: row.completedProgram ? 'completed' : row.daysInactive >= 14 ? 'inactive' : row.missedModules ? 'missed' : 'declining',
-        message: row.completedProgram ? 'Completed all 12 weeks.' : row.daysInactive >= 14 ? `No activity for ${row.daysInactive} days.` : row.missedModules ? 'Missed two or more consecutive modules.' : 'Engagement is declining compared with the previous 7 days.',
-      })),
+      alerts,
     });
   } catch (err) {
     console.error('[admin/overview]', err.message);
     return res.status(500).json({ error: 'Could not load admin dashboard data.' });
+  }
+});
+
+app.get('/api/v1/admin/alerts', verifyAdmin, async (req, res) => {
+  try {
+    const [profiles, progressRows, logs, statesRes] = await Promise.all([
+      fetchAllRows(() => supabase.from('profiles').select('id, username, anon_handle, enrolled_at').order('id')),
+      fetchAllRows(() => supabase.from('program_progress').select('user_id, current_week').order('user_id')),
+      fetchAllRows(() => supabase.from('research_analytics')
+        .select('id, user_id, metric_type, metadata, logged_at')
+        .order('logged_at', { ascending: true })
+        .order('id', { ascending: true })),
+      supabase.from('admin_alert_states').select('alert_key, status'),
+    ]);
+    if (statesRes.error) throw statesRes.error;
+    const states = new Map((statesRes.data || []).map(state => [state.alert_key, state.status]));
+    const alerts = buildAdminAlertCandidates(profiles, logs, progressRows).map(alert => {
+      const state = states.get(alert.key);
+      return state ? { ...alert, status: state, statusLabel: state === 'reviewed' ? 'Reviewed' : 'Resolved' } : alert;
+    });
+    return res.json(alerts);
+  } catch (err) {
+    console.error('[admin/alerts]', err.message);
+    return res.status(500).json({ error: 'Could not load automated alerts. Apply supabase/activity-tracker-alerts.sql and try again.' });
+  }
+});
+
+app.put('/api/v1/admin/alerts/:alertKey', verifyAdmin, async (req, res) => {
+  const { status } = req.body || {};
+  if (!['reviewed', 'resolved'].includes(status)) {
+    return res.status(400).json({ error: 'Alert status must be reviewed or resolved.' });
+  }
+  const alertKey = req.params.alertKey;
+  try {
+    const [profiles, progressRows, logs] = await Promise.all([
+      fetchAllRows(() => supabase.from('profiles').select('id, username, anon_handle, enrolled_at').order('id')),
+      fetchAllRows(() => supabase.from('program_progress').select('user_id, current_week').order('user_id')),
+      fetchAllRows(() => supabase.from('research_analytics')
+        .select('id, user_id, metric_type, metadata, logged_at')
+        .order('logged_at', { ascending: true })
+        .order('id', { ascending: true })),
+    ]);
+    const alert = buildAdminAlertCandidates(profiles, logs, progressRows).find(item => item.key === alertKey);
+    if (!alert) return res.status(404).json({ error: 'This alert is no longer active.' });
+    const { error } = await supabase.from('admin_alert_states').upsert({
+      alert_key: alert.key,
+      participant_id: alert.participantId,
+      alert_type: alert.type,
+      status,
+      updated_by: req.user.id,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'alert_key' });
+    if (error) throw error;
+    return res.json({ success: true, alert_key: alert.key, status });
+  } catch (err) {
+    console.error('[admin/alerts/update]', err.message);
+    return res.status(500).json({ error: 'Could not update the alert. Apply supabase/activity-tracker-alerts.sql and try again.' });
   }
 });
 

@@ -63,12 +63,12 @@
       <section id="section-overview" class="admin-section active">
         <div class="section-heading"><div><p class="eyebrow">Study overview</p><h2>Cohort progress and retention</h2></div><button id="refreshDashboard" class="ghost-button"><i class="fas fa-rotate"></i> Refresh</button></div>
         <div id="overviewCards" class="metric-grid"></div>
-        <div class="dashboard-grid"><article class="panel"><h3>12-week intervention progress</h3><div id="overviewWeeks" class="table-wrap"></div></article><article class="panel"><h3>Automatic alerts</h3><div id="overviewAlerts"></div></article></div>
+        <div class="dashboard-grid"><article class="panel"><h3>12-week intervention progress</h3><div id="overviewWeeks" class="table-wrap"></div></article><article class="panel"><h3>Automatic alerts</h3><div id="overviewAlerts" class="admin-alert-grid"></div></article></div>
       </section>
 
       <section id="section-participants" class="admin-section">
         <div class="section-heading"><div><p class="eyebrow">Participants</p><h2>Participant engagement register</h2></div><button id="exportParticipants" class="ghost-button">Export CSV</button></div>
-        <article class="panel"><div class="table-wrap"><table><thead><tr><th>Participant</th><th>Assigned</th><th>Opened</th><th>Completed</th><th>Quiz</th><th>Challenges</th><th>Last login</th><th>Status</th><th>Actions</th></tr></thead><tbody id="participantsTable"></tbody></table></div></article>
+        <article class="panel"><div class="table-wrap"><table><thead><tr><th>Participant</th><th>Assigned</th><th>Opened</th><th>Completed</th><th>Quiz</th><th>Challenges</th><th>Last active</th><th>Status</th><th>Actions</th></tr></thead><tbody id="participantsTable"></tbody></table></div></article>
       </section>
 
       <section id="section-delivery" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Intervention delivery</p><h2>Weekly module exposure</h2></div></div><article class="panel"><div id="deliveryTable" class="table-wrap"></div></article></section>
@@ -82,7 +82,10 @@
         <article class="panel"><h3>Recorded assessments and baseline → endline change</h3><div id="outcomesTable" class="table-wrap"></div></article>
       </section>
 
-      <section id="section-alerts" class="admin-section"><div class="section-heading"><div><p class="eyebrow">Alerts</p><h2>Follow-up queue</h2></div></div><article class="panel"><div id="alertsTable"></div></article></section>
+      <section id="section-alerts" class="admin-section">
+        <div class="section-heading"><div><p class="eyebrow">Automated follow-up</p><h2>Participant alert queue</h2></div><button id="refreshAlerts" class="ghost-button" type="button"><i class="fas fa-rotate" aria-hidden="true"></i> Refresh alerts</button></div>
+        <article class="panel"><p class="panel-note">These engagement and milestone alerts are separate from clinical assessments and research outcomes. Physical activity self-monitoring answers do not create inactivity alerts. Run <code>supabase/activity-tracker-alerts.sql</code> in Supabase to enable alert status tracking and save activity logs.</p><div id="adminAlertsPanel" class="admin-alert-grid" aria-live="polite"></div></article>
+      </section>
 
       <div id="participantDetailModal" class="detail-modal" hidden role="dialog" aria-modal="true" aria-labelledby="participantDetailTitle">
         <div class="detail-modal-card">

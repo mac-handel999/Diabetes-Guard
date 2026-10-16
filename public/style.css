@@ -270,6 +270,95 @@ select:focus {
     border-radius: 10px;
 }
 
+.activity-tracker-form {
+    display: grid;
+    gap: 16px;
+}
+
+.activity-tracker-form h2 {
+    color: var(--primary-dark);
+    font-size: 20px;
+}
+
+.activity-tracker-week,
+.activity-tracker-message {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.activity-tracker-message.is-error {
+    color: #b42318;
+}
+
+.activity-tracker-days {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: 12px;
+}
+
+.activity-day-card,
+.activity-weekly-checkin {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid var(--neutral-border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.activity-day-card legend,
+.activity-weekly-checkin legend {
+    padding: 0 6px;
+    color: var(--primary-dark);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.activity-day-card label,
+.activity-weekly-checkin label {
+    display: block;
+    margin: 10px 0 5px;
+    color: var(--text-dark);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.activity-day-card select,
+.activity-weekly-checkin select,
+.activity-weekly-checkin textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--neutral-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text-dark);
+    font: inherit;
+}
+
+.activity-day-card select:disabled {
+    background: var(--neutral-bg);
+    color: var(--text-muted);
+}
+
+.activity-weekly-checkin {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: 12px;
+}
+
+.activity-weekly-checkin label {
+    margin: 0;
+}
+
+.activity-weekly-checkin .activity-next-goal {
+    grid-column: 1 / -1;
+}
+
+.activity-tracker-form button:disabled {
+    cursor: wait;
+    opacity: .7;
+}
+
 /* ===== PROGRESS DASHBOARD BAR ===== */
 .progress-track {
     background: var(--neutral-border);

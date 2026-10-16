@@ -7,6 +7,8 @@ const ADMIN_API = (
 let adminSession = null;
 let dashboardData = null;
 let assessments = [];
+let adminAlerts = [];
+let adminAlertsError = '';
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
@@ -68,9 +70,18 @@ async function loadDashboard() {
     if (!dashboardData?.overview || !Array.isArray(dashboardData.participants)) {
       throw new Error('The admin overview response is incomplete. Restart or redeploy the Node backend, then try again.');
     }
+    try {
+      adminAlerts = await request('/admin/alerts');
+      adminAlertsError = '';
+    } catch (error) {
+      adminAlerts = [];
+      adminAlertsError = error.message;
+    }
     assessments = [];
     renderAll();
-    showMessage($('adminStatus'), `Updated ${new Date().toLocaleTimeString()}`, false);
+    showMessage($('adminStatus'), adminAlertsError
+      ? `Dashboard updated; alerts unavailable: ${adminAlertsError}`
+      : `Updated ${new Date().toLocaleTimeString()}`, Boolean(adminAlertsError));
   } catch (error) {
     if (error.message.includes('Administrator access') || error.message.includes('Admin access is not configured')) {
       localStorage.removeItem('dg_admin_session');
@@ -98,10 +109,13 @@ function renderOverview() {
   $('overviewCards').innerHTML = cards([
     { label: 'Participants enrolled', value: overview.participants }, { label: 'Active users (<14 days)', value: overview.activeUsers },
     { label: 'Retention rate', value: `${overview.retentionRate}%` }, { label: 'Program completers', value: overview.modulesCompleted },
-    { label: 'Quizzes completed', value: overview.quizzesCompleted }, { label: 'Alerts requiring review', value: overview.alerts },
+    { label: 'Quizzes completed', value: overview.quizzesCompleted }, { label: 'Alerts requiring review', value: adminAlerts.filter(alert => alert.status === 'new').length },
   ]);
   $('overviewWeeks').innerHTML = weekTable(dashboardData.weeks);
-  $('overviewAlerts').innerHTML = alertList(dashboardData.alerts.slice(0, 6));
+  $('overviewAlerts').innerHTML = adminAlertsError
+    ? `<p class="panel-note">${escapeHtml(adminAlertsError)}</p>`
+    : renderAdminAlertCards(adminAlerts.slice(0, 3));
+  bindAlertActions($('overviewAlerts'));
 }
 
 // Weekly intervention delivery, learning, challenge, and engagement views.
@@ -110,7 +124,7 @@ function weekTable(weeks) {
 }
 
 function renderParticipants() {
-  $('participantsTable').innerHTML = dashboardData.participants.map(row => `<tr><td><strong>${escapeHtml(row.participant)}</strong>${renderParticipantBadges(row.badges)}<br><small>${escapeHtml(row.username)}</small></td><td>Week ${row.moduleAssigned}</td><td>${row.moduleOpened}</td><td>${row.moduleCompleted}</td><td>${row.quizCompleted} (${row.quizScore}%)</td><td>${row.challengesCompleted}</td><td>${formatDateTime(row.lastLogin)}</td><td><span class="status-pill ${row.status}">${row.status}</span></td><td><button class="table-action" data-view-user="${escapeHtml(row.id)}">View</button>${row.status === 'inactive' ? ` <button class="table-action danger-action" data-delete-user="${escapeHtml(row.id)}">Delete</button>` : ''}</td></tr>`).join('');
+  $('participantsTable').innerHTML = dashboardData.participants.map(row => `<tr><td><strong>${escapeHtml(row.participant)}</strong>${renderParticipantBadges(row.badges)}<br><small>${escapeHtml(row.username)}</small></td><td>Week ${row.moduleAssigned}</td><td>${row.moduleOpened}</td><td>${row.moduleCompleted}</td><td>${row.quizCompleted} (${row.quizScore}%)</td><td>${row.challengesCompleted}</td><td>${formatDateTime(row.lastActivity)}</td><td><span class="status-pill ${row.status}">${row.status}</span></td><td><button class="table-action" data-view-user="${escapeHtml(row.id)}">View</button>${row.status === 'inactive' ? ` <button class="table-action danger-action" data-delete-user="${escapeHtml(row.id)}">Delete</button>` : ''}</td></tr>`).join('');
   document.querySelectorAll('[data-view-user]').forEach(button => button.addEventListener('click', () => viewParticipant(button.dataset.viewUser)));
   document.querySelectorAll('[data-delete-user]').forEach(button => button.addEventListener('click', () => deleteParticipant(button.dataset.deleteUser)));
 }
@@ -193,11 +207,72 @@ function renderEngagement() {
   $('engagementTable').innerHTML = `<table><thead><tr><th>Participant</th><th>Last login</th><th>Last activity</th><th>Days inactive</th><th>Modules</th><th>Quizzes</th></tr></thead><tbody>${rows.map(row => `<tr><td>${escapeHtml(row.participant)}</td><td>${formatDateTime(row.lastLogin)}</td><td>${formatDateTime(row.lastActivity)}</td><td>${row.daysInactive ?? '—'}</td><td>${row.moduleCompleted}</td><td>${row.quizCompleted}</td></tr>`).join('')}</tbody></table>`;
 }
 
-function alertList(alerts) {
-  return alerts.length ? alerts.map(alert => `<div class="alert-item ${alert.type === 'inactive' ? 'inactive' : ''}"><strong>${escapeHtml(alert.participant)}</strong><br>${escapeHtml(alert.message)}</div>`).join('') : '<p class="panel-note">No alerts currently require review.</p>';
+const ALERT_PRESENTATION = {
+  inactive: { icon: 'fa-calendar-xmark', color: '#DC2626' },
+  missed_modules: { icon: 'fa-book-open', color: '#BE185D' },
+  declining: { icon: 'fa-chart-line', color: '#B45309' },
+  completed: { icon: 'fa-calendar-check', color: '#047857' },
+  smart_goal: { icon: 'fa-bullseye', color: '#6D28D9' },
+};
+
+function renderAdminAlertCards(alerts) {
+  if (!alerts.length) {
+    return '<p class="panel-note">No automated alerts currently require review. Self-monitoring tracker answers are excluded from inactivity alerts.</p>';
+  }
+  return alerts.map(alert => {
+    const presentation = ALERT_PRESENTATION[alert.type] || ALERT_PRESENTATION.declining;
+    const resolved = alert.status === 'resolved';
+    const reviewed = alert.status === 'reviewed';
+    return `<article class="admin-alert-card alert-type-${escapeHtml(alert.type)}" style="--alert-color:${presentation.color}">
+      <div class="admin-alert-heading"><span class="admin-alert-icon" aria-hidden="true"><i class="fas ${presentation.icon}"></i></span><h3>${escapeHtml(alert.title)}</h3></div>
+      <p class="admin-alert-participant"><strong>Participant</strong> ${escapeHtml(alert.participant)}</p>
+      <p class="admin-alert-message">${escapeHtml(alert.message)}</p>
+      <p class="admin-alert-time"><strong>Timestamp</strong> ${escapeHtml(formatDateTime(alert.timestamp))}</p>
+      <span class="admin-alert-status ${resolved ? 'is-resolved' : reviewed ? 'is-reviewed' : ''}">${escapeHtml(alert.statusLabel)}</span>
+      <div class="admin-alert-actions">
+        <button class="table-action" type="button" data-alert-view="${escapeHtml(alert.participantId)}">View Details</button>
+        ${!reviewed && !resolved ? `<button class="table-action" type="button" data-alert-status="reviewed" data-alert-key="${escapeHtml(alert.key)}">Mark as Reviewed</button>` : ''}
+        ${!resolved ? `<button class="table-action danger-action" type="button" data-alert-status="resolved" data-alert-key="${escapeHtml(alert.key)}">Resolve</button>` : ''}
+      </div>
+    </article>`;
+  }).join('');
 }
 
-function renderAlerts() { $('alertsTable').innerHTML = alertList(dashboardData.alerts); }
+function bindAlertActions(container) {
+  if (!container || container.dataset.alertActionsBound) return;
+  container.dataset.alertActionsBound = 'true';
+  container.addEventListener('click', event => {
+    const viewButton = event.target.closest('[data-alert-view]');
+    if (viewButton) {
+      viewParticipant(viewButton.dataset.alertView);
+      return;
+    }
+    const statusButton = event.target.closest('[data-alert-status]');
+    if (statusButton) updateAlertStatus(statusButton.dataset.alertKey, statusButton.dataset.alertStatus, statusButton);
+  });
+}
+
+async function updateAlertStatus(alertKey, status, button) {
+  button.disabled = true;
+  try {
+    await request(`/admin/alerts/${encodeURIComponent(alertKey)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status }),
+    });
+    await loadDashboard();
+  } catch (error) {
+    showMessage($('adminStatus'), error.message);
+    button.disabled = false;
+  }
+}
+
+function renderAlerts() {
+  const panel = $('adminAlertsPanel');
+  panel.innerHTML = adminAlertsError
+    ? `<p class="form-message">${escapeHtml(adminAlertsError)} Apply <code>supabase/activity-tracker-alerts.sql</code> to enable alert statuses.</p>`
+    : renderAdminAlertCards(adminAlerts);
+  bindAlertActions(panel);
+}
 
 function populateParticipantSelect() {
   $('assessmentParticipant').innerHTML = dashboardData.participants.map(row => `<option value="${escapeHtml(row.id)}">${escapeHtml(row.participant)}</option>`).join('');
@@ -252,7 +327,7 @@ function exportOutcomes() { download('dia-shield-research-outcomes.json', JSON.s
 
 // Wire controls and restore a previously authenticated admin session on page load.
 document.addEventListener('DOMContentLoaded', async () => {
-  $('adminLoginForm').addEventListener('submit', login); $('adminLogout').addEventListener('click', logout); $('refreshDashboard').addEventListener('click', loadDashboard); $('assessmentForm').addEventListener('submit', saveAssessment); $('exportParticipants').addEventListener('click', exportCsv); $('exportOutcomes').addEventListener('click', exportOutcomes);
+  $('adminLoginForm').addEventListener('submit', login); $('adminLogout').addEventListener('click', logout); $('refreshDashboard').addEventListener('click', loadDashboard); $('refreshAlerts').addEventListener('click', loadDashboard); $('assessmentForm').addEventListener('submit', saveAssessment); $('exportParticipants').addEventListener('click', exportCsv); $('exportOutcomes').addEventListener('click', exportOutcomes);
   $('closeParticipantDetail').addEventListener('click', () => { $('participantDetailModal').hidden = true; });
   $('participantDetailModal').addEventListener('click', event => { if (event.target.id === 'participantDetailModal') $('participantDetailModal').hidden = true; });
   ['weight', 'height'].forEach(id => $(id).addEventListener('input', () => { const weight = Number($('weight').value); const height = Number($('height').value) / 100; $('bmi').value = weight > 0 && height > 0 ? (weight / (height * height)).toFixed(1) : ''; }));

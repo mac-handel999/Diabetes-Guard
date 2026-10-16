@@ -56,6 +56,8 @@ let todayLogs  = { food: 0, water: 0, activity: 0, weight: 0 };
 // BOOT
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  renderActivityTrackerDays();
+  document.getElementById('activityTrackerForm')?.addEventListener('submit', saveActivityTracker);
   const stored = localStorage.getItem('dg_session_token');
   if (stored) {
     try {
@@ -376,7 +378,9 @@ async function enterApp() {
 
   // These can run in parallel — none of them depend on each other
   await Promise.all([
+    recordSessionActivity(),
     loadDashboardStats(),
+    loadActivityTracker(),
     loadLeaderboard(),
     loadProfile(),
   ]);
@@ -387,6 +391,164 @@ async function enterApp() {
 
 // Legacy alias used by older index.html
 function initWorkspace() { enterApp(); }
+
+async function recordSessionActivity() {
+  try {
+    await api('/activity/session', 'POST');
+  } catch (err) {
+    console.warn('[recordSessionActivity]', err.message);
+  }
+}
+
+const ACTIVITY_TRACKER_WEEKDAYS = [
+  ['monday', 'Monday'],
+  ['tuesday', 'Tuesday'],
+  ['wednesday', 'Wednesday'],
+  ['thursday', 'Thursday'],
+  ['friday', 'Friday'],
+  ['saturday', 'Saturday'],
+  ['sunday', 'Sunday'],
+];
+
+function activityTrackerWeekStart(date = new Date()) {
+  const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+  const year = monday.getFullYear();
+  const month = String(monday.getMonth() + 1).padStart(2, '0');
+  const day = String(monday.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function emptyActivityTracker() {
+  return {
+    daily_entries: Object.fromEntries(ACTIVITY_TRACKER_WEEKDAYS.map(([key]) => [key, {
+      vigorous: null,
+      vigorous_duration: null,
+      moderate: null,
+      moderate_duration: null,
+      walked_ten_minutes: null,
+      sitting_time: null,
+    }])),
+    weekly_checkin: {
+      vigorous_days: null,
+      moderate_days: null,
+      walk_frequency: null,
+      sports: null,
+      next_activity: '',
+    },
+  };
+}
+
+function trackerSelectOptions(values, selected, placeholder = 'Choose an answer') {
+  return `<option value="">${placeholder}</option>${values.map(value =>
+    `<option value="${escapeHtml(value)}"${selected === value ? ' selected' : ''}>${escapeHtml(value)}</option>`
+  ).join('')}`;
+}
+
+function renderActivityTrackerDays(entries = emptyActivityTracker().daily_entries) {
+  const container = document.getElementById('activityTrackerDays');
+  if (!container) return;
+  container.innerHTML = ACTIVITY_TRACKER_WEEKDAYS.map(([key, label]) => {
+    const entry = entries[key] || {};
+    return `<fieldset class="activity-day-card">
+      <legend>${label}</legend>
+      <label for="tracker-${key}-vigorous">Vigorous activity?</label>
+      <select id="tracker-${key}-vigorous" data-day="${key}" data-field="vigorous" class="tracker-activity-answer">${trackerSelectOptions(['yes', 'no'], entry.vigorous, 'Select yes or no')}</select>
+      <label for="tracker-${key}-vigorous-duration">Vigorous activity duration</label>
+      <select id="tracker-${key}-vigorous-duration" data-day="${key}" data-duration="vigorous" class="tracker-activity-duration">${trackerSelectOptions(['<30 min', '30–60 min', '>1 hr', 'N/A'], entry.vigorous_duration)}</select>
+      <label for="tracker-${key}-moderate">Moderate activity?</label>
+      <select id="tracker-${key}-moderate" data-day="${key}" data-field="moderate" class="tracker-activity-answer">${trackerSelectOptions(['yes', 'no'], entry.moderate, 'Select yes or no')}</select>
+      <label for="tracker-${key}-moderate-duration">Moderate activity duration</label>
+      <select id="tracker-${key}-moderate-duration" data-day="${key}" data-duration="moderate" class="tracker-activity-duration">${trackerSelectOptions(['<30 min', '30–60 min', '>1 hr', 'N/A'], entry.moderate_duration)}</select>
+      <label for="tracker-${key}-walked">Walked at least 10 minutes continuously?</label>
+      <select id="tracker-${key}-walked" data-day="${key}" data-field="walked_ten_minutes">${trackerSelectOptions(['yes', 'no'], entry.walked_ten_minutes, 'Select yes or no')}</select>
+      <label for="tracker-${key}-sitting">Sitting time range</label>
+      <select id="tracker-${key}-sitting" data-day="${key}" data-field="sitting_time">${trackerSelectOptions(['<2 hrs', '2–4 hrs', '5–7 hrs', '>7 hrs'], entry.sitting_time)}</select>
+    </fieldset>`;
+  }).join('');
+  container.querySelectorAll('.tracker-activity-answer').forEach(select => {
+    select.addEventListener('change', () => setActivityDurationState(select));
+    setActivityDurationState(select);
+  });
+}
+
+function setActivityDurationState(answerSelect) {
+  const durationSelect = document.getElementById(`tracker-${answerSelect.dataset.day}-${answerSelect.dataset.field}-duration`);
+  if (!durationSelect) return;
+  const isApplicable = answerSelect.value === 'yes';
+  durationSelect.disabled = !isApplicable;
+  durationSelect.required = isApplicable;
+  if (!isApplicable) durationSelect.value = '';
+}
+
+function setActivityTrackerMessage(message, isError = false) {
+  const element = document.getElementById('activityTrackerMessage');
+  if (!element) return;
+  element.textContent = message;
+  element.classList.toggle('is-error', isError);
+}
+
+async function loadActivityTracker() {
+  const weekStart = activityTrackerWeekStart();
+  const weekLabel = document.getElementById('activityTrackerWeek');
+  if (weekLabel) weekLabel.textContent = `Week beginning ${new Date(`${weekStart}T00:00:00`).toLocaleDateString()}`;
+  setActivityTrackerMessage('Loading your saved tracker…');
+  try {
+    const saved = await api(`/physical-activity-tracker?week_start=${encodeURIComponent(weekStart)}`);
+    const defaults = emptyActivityTracker();
+    const dailyEntries = { ...defaults.daily_entries, ...(saved.daily_entries || {}) };
+    renderActivityTrackerDays(dailyEntries);
+    const checkin = { ...defaults.weekly_checkin, ...(saved.weekly_checkin || {}) };
+    document.getElementById('trackerVigorousDays').value = checkin.vigorous_days || '';
+    document.getElementById('trackerModerateDays').value = checkin.moderate_days || '';
+    document.getElementById('trackerWalkFrequency').value = checkin.walk_frequency || '';
+    document.getElementById('trackerSports').value = checkin.sports || '';
+    document.getElementById('trackerNextActivity').value = checkin.next_activity || '';
+    setActivityTrackerMessage('Daily entries and the weekly check-in are optional.');
+  } catch (err) {
+    setActivityTrackerMessage(err.message, true);
+  }
+}
+
+async function saveActivityTracker(event) {
+  event.preventDefault();
+  const dailyEntries = {};
+  for (const [day] of ACTIVITY_TRACKER_WEEKDAYS) {
+    const answer = field => document.getElementById(`tracker-${day}-${field}`).value || null;
+    const vigorous = answer('vigorous');
+    const moderate = answer('moderate');
+    dailyEntries[day] = {
+      vigorous,
+      vigorous_duration: vigorous === 'yes' ? answer('vigorous-duration') : null,
+      moderate,
+      moderate_duration: moderate === 'yes' ? answer('moderate-duration') : null,
+      walked_ten_minutes: answer('walked'),
+      sitting_time: answer('sitting'),
+    };
+  }
+  const payload = {
+    week_start: activityTrackerWeekStart(),
+    daily_entries: dailyEntries,
+    weekly_checkin: {
+      vigorous_days: document.getElementById('trackerVigorousDays').value || null,
+      moderate_days: document.getElementById('trackerModerateDays').value || null,
+      walk_frequency: document.getElementById('trackerWalkFrequency').value || null,
+      sports: document.getElementById('trackerSports').value || null,
+      next_activity: document.getElementById('trackerNextActivity').value.trim(),
+    },
+  };
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  button.disabled = true;
+  setActivityTrackerMessage('Saving your activity tracker…');
+  try {
+    await api('/physical-activity-tracker', 'PUT', payload);
+    setActivityTrackerMessage('Your activity tracker has been saved.');
+  } catch (err) {
+    setActivityTrackerMessage(err.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // NAV TAB SWITCHING

@@ -274,11 +274,45 @@
         </div>
       </div>
 
+      <div id="physical-activity" class="content-section" role="tabpanel">
+        <form id="activityTrackerForm" class="card activity-tracker-form">
+          <h2><i class="fas fa-person-walking" aria-hidden="true"></i> 7-Day Physical Activity Tracker</h2>
+          <p class="card-subtitle">Optional self-monitoring for this week. Record only what you wish to track; these answers are not used for clinical or dropout alerts.</p>
+          <p id="activityTrackerWeek" class="activity-tracker-week"></p>
+          <div id="activityTrackerDays" class="activity-tracker-days"></div>
+          <fieldset class="activity-weekly-checkin">
+            <legend>End-of-week check-in (optional)</legend>
+            <label>On how many days did you do any vigorous activity?
+              <select id="trackerVigorousDays"><option value="">Choose an answer</option><option>0</option><option>1–2</option><option>3–4</option><option>5 or more</option></select>
+            </label>
+            <label>On how many days did you do any moderate activity?
+              <select id="trackerModerateDays"><option value="">Choose an answer</option><option>0</option><option>1–2</option><option>3–4</option><option>5 or more</option></select>
+            </label>
+            <label>How often did you walk continuously for at least 10 minutes?
+              <select id="trackerWalkFrequency"><option value="">Choose an answer</option><option>Never</option><option>Rarely</option><option>Sometimes</option><option>Often</option><option>Every day</option></select>
+            </label>
+            <label>Did you take part in sports, exercise, or other fun physical activities this week?
+              <select id="trackerSports"><option value="">Choose an answer</option><option value="yes">Yes</option><option value="no">No</option></select>
+            </label>
+            <label class="activity-next-goal">What is one activity you would like to make time for next week?
+              <textarea id="trackerNextActivity" maxlength="500" rows="3"></textarea>
+            </label>
+          </fieldset>
+          <button class="action-btn wide-btn" type="submit">Save activity tracker</button>
+          <p id="activityTrackerMessage" class="activity-tracker-message" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+
 <div class="nav-tabs" role="tablist">
         <button class="tab-link active" role="tab" aria-selected="true" aria-controls="trackers"
           onclick="switchTab('trackers', this)"><i class="fas fa-heartbeat"
             aria-hidden="true"></i><span>Trackers</span>
           </button>
+
+        <button class="tab-link" role="tab" aria-selected="false" aria-controls="physical-activity"
+          onclick="switchTab('physical-activity', this)"><i class="fas fa-person-walking"
+            aria-hidden="true"></i><span>Activity Tracker</span>
+        </button>
 
         <button class="tab-link" role="tab" aria-selected="false" aria-controls="learning"
           onclick="switchTab('learning', this)"><i class="fas fa-book" aria-hidden="true"></i><span>Courses</span>
@@ -293,10 +327,8 @@
           onclick="switchTab('profile', this)"><i class="fas fa-user" aria-hidden="true"></i><span>Profile</span>
         </button>
       </div>
-
     </div>
 
-    
   </div>
 
   <footer class="app-footer">
