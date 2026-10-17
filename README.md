@@ -6,6 +6,16 @@ Diabetes_guard#9112
 
 Set `ADMIN_EMAILS` (or `ADMIN_EMAIL`) in the server environment as a comma-separated allowlist, then open `/admin.html` and sign in with one of those accounts. For example: `ADMIN_EMAILS=research-admin@example.com`. Apply `supabase/admin-schema.sql` before recording baseline or endline assessments. The dashboard aggregates participant engagement from `research_analytics` and exports participant and outcome data for analysis.
 
+## Supabase free-tier keep-alive
+
+The `.github/workflows/supabase-keepalive.yml` workflow makes a small Supabase RPC request daily at 06:17 UTC and can also be run manually from the GitHub Actions tab. The workflow must be present on the repository's default branch. To enable it:
+
+1. Run `supabase/keepalive.sql` in the Supabase SQL Editor to create the minimal `keepalive()` RPC. It returns only a fixed status and does not read participant data.
+2. In the GitHub repository, add Actions secrets named `SUPABASE_URL` and `SUPABASE_ANON_KEY` under **Settings → Secrets and variables → Actions**. Use the project's API URL and publishable/anon key; do not use the service-role key.
+3. Run **Supabase keep-alive** once manually in the Actions tab to confirm the RPC and secrets are configured.
+
+This is a best-effort heartbeat, not a Supabase uptime guarantee. GitHub scheduled jobs can be delayed or disabled by GitHub (including automatic disabling for inactive repositories), and a project that is already paused may need to be restored from the Supabase dashboard before API requests work again. Check Supabase's current free-plan inactivity and pause policy for the project's eligibility.
+
 ## Developer map
 
 - `server.js` — Express server, Supabase access, authentication, session validation, participant APIs, admin APIs, exports, and static-file hosting.
@@ -24,6 +34,8 @@ Set `ADMIN_EMAILS` (or `ADMIN_EMAIL`) in the server environment as a comma-separ
 - `public/curriculum.json` — Structured 12-week curriculum content; JSON cannot contain comments, so this map documents its role here.
 - `manifest.json` — PWA name, icons, theme, start URL, and standalone display settings.
 - `supabase/admin-schema.sql` — Database table and index for baseline/endline research assessments.
+- `supabase/keepalive.sql` — Data-free RPC used by the scheduled database keep-alive workflow.
+- `.github/workflows/supabase-keepalive.yml` — Daily GitHub Actions database heartbeat.
 - `vercel.json` — Production routing: API requests go to `server.js`, while public files are served from `public/`.
 - `package.json` — Node runtime dependencies and start/development commands.
 

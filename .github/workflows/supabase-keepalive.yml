@@ -1,0 +1,54 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Call minimal Supabase database RPC
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_ANON_KEY" ]]; then
+            echo "::error::Configure SUPABASE_URL and SUPABASE_ANON_KEY as GitHub Actions secrets."
+            exit 1
+          fi
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          status_code="$(curl \
+            --silent \
+            --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --max-time 30 \
+            --retry 2 \
+            --retry-delay 5 \
+            --request POST \
+            --header "apikey: $SUPABASE_ANON_KEY" \
+            --header 'Content-Type: application/json' \
+            --data '{}' \
+            "${SUPABASE_URL%/}/rest/v1/rpc/keepalive")"
+
+          if [[ "$status_code" != "200" ]]; then
+            echo "::error::Supabase keep-alive RPC returned HTTP $status_code."
+            cat "$response_file"
+            exit 1
+          fi
+
+          echo "Supabase keep-alive RPC succeeded."
