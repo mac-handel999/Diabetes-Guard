@@ -288,16 +288,22 @@ async function verifyAdmin(req, res, next) {
 
 /**
  * POST /api/v1/auth/register
- * Body: { email, password, username, anonHandle }
+ * Body: { email, password, username, anonHandle, whatsappNumber }
  */
 app.post('/api/v1/auth/register', async (req, res) => {
-  const { email, password, username, anonHandle } = req.body;
+  const { email, password, username, anonHandle, whatsappNumber, whatsappConsent } = req.body;
 
-  if (!email || !password || !username || !anonHandle) {
+  if (!email || !password || !username || !anonHandle || !whatsappNumber) {
     return res.status(400).json({ error: 'All fields are required.' });
+  }
+  if (whatsappConsent !== true) {
+    return res.status(400).json({ error: 'Confirm that you agree to WhatsApp engagement follow-up.' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
+  }
+  if (typeof whatsappNumber !== 'string' || !/^\+[1-9]\d{7,14}$/.test(whatsappNumber.trim())) {
+    return res.status(400).json({ error: 'Enter a valid WhatsApp number in international format, including country code.' });
   }
 
   let uid = null;
@@ -345,6 +351,8 @@ app.post('/api/v1/auth/register', async (req, res) => {
       id:          uid,
       username,
       anon_handle: anonHandle,
+      whatsapp_number: whatsappNumber.trim(),
+      whatsapp_consent_at: new Date().toISOString(),
       enrolled_at: new Date().toISOString(),
     });
 
@@ -354,7 +362,9 @@ app.post('/api/v1/auth/register', async (req, res) => {
       return res.status(isAliasRace ? 409 : 500).json({
         error: isAliasRace
           ? 'That leaderboard alias is already taken. Please choose another.'
-          : 'Registration failed. Please try again.',
+          : profErr.code === '42703'
+            ? 'Registration is unavailable until the WhatsApp contact migration is applied in Supabase.'
+            : 'Registration failed. Please try again.',
       });
     }
 
@@ -1351,7 +1361,7 @@ app.get('/api/v1/admin/participants/:participantId', verifyAdmin, async (req, re
   const participantId = req.params.participantId;
   try {
     const [profileRes, pointsRes, progressRes, logsRes, assessmentsRes] = await Promise.all([
-      supabase.from('profiles').select('id, username, anon_handle, enrolled_at').eq('id', participantId).maybeSingle(),
+      supabase.from('profiles').select('id, username, anon_handle, whatsapp_number, enrolled_at').eq('id', participantId).maybeSingle(),
       supabase.from('user_points').select('total_points, streak, last_log_date').eq('user_id', participantId).maybeSingle(),
       supabase.from('program_progress').select('current_week, modules_complete, challenges_done, badges, updated_at').eq('user_id', participantId).maybeSingle(),
       supabase.from('research_analytics').select('metric_type, metadata, logged_date, logged_at').eq('user_id', participantId).order('logged_at', { ascending: false }),

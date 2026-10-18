@@ -575,6 +575,33 @@ select:focus {
     margin-bottom: 0;
 }
 
+.auth-card #registerForm > label[for="registerWhatsapp"] {
+    display: block;
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.auth-card #registerForm > #whatsappFollowupNote {
+    display: block;
+    margin: -6px 0 12px;
+    color: var(--text-muted);
+    text-align: left;
+}
+
+.auth-card #registerForm > .auth-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 12px 0;
+    font-size: 13px;
+    text-align: left;
+}
+
+.auth-card .auth-consent input {
+    flex: 0 0 auto;
+    margin: 3px 0 0;
+}
+
 .wide-btn {
     width: 100%;
     padding: 12px;

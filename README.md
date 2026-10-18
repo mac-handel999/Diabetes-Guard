@@ -2,6 +2,8 @@
 A health tech web app for a 12-week program for Diabetes 
 Diabetes_guard#9112
 
+[![Supabase keep-alive](https://github.com/mac-handel999/Diabetes-Guard/actions/workflows/supabase-keepalive.yml/badge.svg)](https://github.com/mac-handel999/Diabetes-Guard/actions/workflows/supabase-keepalive.yml)
+
 ## Admin dashboard
 
 Set `ADMIN_EMAILS` (or `ADMIN_EMAIL`) in the server environment as a comma-separated allowlist, then open `/admin.html` and sign in with one of those accounts. For example: `ADMIN_EMAILS=research-admin@example.com`. Apply `supabase/admin-schema.sql` before recording baseline or endline assessments. The dashboard aggregates participant engagement from `research_analytics` and exports participant and outcome data for analysis.
@@ -15,6 +17,10 @@ The `.github/workflows/supabase-keepalive.yml` workflow makes a small Supabase R
 3. Run **Supabase keep-alive** once manually in the Actions tab to confirm the RPC and secrets are configured.
 
 This is a best-effort heartbeat, not a Supabase uptime guarantee. GitHub scheduled jobs can be delayed or disabled by GitHub (including automatic disabling for inactive repositories), and a project that is already paused may need to be restored from the Supabase dashboard before API requests work again. Check Supabase's current free-plan inactivity and pause policy for the project's eligibility.
+
+## WhatsApp follow-up contact
+
+Before deploying registration changes, run `supabase/whatsapp-contact.sql` in the Supabase SQL Editor. Registration requires a WhatsApp number in international format (for example, `+2348012345678`) and confirmation that the participant agrees to WhatsApp follow-up about program engagement. The number is stored on the participant profile and shown only in the authorized admin participant detail view.
 
 ## Developer map
 
@@ -35,6 +41,7 @@ This is a best-effort heartbeat, not a Supabase uptime guarantee. GitHub schedul
 - `manifest.json` — PWA name, icons, theme, start URL, and standalone display settings.
 - `supabase/admin-schema.sql` — Database table and index for baseline/endline research assessments.
 - `supabase/keepalive.sql` — Data-free RPC used by the scheduled database keep-alive workflow.
+- `supabase/whatsapp-contact.sql` — Adds a validated WhatsApp contact field to participant profiles.
 - `.github/workflows/supabase-keepalive.yml` — Daily GitHub Actions database heartbeat.
 - `vercel.json` — Production routing: API requests go to `server.js`, while public files are served from `public/`.
 - `package.json` — Node runtime dependencies and start/development commands.

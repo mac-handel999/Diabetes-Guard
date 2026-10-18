@@ -66,6 +66,11 @@
           <input type="email" id="registerEmail" placeholder="E-mail (example@gmail.com)" autocomplete="email" required>
           <input type="text" id="registerUsername" placeholder="Full Name or Student ID (e.g. John Doe or 2024....)" autocomplete="name" required>
           <input type="text" id="registerAnonHandle" placeholder="Leaderboard userAlias (e.g. FutoRunner)" required>
+          <label for="registerWhatsapp">WhatsApp number (include country code)</label>
+          <input type="tel" id="registerWhatsapp" placeholder="+2348012345678" autocomplete="tel"
+            inputmode="tel" pattern="\+[1-9][0-9]{7,14}" title="Enter an international number, e.g. +2348012345678."
+            aria-describedby="whatsappFollowupNote" required>
+          <small id="whatsappFollowupNote">The research team will use this number for WhatsApp follow-up about program engagement.</small>
           <div class="password-field">
             <input type="password" id="registerPassword" placeholder="Create Strong Password (********)" minlength="8"
               autocomplete="new-password" required>
@@ -73,6 +78,8 @@
               <i class="fas fa-eye" aria-hidden="true"></i>
             </button>
           </div>
+          <label class="auth-consent"><input type="checkbox" id="registerWhatsappConsent" required>
+            I agree to be contacted on WhatsApp about my program engagement.</label>
           <button type="submit" class="action-btn wide-btn">Submit Registration</button>
         </form>
         <div id="authMessage" class="auth-status-msg" role="status" aria-live="polite"></div>

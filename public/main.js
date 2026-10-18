@@ -292,10 +292,12 @@ async function handleRegister(e) {
                   || document.getElementById('regUsername');
   const aliasEl    = document.getElementById('registerAnonHandle')
                   || document.getElementById('regAlias');
+  const whatsappEl = document.getElementById('registerWhatsapp');
+  const whatsappConsentEl = document.getElementById('registerWhatsappConsent');
   const passwordEl = document.getElementById('registerPassword')
                   || document.getElementById('regPassword');
 
-  if (!emailEl || !usernameEl || !aliasEl || !passwordEl) {
+  if (!emailEl || !usernameEl || !aliasEl || !whatsappEl || !whatsappConsentEl || !passwordEl) {
     showAuthMsg('Page error: registration form fields not found. Please refresh.');
     setLoading('registerBtn', false);
     return;
@@ -306,6 +308,8 @@ async function handleRegister(e) {
       email:      emailEl.value.trim(),
       username:   usernameEl.value.trim(),
       anonHandle: aliasEl.value.trim(),
+      whatsappNumber: whatsappEl.value.trim(),
+      whatsappConsent: whatsappConsentEl.checked,
       password:   passwordEl.value,
     });
 

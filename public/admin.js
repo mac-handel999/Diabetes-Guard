@@ -151,6 +151,8 @@ async function viewParticipant(participantId) {
     const progress = detail.progress || {};
     const points = detail.points || {};
     $('participantDetailTitle').textContent = profile.anon_handle || profile.username || 'Participant details';
+    const whatsapp = profile.whatsapp_number || '';
+    const whatsappDigits = whatsapp.replace(/\D/g, '');
     content.innerHTML = `
       <div class="detail-summary">${cards([
         { label: 'Username', value: profile.username || '—' },
@@ -160,6 +162,9 @@ async function viewParticipant(participantId) {
         { label: 'Total points', value: points.total_points || 0 },
         { label: 'Streak', value: points.streak || 0 },
       ])}</div>
+      <p class="panel-note">WhatsApp follow-up: ${whatsappDigits
+        ? `<a href="https://wa.me/${encodeURIComponent(whatsappDigits)}" target="_blank" rel="noopener noreferrer">${escapeHtml(whatsapp)}</a>`
+        : 'No WhatsApp number recorded.'}</p>
       <h3>Earned badges</h3><div class="detail-badge-list">${renderParticipantBadges(progress.badges || []) || 'No badges earned.'}</div>
       <h3>Research assessments</h3>${renderDetailAssessments(detail.assessments || [])}
       <h3>Activity history</h3>${renderDetailLogs(detail.logs || [])}`;
