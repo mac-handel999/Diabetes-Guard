@@ -22,6 +22,10 @@ This is a best-effort heartbeat, not a Supabase uptime guarantee. GitHub schedul
 
 Before deploying registration changes, run `supabase/whatsapp-contact.sql` in the Supabase SQL Editor. Registration requires a WhatsApp number in international format (for example, `+2348012345678`) and confirmation that the participant agrees to WhatsApp follow-up about program engagement. The number is stored on the participant profile and shown only in the authorized admin participant detail view.
 
+## Beta testing and activity tracker
+
+All 12 curriculum weeks are available to participants; course access is not restricted by enrollment date. Module opened/completed counts use distinct week/day activity, and a module is not shown as completed until its save succeeds. For independent daily physical activity saves, run `supabase/activity-tracker-days.sql` after `supabase/activity-tracker-alerts.sql`; this creates the per-day table and migrates existing weekly tracker entries. The service-worker cache is versioned so deployed clients receive the updated course and tracker code.
+
 ## Developer map
 
 - `server.js` — Express server, Supabase access, authentication, session validation, participant APIs, admin APIs, exports, and static-file hosting.
@@ -42,6 +46,7 @@ Before deploying registration changes, run `supabase/whatsapp-contact.sql` in th
 - `supabase/admin-schema.sql` — Database table and index for baseline/endline research assessments.
 - `supabase/keepalive.sql` — Data-free RPC used by the scheduled database keep-alive workflow.
 - `supabase/whatsapp-contact.sql` — Adds a validated WhatsApp contact field to participant profiles.
+- `supabase/activity-tracker-days.sql` — Stores physical activity entries by participant, week, and individual day.
 - `.github/workflows/supabase-keepalive.yml` — Daily GitHub Actions database heartbeat.
 - `vercel.json` — Production routing: API requests go to `server.js`, while public files are served from `public/`.
 - `package.json` — Node runtime dependencies and start/development commands.

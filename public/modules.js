@@ -477,9 +477,10 @@ function showDayNotification(week, day, force) {
 
 async function loadModule({ forceNotification = false } = {}) {
   const weekNumber = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
-  if (typeof userCurrentWeek !== 'undefined' && weekNumber > userCurrentWeek) {
-    renderLockedWeekState(weekNumber);
-    return;
+  const completionButton = document.getElementById('markCompleteBtn');
+  if (completionButton) {
+    completionButton.disabled = false;
+    completionButton.innerHTML = '<i class="fas fa-check-circle" aria-hidden="true"></i> Mark as Complete (+30 pts)';
   }
 
   const weeks = getCurriculumWeeks(await fetchCurriculumData());
@@ -544,13 +545,6 @@ function renderWeeklyQuizCard(week, dayNumber) {
     return;
   }
   renderQuiz(questions, { weekNumber: week.weekNumber, dayNumber: 7 });
-}
-
-function renderLockedWeekState(week) {
-  const currentWeek = typeof userCurrentWeek !== 'undefined' ? userCurrentWeek : 1;
-  const moduleElement = document.getElementById('moduleTarget') || document.getElementById('moduleContent');
-  if (moduleElement) moduleElement.textContent = `Week ${week} unlocks once you reach it in the program. You're currently on Week ${currentWeek}.`;
-  document.getElementById('quizContent')?.replaceChildren(createElement('p', '', 'Not available yet.'));
 }
 
 function renderErrorState(message) {
@@ -682,10 +676,18 @@ function renderQuizCompletion(totalQuestions, correctCount, context) {
 
 async function markModuleComplete() {
   const week = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
-  if (typeof userCurrentWeek !== 'undefined' && week > userCurrentWeek) return;
-  if (typeof submitMetric === 'function') await submitMetric('module', { week });
+  if (typeof submitMetric !== 'function') return;
+  const result = await submitMetric('module', { week });
+  if (!result) {
+    const button = document.getElementById('markCompleteBtn');
+    if (button) button.innerHTML = 'Could not save completion — try again';
+    return;
+  }
   const button = document.getElementById('markCompleteBtn');
-  if (button) { button.innerHTML = '<i class="fas fa-check-circle"></i> Completed ✓'; button.disabled = true; }
+  if (button) {
+    button.innerHTML = `<i class="fas fa-check-circle" aria-hidden="true"></i> ${result.already_completed ? 'Already completed ✓' : 'Completed ✓'}`;
+    button.disabled = true;
+  }
 }
 
 function openResource(type, event) {

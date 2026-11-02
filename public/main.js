@@ -57,7 +57,10 @@ let todayLogs  = { food: 0, water: 0, activity: 0, weight: 0 };
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
   renderActivityTrackerDays();
-  document.getElementById('activityTrackerForm')?.addEventListener('submit', saveActivityTracker);
+  document.getElementById('activityTrackerDays')?.addEventListener('click', event => {
+    const button = event.target.closest('[data-save-tracker-day]');
+    if (button) saveActivityTrackerDay(button.dataset.saveTrackerDay);
+  });
   const stored = localStorage.getItem('dg_session_token');
   if (stored) {
     try {
@@ -424,23 +427,14 @@ function activityTrackerWeekStart(date = new Date()) {
 }
 
 function emptyActivityTracker() {
-  return {
-    daily_entries: Object.fromEntries(ACTIVITY_TRACKER_WEEKDAYS.map(([key]) => [key, {
-      vigorous: null,
-      vigorous_duration: null,
-      moderate: null,
-      moderate_duration: null,
-      walked_ten_minutes: null,
-      sitting_time: null,
-    }])),
-    weekly_checkin: {
-      vigorous_days: null,
-      moderate_days: null,
-      walk_frequency: null,
-      sports: null,
-      next_activity: '',
-    },
-  };
+  return Object.fromEntries(ACTIVITY_TRACKER_WEEKDAYS.map(([key]) => [key, {
+    vigorous: null,
+    vigorous_duration: null,
+    moderate: null,
+    moderate_duration: null,
+    walked_ten_minutes: null,
+    sitting_time: null,
+  }]));
 }
 
 function trackerSelectOptions(values, selected, placeholder = 'Choose an answer') {
@@ -449,7 +443,7 @@ function trackerSelectOptions(values, selected, placeholder = 'Choose an answer'
   ).join('')}`;
 }
 
-function renderActivityTrackerDays(entries = emptyActivityTracker().daily_entries) {
+function renderActivityTrackerDays(entries = emptyActivityTracker(), savedAt = {}) {
   const container = document.getElementById('activityTrackerDays');
   if (!container) return;
   container.innerHTML = ACTIVITY_TRACKER_WEEKDAYS.map(([key, label]) => {
@@ -468,6 +462,8 @@ function renderActivityTrackerDays(entries = emptyActivityTracker().daily_entrie
       <select id="tracker-${key}-walked" data-day="${key}" data-field="walked_ten_minutes">${trackerSelectOptions(['yes', 'no'], entry.walked_ten_minutes, 'Select yes or no')}</select>
       <label for="tracker-${key}-sitting">Sitting time range</label>
       <select id="tracker-${key}-sitting" data-day="${key}" data-field="sitting_time">${trackerSelectOptions(['<2 hrs', '2–4 hrs', '5–7 hrs', '>7 hrs'], entry.sitting_time)}</select>
+      <button class="action-btn wide-btn" type="button" data-save-tracker-day="${key}">Save ${label}</button>
+      <p class="activity-day-status" data-day-status="${key}" role="status">${savedAt[key] ? `Saved ${new Date(savedAt[key]).toLocaleString()}` : 'Not saved yet'}</p>
     </fieldset>`;
   }).join('');
   container.querySelectorAll('.tracker-activity-answer').forEach(select => {
@@ -500,53 +496,46 @@ async function loadActivityTracker() {
   try {
     const saved = await api(`/physical-activity-tracker?week_start=${encodeURIComponent(weekStart)}`);
     const defaults = emptyActivityTracker();
-    const dailyEntries = { ...defaults.daily_entries, ...(saved.daily_entries || {}) };
-    renderActivityTrackerDays(dailyEntries);
-    const checkin = { ...defaults.weekly_checkin, ...(saved.weekly_checkin || {}) };
-    document.getElementById('trackerVigorousDays').value = checkin.vigorous_days || '';
-    document.getElementById('trackerModerateDays').value = checkin.moderate_days || '';
-    document.getElementById('trackerWalkFrequency').value = checkin.walk_frequency || '';
-    document.getElementById('trackerSports').value = checkin.sports || '';
-    document.getElementById('trackerNextActivity').value = checkin.next_activity || '';
-    setActivityTrackerMessage('Daily entries and the weekly check-in are optional.');
+    const dailyEntries = { ...defaults, ...(saved.daily_entries || {}) };
+    renderActivityTrackerDays(dailyEntries, saved.saved_at_by_day || {});
+    setActivityTrackerMessage('Each day is optional and saves independently.');
   } catch (err) {
     setActivityTrackerMessage(err.message, true);
   }
 }
 
-async function saveActivityTracker(event) {
-  event.preventDefault();
-  const dailyEntries = {};
-  for (const [day] of ACTIVITY_TRACKER_WEEKDAYS) {
-    const answer = field => document.getElementById(`tracker-${day}-${field}`).value || null;
-    const vigorous = answer('vigorous');
-    const moderate = answer('moderate');
-    dailyEntries[day] = {
-      vigorous,
-      vigorous_duration: vigorous === 'yes' ? answer('vigorous-duration') : null,
-      moderate,
-      moderate_duration: moderate === 'yes' ? answer('moderate-duration') : null,
-      walked_ten_minutes: answer('walked'),
-      sitting_time: answer('sitting'),
-    };
+async function saveActivityTrackerDay(day) {
+  if (!ACTIVITY_TRACKER_WEEKDAYS.some(([key]) => key === day)) return;
+  const button = document.querySelector(`[data-save-tracker-day="${day}"]`);
+  const fieldset = button?.closest('.activity-day-card');
+  if (!button || !fieldset) return;
+  const invalidDuration = fieldset.querySelector('select:invalid');
+  if (invalidDuration) {
+    invalidDuration.reportValidity();
+    return;
   }
-  const payload = {
-    week_start: activityTrackerWeekStart(),
-    daily_entries: dailyEntries,
-    weekly_checkin: {
-      vigorous_days: document.getElementById('trackerVigorousDays').value || null,
-      moderate_days: document.getElementById('trackerModerateDays').value || null,
-      walk_frequency: document.getElementById('trackerWalkFrequency').value || null,
-      sports: document.getElementById('trackerSports').value || null,
-      next_activity: document.getElementById('trackerNextActivity').value.trim(),
-    },
+  const answer = field => document.getElementById(`tracker-${day}-${field}`).value || null;
+  const vigorous = answer('vigorous');
+  const moderate = answer('moderate');
+  const entry = {
+    vigorous,
+    vigorous_duration: vigorous === 'yes' ? answer('vigorous-duration') : null,
+    moderate,
+    moderate_duration: moderate === 'yes' ? answer('moderate-duration') : null,
+    walked_ten_minutes: answer('walked'),
+    sitting_time: answer('sitting'),
   };
-  const button = event.currentTarget.querySelector('button[type="submit"]');
   button.disabled = true;
-  setActivityTrackerMessage('Saving your activity tracker…');
+  setActivityTrackerMessage(`Saving ${day}…`);
   try {
-    await api('/physical-activity-tracker', 'PUT', payload);
-    setActivityTrackerMessage('Your activity tracker has been saved.');
+    const saved = await api('/physical-activity-tracker', 'PUT', {
+      week_start: activityTrackerWeekStart(),
+      day,
+      entry,
+    });
+    const status = document.querySelector(`[data-day-status="${day}"]`);
+    if (status) status.textContent = `Saved ${new Date(saved.updated_at).toLocaleString()}`;
+    setActivityTrackerMessage(`${day[0].toUpperCase()}${day.slice(1)} has been saved.`);
   } catch (err) {
     setActivityTrackerMessage(err.message, true);
   } finally {
@@ -653,54 +642,19 @@ async function syncDashboardTelemetry() { return loadDashboardStats(); }
 // DASHBOARD — current program week
 // ═══════════════════════════════════════════════════════════════
 
-// Tracks which week the user is actually allowed to be on, so
-// loadModule() can refuse to render content for weeks beyond this
-// even if the <select> is somehow set past it (defense in depth —
-// the primary guard is disabling the option itself, below).
-
- let userCurrentWeek = 1;
-
 async function loadCurrentWeek() {
   try {
     const data = await api('/program/week');
     const week = data.week ?? 1;
-    const pct  = Math.round((week / 12) * 100);
-
-    userCurrentWeek = week;
 
     setText('currentWeekDisplay', `Week ${week}`);
-    setProgress('weekProgressBar', pct);
     setText('weekProgressLabel', `Week ${week} of 12`);
 
-    // Auto-select the module for this week, then lock anything later
-    const sel = document.getElementById('weekSelector');
-    if (sel) { sel.value = week; }
-    lockWeekSelector(week);
+    setProgress('weekProgressBar', Math.round((week / 12) * 100));
 
-  } catch { /* defaults to week 1, lockWeekSelector still runs via the caller */ }
-}
-
-/**
- * Disables every <option> in #weekSelector whose week number is
- * greater than the user's current program week, and labels them
- * "(Locked)" so it's clear why they can't be picked. Weeks up
- * through and including the current one stay selectable.
- */
-function lockWeekSelector(currentWeek) {
-  const sel = document.getElementById('weekSelector');
-  if (!sel) return;
-
-  Array.from(sel.options).forEach(option => {
-    const optionWeek = parseInt(option.value, 10);
-    const isLocked = optionWeek > currentWeek;
-
-    option.disabled = isLocked;
-
-    // Keep the base label clean of repeated "(Locked)" suffixes if
-    // this ever re-runs (e.g. after loadCurrentWeek() is re-fetched)
-    const baseLabel = option.textContent.replace(/\s*\(Locked\)\s*$/, '');
-    option.textContent = isLocked ? `${baseLabel} (Locked)` : baseLabel;
-  });
+  } catch (err) {
+    console.warn('[loadCurrentWeek]', err.message);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -847,7 +801,7 @@ async function submitMetric(type, extra = {}) {
   if (!navigator.onLine) {
     queueOfflineMetric(type, extra);
     showOfflineMetricMessage();
-    return;
+    return null;
   }
 
   try {
@@ -866,14 +820,16 @@ async function submitMetric(type, extra = {}) {
     // bar, stat pills, and week total in sync with the source of
     // truth instead of drifting from the optimistic local update.
     await loadDashboardStats();
+    return result;
 
   } catch (err) {
     if (err instanceof TypeError || !navigator.onLine) {
       queueOfflineMetric(type, extra);
       showOfflineMetricMessage();
-      return;
+      return null;
     }
     console.warn(`[submitMetric:${type}]`, err.message);
+    return null;
   }
 }
 

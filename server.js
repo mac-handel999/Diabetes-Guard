@@ -563,8 +563,6 @@ app.post('/api/v1/activity/session', verifyJWT, async (req, res) => {
 const ACTIVITY_TRACKER_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const ACTIVITY_DURATIONS = new Set(['<30 min', '30–60 min', '>1 hr', 'N/A']);
 const SITTING_RANGES = new Set(['<2 hrs', '2–4 hrs', '5–7 hrs', '>7 hrs']);
-const DAY_COUNTS = new Set(['0', '1–2', '3–4', '5 or more']);
-const WALK_FREQUENCIES = new Set(['Never', 'Rarely', 'Sometimes', 'Often', 'Every day']);
 
 function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -576,84 +574,69 @@ function validWeekStart(value) {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value && date.getUTCDay() === 1;
 }
 
-function validateActivityTracker(body) {
-  if (!isRecord(body?.daily_entries) || !isRecord(body?.weekly_checkin)) return null;
-  const dailyEntries = {};
-  for (const day of ACTIVITY_TRACKER_DAYS) {
-    const entry = body.daily_entries[day];
-    if (!isRecord(entry)) return null;
-    const clean = {};
-    for (const field of ['vigorous', 'moderate']) {
-      const answer = entry[field] ?? null;
-      const duration = entry[`${field}_duration`] ?? null;
-      if (answer !== null && !['yes', 'no'].includes(answer)) return null;
-      if (answer === 'yes' && !ACTIVITY_DURATIONS.has(duration)) return null;
-      if (answer !== 'yes' && duration !== null) return null;
-      clean[field] = answer;
-      clean[`${field}_duration`] = duration;
-    }
-    const walked = entry.walked_ten_minutes ?? null;
-    const sitting = entry.sitting_time ?? null;
-    if (walked !== null && !['yes', 'no'].includes(walked)) return null;
-    if (sitting !== null && !SITTING_RANGES.has(sitting)) return null;
-    clean.walked_ten_minutes = walked;
-    clean.sitting_time = sitting;
-    dailyEntries[day] = clean;
+function validateActivityDayEntry(entry) {
+  if (!isRecord(entry)) return null;
+  const clean = {};
+  for (const field of ['vigorous', 'moderate']) {
+    const answer = entry[field] ?? null;
+    const duration = entry[`${field}_duration`] ?? null;
+    if (answer !== null && !['yes', 'no'].includes(answer)) return null;
+    if (answer === 'yes' && !ACTIVITY_DURATIONS.has(duration)) return null;
+    if (answer !== 'yes' && duration !== null) return null;
+    clean[field] = answer;
+    clean[`${field}_duration`] = duration;
   }
-
-  const checkin = body.weekly_checkin;
-  const cleanCheckin = {};
-  for (const field of ['vigorous_days', 'moderate_days']) {
-    const answer = checkin[field] ?? null;
-    if (answer !== null && !DAY_COUNTS.has(answer)) return null;
-    cleanCheckin[field] = answer;
-  }
-  const walkFrequency = checkin.walk_frequency ?? null;
-  const sports = checkin.sports ?? null;
-  const nextActivity = checkin.next_activity ?? '';
-  if (walkFrequency !== null && !WALK_FREQUENCIES.has(walkFrequency)) return null;
-  if (sports !== null && !['yes', 'no'].includes(sports)) return null;
-  if (typeof nextActivity !== 'string' || nextActivity.length > 500) return null;
-  cleanCheckin.walk_frequency = walkFrequency;
-  cleanCheckin.sports = sports;
-  cleanCheckin.next_activity = nextActivity;
-  return { dailyEntries, cleanCheckin };
+  const walked = entry.walked_ten_minutes ?? null;
+  const sitting = entry.sitting_time ?? null;
+  if (walked !== null && !['yes', 'no'].includes(walked)) return null;
+  if (sitting !== null && !SITTING_RANGES.has(sitting)) return null;
+  clean.walked_ten_minutes = walked;
+  clean.sitting_time = sitting;
+  return clean;
 }
 
 app.get('/api/v1/physical-activity-tracker', verifyJWT, async (req, res) => {
   const weekStart = req.query.week_start;
   if (!validWeekStart(weekStart)) return res.status(400).json({ error: 'week_start must be a Monday in YYYY-MM-DD format.' });
   try {
-    const { data, error } = await supabase.from('physical_activity_weeks')
-      .select('week_start, daily_entries, weekly_checkin, updated_at')
-      .eq('user_id', req.user.id).eq('week_start', weekStart).maybeSingle();
+    const { data, error } = await supabase.from('physical_activity_days')
+      .select('day, entry, updated_at')
+      .eq('user_id', req.user.id).eq('week_start', weekStart);
     if (error) throw error;
-    return res.json(data || { week_start: weekStart, daily_entries: {}, weekly_checkin: {}, updated_at: null });
+    const dailyEntries = {};
+    const savedAtByDay = {};
+    for (const row of data || []) {
+      dailyEntries[row.day] = row.entry;
+      savedAtByDay[row.day] = row.updated_at;
+    }
+    return res.json({ week_start: weekStart, daily_entries: dailyEntries, saved_at_by_day: savedAtByDay });
   } catch (err) {
     console.error('[physical-activity-tracker/read]', err.message);
-    return res.status(500).json({ error: 'Could not load the activity tracker. Apply supabase/activity-tracker-alerts.sql and try again.' });
+    return res.status(500).json({ error: 'Could not load the activity tracker. Apply supabase/activity-tracker-days.sql and try again.' });
   }
 });
 
 app.put('/api/v1/physical-activity-tracker', verifyJWT, async (req, res) => {
   const weekStart = req.body?.week_start;
   if (!validWeekStart(weekStart)) return res.status(400).json({ error: 'week_start must be a Monday in YYYY-MM-DD format.' });
-  const tracker = validateActivityTracker(req.body);
-  if (!tracker) return res.status(400).json({ error: 'Activity tracker answers are invalid. Review the daily entries and weekly check-in.' });
+  const { day, entry } = req.body || {};
+  if (!ACTIVITY_TRACKER_DAYS.includes(day)) return res.status(400).json({ error: 'Choose a valid weekday to save.' });
+  const cleanEntry = validateActivityDayEntry(entry);
+  if (!cleanEntry) return res.status(400).json({ error: 'Activity tracker answers are invalid. Review the selected day.' });
   try {
-    const { data, error } = await supabase.from('physical_activity_weeks').upsert({
+    const { data, error } = await supabase.from('physical_activity_days').upsert({
       user_id: req.user.id,
       week_start: weekStart,
-      daily_entries: tracker.dailyEntries,
-      weekly_checkin: tracker.cleanCheckin,
+      day,
+      entry: cleanEntry,
       updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id,week_start' })
-      .select('week_start, daily_entries, weekly_checkin, updated_at').single();
+    }, { onConflict: 'user_id,week_start,day' })
+      .select('day, entry, updated_at').single();
     if (error) throw error;
     return res.json(data);
   } catch (err) {
     console.error('[physical-activity-tracker/save]', err.message);
-    return res.status(500).json({ error: 'Could not save the activity tracker. Apply supabase/activity-tracker-alerts.sql and try again.' });
+    return res.status(500).json({ error: 'Could not save this day. Apply supabase/activity-tracker-days.sql and try again.' });
   }
 });
 
@@ -738,8 +721,26 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
   if (!metric_type) {
     return res.status(400).json({ error: 'metric_type is required.' });
   }
+  if (metric_type === 'module' &&
+      (!Number.isInteger(Number(extra.week)) || Number(extra.week) < 1 || Number(extra.week) > 12)) {
+    return res.status(400).json({ error: 'A valid curriculum week is required to record completion.' });
+  }
+  if (metric_type === 'module') extra.week = Number(extra.week);
 
   try {
+    if (metric_type === 'module') {
+      const { data: existingCompletion, error: completionError } = await supabase
+        .from('research_analytics')
+        .select('id')
+        .eq('user_id', uid)
+        .eq('metric_type', 'module')
+        .contains('metadata', { week: Number(extra.week) })
+        .limit(1)
+        .maybeSingle();
+      if (completionError) throw completionError;
+      if (existingCompletion) return res.json({ success: true, already_completed: true });
+    }
+
     // ── 0. Count today's point-earning logs of this type so far,
     //        to enforce the daily cap before we award anything ─
     const { count: todaysCount } = await supabase
@@ -1116,7 +1117,7 @@ function buildAdminAlertCandidates(profiles, logs, progressRows) {
     for (let week = 1; week < currentWeek - 1; week += 1) {
       if (!completedWeeks.has(week) && !completedWeeks.has(week + 1)) missedPair = [week, week + 1];
     }
-    if (missedPair) {
+    if (missedPair && Number(progress.modules_complete || 0) < currentWeek - 2) {
       const occurrence = `${missedPair[0]}-${missedPair[1]}`;
       const triggerAt = Number.isFinite(enrolledAt)
         ? new Date(enrolledAt + missedPair[1] * 7 * 86400000).toISOString()
@@ -1181,8 +1182,26 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
       const quizLogs = userLogs.filter(log => log.metric_type === 'quiz');
       const challenges = userLogs.filter(log => ['challenge', 'daily_challenge', 'weekly_challenge'].includes(log.metric_type));
       const inactiveDays = daysSince(lastActivity?.logged_at || profile.enrolled_at);
-      const currentWeek = progress.current_week || 1;
-      const moduleCompleted = progress.modules_complete || userLogs.filter(log => log.metric_type === 'module').length;
+      const enrolledAt = profile.enrolled_at ? new Date(profile.enrolled_at).getTime() : NaN;
+      const timelineWeek = Number.isFinite(enrolledAt)
+        ? Math.min(12, Math.max(1, Math.floor(Math.max(0, Date.now() - enrolledAt) / (7 * 86400000)) + 1))
+        : 1;
+      const currentWeek = Math.max(timelineWeek, Number(progress.current_week) || 1);
+      const completedWeeks = new Set(userLogs
+        .filter(log => log.metric_type === 'module')
+        .map(log => Number(log.metadata?.week))
+        .filter(week => Number.isInteger(week) && week >= 1 && week <= 12));
+      const legacyCompletions = userLogs.filter(log => log.metric_type === 'module').length;
+      const moduleCompleted = completedWeeks.size || progress.modules_complete || legacyCompletions;
+      const openedModules = new Set(userLogs
+        .filter(log => log.metric_type === 'module_opened')
+        .map(log => {
+          const week = Number(log.metadata?.week);
+          const day = Number(log.metadata?.day);
+          return Number.isInteger(week) && Number.isInteger(day)
+            ? `${week}-${day}`
+            : `legacy-${log.id}`;
+        }));
       const recentLogs = userLogs.filter(log => daysSince(log.logged_at) < 7 && log.metric_type !== 'login').length;
       const previousLogs = userLogs.filter(log => { const age = daysSince(log.logged_at); return age >= 7 && age < 14 && log.metric_type !== 'login'; }).length;
 
@@ -1191,8 +1210,8 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
         participant: profile.anon_handle || profile.username || profile.id,
         username: profile.username,
         badges: progress.badges || [],
-        moduleAssigned: Math.min(12, Math.max(1, progress.current_week || 1)),
-        moduleOpened: userLogs.filter(log => log.metric_type === 'module_opened').length,
+        moduleAssigned: Math.min(12, currentWeek),
+        moduleOpened: openedModules.size,
         moduleCompleted,
         activitiesCompleted: userLogs.filter(log => ['activity', 'food', 'water', 'weight', 'behaviour'].includes(log.metric_type)).length,
         quizCompleted: new Set(quizLogs.map(log => `${log.metadata?.week || ''}-${log.metadata?.day || ''}`)).size,
@@ -1203,8 +1222,11 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
         lastActivity: lastActivity?.logged_at || null,
         daysInactive: inactiveDays,
         status: inactiveDays >= 14 ? 'inactive' : 'active',
-        completedProgram: moduleCompleted >= 12,
-        missedModules: currentWeek >= 3 && moduleCompleted < currentWeek - 1,
+        completedProgram: completedWeeks.size === 12,
+        missedModules: currentWeek >= 3 &&
+          Number(progress.modules_complete || 0) < currentWeek - 2 &&
+          Array.from({ length: Math.min(11, currentWeek - 2) }, (_, index) =>
+            index + 1).some(week => !completedWeeks.has(week) && !completedWeeks.has(week + 1)),
         decliningEngagement: previousLogs >= 2 && recentLogs < previousLogs,
       };
     });

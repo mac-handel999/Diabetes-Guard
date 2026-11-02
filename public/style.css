@@ -297,8 +297,7 @@ select:focus {
     gap: 12px;
 }
 
-.activity-day-card,
-.activity-weekly-checkin {
+.activity-day-card {
     min-width: 0;
     padding: 14px;
     border: 1px solid var(--neutral-border);
@@ -306,16 +305,14 @@ select:focus {
     background: #fff;
 }
 
-.activity-day-card legend,
-.activity-weekly-checkin legend {
+.activity-day-card legend {
     padding: 0 6px;
     color: var(--primary-dark);
     font-size: 15px;
     font-weight: 700;
 }
 
-.activity-day-card label,
-.activity-weekly-checkin label {
+.activity-day-card label {
     display: block;
     margin: 10px 0 5px;
     color: var(--text-dark);
@@ -323,9 +320,7 @@ select:focus {
     font-weight: 600;
 }
 
-.activity-day-card select,
-.activity-weekly-checkin select,
-.activity-weekly-checkin textarea {
+.activity-day-card select {
     width: 100%;
     padding: 9px 10px;
     border: 1px solid var(--neutral-border);
@@ -340,18 +335,10 @@ select:focus {
     color: var(--text-muted);
 }
 
-.activity-weekly-checkin {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-    gap: 12px;
-}
-
-.activity-weekly-checkin label {
-    margin: 0;
-}
-
-.activity-weekly-checkin .activity-next-goal {
-    grid-column: 1 / -1;
+.activity-day-status {
+    margin: 8px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
 }
 
 .activity-tracker-form button:disabled {
