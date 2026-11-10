@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>Dia Shield — Diabetes Prevention & Health Tracker</title>
 <meta name="title" content="Dia Shield — Diabetes Prevention & Health Tracker" />
 <meta name="description"
@@ -99,7 +99,7 @@
               stroke-linecap="round" stroke-linejoin="round" />
           </svg>
           <span style="font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px;">
-            Dia<span style="font-weight: 400; color: #1A7A4A;">Shield</span>
+            Dia<span style="font-weight: 400; color: #00F5A0;">Shield</span>
           </span>
         </a>
         </div>
@@ -122,17 +122,16 @@
       <div id="trackers" class="content-section active" role="tabpanel">
         <div class="card">
           <h3><i class="fas fa-edit" aria-hidden="true"></i> Metric Loggers (Research Analytics Pipeline)</h3>
-          <p class="card-subtitle">Every click safely relays timestamped inputs to the research coordinator's
-            engine.</p>
+          <p class="card-subtitle">Tap a button to open the form for that tracker. Only entries you actually fill in are saved — with a timestamp — to your research log. Your answers are never shared on the leaderboard; only your alias and points are visible to other participants.</p>
 
           <div class="grid-buttons">
-            <button class="tracker-btn btn-food" onclick="submitMetric('food')"><i class="fas fa-apple-alt"
+            <button class="tracker-btn btn-food" onclick="openTrackerModal('food')"><i class="fas fa-apple-alt"
                 aria-hidden="true"></i> Food Diary</button>
-            <button class="tracker-btn btn-activity" onclick="submitMetric('activity')"><i class="fas fa-walking"
+            <button class="tracker-btn btn-activity" onclick="openTrackerModal('activity')"><i class="fas fa-walking"
                 aria-hidden="true"></i> Exercise</button>
-            <button class="tracker-btn btn-water" onclick="submitMetric('water')"><i class="fas fa-tint"
+            <button class="tracker-btn btn-water" onclick="openTrackerModal('water')"><i class="fas fa-tint"
                 aria-hidden="true"></i> Water Log</button>
-            <button class="tracker-btn btn-weight" onclick="submitMetric('weight')"><i class="fas fa-weight"
+            <button class="tracker-btn btn-weight" onclick="openTrackerModal('weight')"><i class="fas fa-weight"
                 aria-hidden="true"></i> Weight</button>
           </div>
           <div id="localLogsDisplay" class="logs-display-panel" role="status" aria-live="polite">Loading metrics
@@ -173,6 +172,87 @@
         
           <!-- Result Container (Initially hidden) -->
           <div id="bmiResult" class="bmi-result-box hidden"></div>
+        </div>
+
+        <!-- Metric logger modals — each opens a small form that must be
+             filled before anything is recorded. Clicking a tracker button
+             used to fire an empty log straight to the server, which is
+             what inflated the cohort progress bar even when the user
+             hadn't entered anything. -->
+        <div id="trackerModal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="trackerModalTitle">
+          <div class="modal-card">
+            <header class="modal-header">
+              <h3 id="trackerModalTitle">Log activity</h3>
+              <button type="button" class="modal-close" onclick="closeTrackerModal()" aria-label="Close">&times;</button>
+            </header>
+            <div class="modal-body">
+              <!-- Food Diary -->
+              <div id="trackerForm-food" class="tracker-form-panel">
+                <label for="trackerMealSelect">Which meal?</label>
+                <select id="trackerMealSelect" class="form-control">
+                  <option value="">Select a meal…</option>
+                  <option value="Breakfast">Breakfast</option>
+                  <option value="Lunch">Lunch</option>
+                  <option value="Dinner">Dinner</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Drinks">Drinks</option>
+                </select>
+                <label for="trackerFoodNotes">What did you eat or drink? (optional)</label>
+                <textarea id="trackerFoodNotes" class="form-control" rows="2" placeholder="e.g. oatmeal, banana, water"></textarea>
+                <p class="field-hint">Only what you actually consumed is saved to your research log.</p>
+              </div>
+
+              <!-- Exercise -->
+              <div id="trackerForm-activity" class="tracker-form-panel hidden">
+                <label for="trackerActivityType">Activity type</label>
+                <select id="trackerActivityType" class="form-control">
+                  <option value="Walking">Walking</option>
+                  <option value="Jogging">Jogging</option>
+                  <option value="Cycling">Cycling</option>
+                  <option value="Strength">Strength training</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Other">Other</option>
+                </select>
+                <label for="trackerActivityDuration">Duration (minutes) <span class="required">*</span></label>
+                <input id="trackerActivityDuration" class="form-control" type="number" min="1" max="600" placeholder="e.g. 30">
+                <label for="trackerActivityIntensity">Intensity</label>
+                <select id="trackerActivityIntensity" class="form-control">
+                  <option value="Low">Low</option>
+                  <option value="Moderate" selected>Moderate</option>
+                  <option value="High">High</option>
+                </select>
+                <p class="field-hint">A duration is required — we won't record an exercise entry with no time attached.</p>
+              </div>
+
+              <!-- Water -->
+              <div id="trackerForm-water" class="tracker-form-panel hidden">
+                <label for="trackerWaterGlasses">How many glasses of water did you drink?</label>
+                <div class="water-glass-row" id="trackerWaterGlasses">
+                  <button type="button" class="water-glass" data-glasses="1">1</button>
+                  <button type="button" class="water-glass" data-glasses="2">2</button>
+                  <button type="button" class="water-glass" data-glasses="3">3</button>
+                  <button type="button" class="water-glass" data-glasses="4">4</button>
+                  <button type="button" class="water-glass" data-glasses="5">5</button>
+                  <button type="button" class="water-glass" data-glasses="6">6</button>
+                  <button type="button" class="water-glass" data-glasses="7">7</button>
+                  <button type="button" class="water-glass" data-glasses="8">8</button>
+                </div>
+                <input id="trackerWaterValue" class="form-control" type="number" min="1" max="20" value="8" hidden>
+                <p class="field-hint">Tap a count or type a number. Your daily goal is 8 glasses.</p>
+              </div>
+
+              <!-- Weight -->
+              <div id="trackerForm-weight" class="tracker-form-panel hidden">
+                <label for="trackerWeightValue">Weight (kg) <span class="required">*</span></label>
+                <input id="trackerWeightValue" class="form-control" type="number" min="20" max="300" step="0.1" placeholder="e.g. 70.5">
+                <p class="field-hint">Enter your current weight. This is optional self-monitoring and is never shared on the leaderboard.</p>
+              </div>
+            </div>
+            <footer class="modal-footer">
+              <button type="button" class="action-btn" onclick="closeTrackerModal()">Cancel</button>
+              <button type="button" class="action-btn primary" id="trackerSaveBtn" onclick="saveTrackerModal()">Save entry</button>
+            </footer>
+          </div>
         </div>
       </div>
 

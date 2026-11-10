@@ -51,6 +51,24 @@ const OFFLINE_METRIC_QUEUE_KEY = 'dg_pending_metrics';
 // ── Local UI state ───────────────────────────────────────────
 let waterCount = 0;
 let todayLogs  = { food: 0, water: 0, activity: 0, weight: 0 };
+// Set of curriculum weeks the user has actually marked complete,
+// used to keep the "Mark as Complete" button in sync across the app.
+let COMPLETED_WEEKS = new Set();
+
+function setCompletedWeeks(weeks = []) {
+  COMPLETED_WEEKS = new Set((weeks || []).map(Number).filter(Number.isInteger));
+  const button = document.getElementById('markCompleteBtn');
+  if (button) {
+    const currentWeek = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
+    if (COMPLETED_WEEKS.has(currentWeek)) {
+      button.innerHTML = '<i class="fas fa-check-circle" aria-hidden="true"></i> Already completed ✓';
+      button.disabled = true;
+    } else {
+      button.innerHTML = '<i class="fas fa-check-circle" aria-hidden="true"></i> Mark as Complete (+30 pts)';
+      button.disabled = false;
+    }
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // BOOT
@@ -362,6 +380,7 @@ async function enterApp() {
   // Header / greeting
   const headerUser = document.getElementById('headerUsername') || document.getElementById('welcomeUser');
   if (headerUser) headerUser.textContent = SESSION?.username || 'Student';
+  renderWelcomeUser();
 
   const greetEl = document.getElementById('summaryGreeting');
   if (greetEl) {
@@ -454,16 +473,18 @@ function renderActivityTrackerDays(entries = emptyActivityTracker(), savedAt = {
       <select id="tracker-${key}-vigorous" data-day="${key}" data-field="vigorous" class="tracker-activity-answer">${trackerSelectOptions(['yes', 'no'], entry.vigorous, 'Select yes or no')}</select>
       <label for="tracker-${key}-vigorous-duration">Vigorous activity duration</label>
       <select id="tracker-${key}-vigorous-duration" data-day="${key}" data-duration="vigorous" class="tracker-activity-duration">${trackerSelectOptions(['<30 min', '30–60 min', '>1 hr', 'N/A'], entry.vigorous_duration)}</select>
+      <p class="duration-hint" hidden>Only needed if you answered "yes" above.</p>
       <label for="tracker-${key}-moderate">Moderate activity?</label>
       <select id="tracker-${key}-moderate" data-day="${key}" data-field="moderate" class="tracker-activity-answer">${trackerSelectOptions(['yes', 'no'], entry.moderate, 'Select yes or no')}</select>
       <label for="tracker-${key}-moderate-duration">Moderate activity duration</label>
       <select id="tracker-${key}-moderate-duration" data-day="${key}" data-duration="moderate" class="tracker-activity-duration">${trackerSelectOptions(['<30 min', '30–60 min', '>1 hr', 'N/A'], entry.moderate_duration)}</select>
+      <p class="duration-hint" hidden>Only needed if you answered "yes" above.</p>
       <label for="tracker-${key}-walked">Walked at least 10 minutes continuously?</label>
       <select id="tracker-${key}-walked" data-day="${key}" data-field="walked_ten_minutes">${trackerSelectOptions(['yes', 'no'], entry.walked_ten_minutes, 'Select yes or no')}</select>
       <label for="tracker-${key}-sitting">Sitting time range</label>
       <select id="tracker-${key}-sitting" data-day="${key}" data-field="sitting_time">${trackerSelectOptions(['<2 hrs', '2–4 hrs', '5–7 hrs', '>7 hrs'], entry.sitting_time)}</select>
       <button class="action-btn wide-btn" type="button" data-save-tracker-day="${key}">Save ${label}</button>
-      <p class="activity-day-status" data-day-status="${key}" role="status">${savedAt[key] ? `Saved ${new Date(savedAt[key]).toLocaleString()}` : 'Not saved yet'}</p>
+      <p class="activity-day-status" data-day-status="${key}" role="status">${savedAt[key] ? `Saved ${formatDateTimeDMY(savedAt[key])}` : 'Not saved yet'}</p>
     </fieldset>`;
   }).join('');
   container.querySelectorAll('.tracker-activity-answer').forEach(select => {
@@ -479,6 +500,10 @@ function setActivityDurationState(answerSelect) {
   durationSelect.disabled = !isApplicable;
   durationSelect.required = isApplicable;
   if (!isApplicable) durationSelect.value = '';
+  // Greyed-out durations used to give no hint *why* they were disabled,
+  // leaving users guessing. Make the reason explicit.
+  const hint = durationSelect.parentElement.querySelector('.duration-hint');
+  if (hint) hint.hidden = isApplicable;
 }
 
 function setActivityTrackerMessage(message, isError = false) {
@@ -491,7 +516,7 @@ function setActivityTrackerMessage(message, isError = false) {
 async function loadActivityTracker() {
   const weekStart = activityTrackerWeekStart();
   const weekLabel = document.getElementById('activityTrackerWeek');
-  if (weekLabel) weekLabel.textContent = `Week beginning ${new Date(`${weekStart}T00:00:00`).toLocaleDateString()}`;
+  if (weekLabel) weekLabel.textContent = `Week beginning ${formatDateDMY(weekStart)}`;
   setActivityTrackerMessage('Loading your saved tracker…');
   try {
     const saved = await api(`/physical-activity-tracker?week_start=${encodeURIComponent(weekStart)}`);
@@ -534,7 +559,7 @@ async function saveActivityTrackerDay(day) {
       entry,
     });
     const status = document.querySelector(`[data-day-status="${day}"]`);
-    if (status) status.textContent = `Saved ${new Date(saved.updated_at).toLocaleString()}`;
+    if (status) status.textContent = `Saved ${formatDateTimeDMY(saved.updated_at)}`;
     setActivityTrackerMessage(`${day[0].toUpperCase()}${day.slice(1)} has been saved.`);
   } catch (err) {
     setActivityTrackerMessage(err.message, true);
@@ -574,6 +599,11 @@ function switchTab(tabId, btn) {
 
   // Lazy-load leaderboard only when that tab is opened
   if (tabId === 'gamification') loadLeaderboard();
+
+  // The activity tracker is lazy-rendered on first load, so switching
+  // back onto it re-reads the current week's saved entries (a save on
+  // one day used to be invisible until a full reload).
+  if (tabId === 'physical-activity') loadActivityTracker();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -651,6 +681,16 @@ async function loadCurrentWeek() {
     setText('weekProgressLabel', `Week ${week} of 12`);
 
     setProgress('weekProgressBar', Math.round((week / 12) * 100));
+
+    // Also pull the set of weeks this user has actually marked
+    // complete, so the "Mark as Complete" button can reflect the
+    // real state instead of always looking clickable.
+    try {
+      const completed = await api('/program/modules-completed');
+      if (typeof setCompletedWeeks === 'function') setCompletedWeeks(completed.completed_weeks || []);
+    } catch (err) {
+      console.warn('[loadCurrentWeek/modules-completed]', err.message);
+    }
 
   } catch (err) {
     console.warn('[loadCurrentWeek]', err.message);
@@ -896,7 +936,7 @@ async function loadLeaderboard() {
   const el = document.getElementById('leaderboardList') || document.getElementById('leaderboardTarget');
   if (!el) return;
 
-  el.innerHTML = '<div class="lb-loading" style="text-align:center;padding:20px;color:#5A7A67"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
+  el.innerHTML = '<div class="gathering-state" id="leaderboardState"><i class="fas fa-circle-notch fa-spin"></i> Gathering scores...</div>';
 
   try {
     const board   = await api('/metrics/leaderboard');
@@ -916,21 +956,22 @@ async function loadLeaderboard() {
       const safeAlias = escapeHtml(row.anon_handle);
 
       return `
-        <div class="lb-row" style="display:flex;align-items:center;gap:10px;padding:10px 6px;border-bottom:1px solid #D4EBE0">
+        <div class="lb-row" style="display:flex;align-items:flex-start;gap:10px;padding:10px 6px;border-bottom:1px solid #D4EBE0">
           <div class="lb-rank ${rankClass}"
                style="width:28px;height:28px;border-radius:50%;background:${rankClass==='top1'?'#F5C842':rankClass==='top2'?'#E0E0E0':rankClass==='top3'?'#FFDFC0':'#EFF8F2'};
-                      color:${rankClass==='top1'?'#0D4A2F':rankClass==='top2'?'#555':rankClass==='top3'?'#A0522D':'#1A7A4A'};
-                      font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                       color:${rankClass==='top1'?'#0D4A2F':rankClass==='top2'?'#555':rankClass==='top3'?'#A0522D':'#1A7A4A'};
+                       font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">
             ${i + 1}
           </div>
-          <span style="flex:1;min-width:0;font-size:13px;font-weight:600">${safeAlias}
+          <span style="flex:1;min-width:0;font-size:13px;font-weight:600;word-break:break-word">
+            ${safeAlias}
             <span class="leaderboard-badges">${(row.badges || []).map(badge => {
               const presentation = getBadgePresentation(badge);
               return `<span class="leaderboard-badge" title="${escapeHtml(presentation.label)}">${presentation.emoji}</span>`;
             }).join('')}</span>
           </span>
-          ${isMe ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:#0D4A2F;padding:2px 6px;border-radius:999px">You</span>' : ''}
-          <span style="font-size:13px;font-weight:800;color:#1A7A4A">${row.total_points} pts</span>
+          ${isMe ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:#0D4A2F;padding:2px 6px;border-radius:999px;flex-shrink:0">You</span>' : ''}
+          <span style="font-size:13px;font-weight:800;color:#1A7A4A;flex-shrink:0">${row.total_points} pts</span>
         </div>
       `;
     }).join('');
@@ -940,7 +981,10 @@ async function loadLeaderboard() {
     if (aliasEl && SESSION?.anon_handle) aliasEl.textContent = SESSION.anon_handle;
 
   } catch (err) {
-    el.innerHTML = '<p style="text-align:center;color:#5A7A67;font-size:13px;padding:16px">Could not load leaderboard.</p>';
+    el.innerHTML = `<div class="gathering-state is-error">
+      <div>Could not load the leaderboard.</div>
+      <button class="retry-link" onclick="loadLeaderboard()">Retry</button>
+    </div>`;
     console.warn('[loadLeaderboard]', err.message);
   }
 }
@@ -969,6 +1013,20 @@ async function loadProfile() {
     setText('profileFullName', SESSION?.username    || '—');
     setText('profileEmail',    '—');
     setText('profileAlias',    SESSION?.anon_handle || '—');
+  }
+}
+
+// The header greeting used to say "Loading Session…" forever when the
+// profile endpoint failed. Surface the real username from the local
+// session instead, and offer a retry if nothing is known.
+function renderWelcomeUser() {
+  const el = document.getElementById('welcomeUser');
+  if (!el) return;
+  const name = SESSION?.username || SESSION?.anon_handle || null;
+  if (name) {
+    el.innerHTML = `<span aria-hidden="true">👋</span> ${escapeHtml(name)}`;
+  } else {
+    el.innerHTML = `<span aria-hidden="true">👋</span> <span class="retry-link" onclick="loadProfile()">Retry</span>`;
   }
 }
 
@@ -1144,4 +1202,143 @@ function getBadgePresentation(badge) {
 function capitalize(str) {
   if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ── Date / time formatting ───────────────────────────────────
+// Nigeria uses the Day/Month/Year calendar, so every date shown to
+// participants is rendered explicitly as DD/MM/YYYY. Relying on the
+// browser locale left ambiguous strings like "02/11/2026" that could
+// be read as 2 November or 11 February.
+function formatDateDMY(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  const day   = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year  = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function formatDateTimeDMY(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  const day   = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year  = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const mins  = String(date.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${mins}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// METRIC LOGGER MODALS
+// ═══════════════════════════════════════════════════════════════
+// Each tracker button now opens a small form instead of firing a log
+// straight to the server. The old behaviour let a click with no data
+// entered still record a log and inflate the cohort progress bar —
+// which is what made "Food Diary" and "Exercise" increment even when
+// the user hadn't entered anything.
+let CURRENT_TRACKER_TYPE = null;
+
+function openTrackerModal(type) {
+  CURRENT_TRACKER_TYPE = type;
+  const titles = {
+    food: 'Log a meal',
+    activity: 'Log exercise',
+    water: 'Log water intake',
+    weight: 'Log weight',
+  };
+  const titleEl = document.getElementById('trackerModalTitle');
+  if (titleEl) titleEl.textContent = titles[type] || 'Log activity';
+
+  // Show only the panel for this tracker type
+  document.querySelectorAll('.tracker-form-panel').forEach(panel =>
+    panel.classList.toggle('hidden', !panel.id.endsWith(`-${type}`)));
+
+  // Restore any previously-entered values for this type
+  restoreTrackerForm(type);
+
+  const overlay = document.getElementById('trackerModal');
+  if (overlay) overlay.classList.remove('hidden');
+}
+
+function closeTrackerModal() {
+  const overlay = document.getElementById('trackerModal');
+  if (overlay) overlay.classList.add('hidden');
+  CURRENT_TRACKER_TYPE = null;
+}
+
+function restoreTrackerForm(type) {
+  if (type === 'water') {
+    const stored = parseInt(localStorage.getItem('dg_last_water') || '0', 10);
+    if (stored > 0) selectWaterGlasses(stored);
+  } else if (type === 'weight') {
+    const stored = localStorage.getItem('dg_last_weight');
+    const el = document.getElementById('trackerWeightValue');
+    if (el && stored) el.value = stored;
+  } else if (type === 'activity') {
+    const stored = localStorage.getItem('dg_last_activity_type');
+    const el = document.getElementById('trackerActivityType');
+    if (el && stored) el.value = stored;
+  }
+}
+
+function selectWaterGlasses(count) {
+  const value = Math.max(1, Math.min(20, parseInt(count, 10) || 1));
+  const input = document.getElementById('trackerWaterValue');
+  if (input) input.value = value;
+  document.querySelectorAll('.water-glass').forEach(button => {
+    button.classList.toggle('is-filled', parseInt(button.dataset.glasses, 10) <= value);
+  });
+}
+
+// Wire up the water-glass buttons inside the modal
+document.addEventListener('click', event => {
+  const glass = event.target.closest('.water-glass');
+  if (glass) selectWaterGlasses(glass.dataset.glasses);
+});
+
+async function saveTrackerModal() {
+  if (!CURRENT_TRACKER_TYPE) return;
+  const type = CURRENT_TRACKER_TYPE;
+  const saveBtn = document.getElementById('trackerSaveBtn');
+  if (saveBtn) saveBtn.disabled = true;
+
+  let payload = {};
+  let feedbackEl = `${type}Feedback`;
+
+  try {
+    if (type === 'food') {
+      const meal = document.getElementById('trackerMealSelect')?.value;
+      if (!meal) { showFeedback(feedbackEl, '⚠️ Please select a meal before saving.'); return; }
+      const notes = document.getElementById('trackerFoodNotes')?.value || '';
+      payload = { meal, notes };
+      localStorage.setItem('dg_last_food_meal', meal);
+    } else if (type === 'activity') {
+      const activityType = document.getElementById('trackerActivityType')?.value;
+      const duration = parseInt(document.getElementById('trackerActivityDuration')?.value, 10);
+      const intensity = document.getElementById('trackerActivityIntensity')?.value;
+      if (!duration || duration < 1) { showFeedback(feedbackEl, '⚠️ Enter a duration in minutes before saving.'); return; }
+      payload = { type: activityType, duration, intensity };
+      localStorage.setItem('dg_last_activity_type', activityType);
+    } else if (type === 'water') {
+      const glasses = parseInt(document.getElementById('trackerWaterValue')?.value, 10);
+      if (!glasses || glasses < 1) { showFeedback(feedbackEl, '⚠️ Select how many glasses you drank.'); return; }
+      payload = { glasses };
+      localStorage.setItem('dg_last_water', String(glasses));
+    } else if (type === 'weight') {
+      const value = parseFloat(document.getElementById('trackerWeightValue')?.value);
+      if (!value || value < 20) { showFeedback(feedbackEl, '⚠️ Enter a valid weight in kg.'); return; }
+      payload = { value };
+      localStorage.setItem('dg_last_weight', String(value));
+    }
+
+    await submitMetric(type, payload);
+    closeTrackerModal();
+  } catch (err) {
+    showFeedback(feedbackEl, '⚠️ Could not save. Please try again.');
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
 }

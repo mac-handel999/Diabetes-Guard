@@ -22,7 +22,10 @@
     padding: 0;
     box-sizing: border-box;
     font-size:16px;
-    font-family: Georgia, 'Times New Roman', Times, serif, -apple-system, Arial, sans-serif;
+    /* A clean sans-serif reads far better on a phone than a serif face,
+       and keeps long lesson text legible at small sizes. */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji';
 }
 
 body {
@@ -132,11 +135,12 @@ body {
 }
 
 .tab-link {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
     text-align: center;
-    padding: 8px 4px;
+    padding: 8px 2px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     color: var(--primary-dark, #333333);
     background: none;
@@ -145,14 +149,20 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 3px;
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
     /* Removes blue flash tap on mobile */
+    /* Let the full label render — truncation was cutting words like
+       "Trackers" down to "ackers" at narrow widths. */
+    word-break: keep-all;
+    overflow-wrap: break-word;
+    line-height: 1.15;
 }
 
 .tab-link i {
-    font-size: 18px;
+    font-size: 17px;
+    flex-shrink: 0;
 }
 
 .tab-link.active {
@@ -244,19 +254,19 @@ select:focus {
 }
 
 .btn-food {
-    background: #4d8f7b;
+    background: #2E7D52;
 }
 
 .btn-activity {
-    background: #0f766e;
+    background: #1A7A4A;
 }
 
 .btn-water {
-    background: #2f7d9b;
+    background: #1565C0;
 }
 
 .btn-weight {
-    background: #5b7a9d;
+    background: #6A1B9A;
 }
 
 .logs-display-panel {
@@ -1613,4 +1623,259 @@ select:focus {
 
 .hidden {
     display: none !important;
+}
+
+/* ===== METRIC LOGGER MODAL ===== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 44, 40, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+    backdrop-filter: blur(2px);
+}
+
+.modal-card {
+    background: #ffffff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--primary-dark);
+    color: #fff;
+    border-radius: 16px 16px 0 0;
+}
+
+.modal-header h3 {
+    font-size: 17px;
+    margin: 0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+}
+
+.modal-body {
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tracker-form-panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tracker-form-panel:not(.hidden) {
+    display: flex;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-light);
+    border-radius: 0 0 16px 16px;
+}
+
+.modal-footer .action-btn {
+    min-width: 92px;
+}
+
+.field-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: -4px 0 0;
+}
+
+.water-glass-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.water-glass {
+    width: 30px;
+    height: 38px;
+    border-radius: 8px;
+    border: 2px solid var(--primary-teal);
+    background: transparent;
+    color: var(--primary-dark);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.water-glass.is-filled {
+    background: var(--primary-teal);
+    color: #fff;
+}
+
+/* Leaderboard rows: cap badge height so a long badge wall can't
+   push every other row down to a different height. */
+.leaderboard-row,
+.lb-row {
+    align-items: flex-start;
+}
+
+.leaderboard-badges,
+.lb-row .leaderboard-badges {
+    max-height: 26px;
+    overflow: hidden;
+}
+
+/* ===== DURATION HINT ===== */
+.duration-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: -6px 0 4px;
+    font-style: italic;
+}
+
+/* ===== WEEK 5 EMBEDDED ACTIVITY TRACKER ===== */
+.activity-tracker-card {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-teal);
+    border-radius: 12px;
+}
+
+.activity-tracker-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.activity-tracker-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+}
+
+.activity-tracker-label {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.activity-tracker-feedback {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ===== LOADING / ERROR / RETRY STATES ===== */
+/* The old "Loading Session…" / "Gathering scores…" text had no way
+   to surface a failure — a dead API call just left the user staring
+   at a spinner forever. Give those states a visible retry path. */
+.loading-state,
+.gathering-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.loading-state.is-error,
+.gathering-state.is-error {
+    color: var(--accent-coral, #ef6f6c);
+}
+
+.retry-link {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 14px;
+    background: var(--primary-green);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.retry-link:hover {
+    background: var(--primary-hover);
+}
+
+/* ===== LOADING / ERROR / RETRY STATES ===== */
+/* The old "Loading Session…" / "Gathering scores…" text had no way
+   to surface a failure — a dead API call just left the user staring
+   at a spinner forever. Give those states a visible retry path. */
+.loading-state,
+.gathering-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.loading-state.is-error,
+.gathering-state.is-error {
+    color: var(--accent-coral, #ef6f6c);
+}
+
+.retry-link {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 6px 14px;
+    background: var(--primary-green);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
+
+.retry-link:hover {
+    background: var(--primary-hover);
+}
+
+/* ===== HEADER SIZING ===== */
+/* The header used to eat roughly a third of the screen before any
+   content was visible. Trim it down so the first card shows sooner. */
+.dashboard-header {
+    padding: 14px clamp(14px, 3vw, 22px);
+}
+
+.dashboard-header .brand-logo {
+    flex-shrink: 0;
+}
+
+.dashboard-header .header-top-row {
+    gap: 10px;
+}
+
+.dashboard-header .user,
+.dashboard-header .logout-btn {
+    font-size: 13px;
 }

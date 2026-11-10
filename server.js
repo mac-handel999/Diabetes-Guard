@@ -137,7 +137,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rate limiters
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,  // 15 min window
-  max: 10,
+  max: 60,                  // generous: onboarding 15+ testers from one
+                            // shared network/IP must not be rate-blocked
   message: { error: 'Too many attempts. Please wait 15 minutes and try again.' },
   standardHeaders: true,
   legacyHeaders:   false,
@@ -194,7 +195,11 @@ const DAILY_METRIC_CAP = {
 
 /** All badge definitions + their unlock conditions */
 const BADGE_RULES = [
-  { key: 'first_log',  check: s => s.total_logs >= 1                   },
+  // First Healthy Log — must be an actual food / water / activity /
+  // weight entry, not the session/behaviour/module_opened telemetry
+  // that fires on every page view. Otherwise a user who only ever
+  // opened lessons still shows "First Healthy Log".
+  { key: 'first_log',  check: s => s.healthy_log_total >= 1                   },
   { key: 'hydration',  check: s => s.water_today >= 8                  },
   { key: 'active',     check: s => s.activity_total >= 3               },
   { key: 'streak3',    check: s => s.streak >= 3                       },
@@ -302,7 +307,12 @@ app.post('/api/v1/auth/register', async (req, res) => {
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
-  if (typeof whatsappNumber !== 'string' || !/^\+[1-9]\d{7,14}$/.test(whatsappNumber.trim())) {
+
+  // WhatsApp numbers arrive from humans with spaces, dashes, parentheses
+  // and sometimes a leading 0 instead of the country code — strip all of
+  // that before validating, so a perfectly good number doesn't fail.
+  const whatsappDigits = whatsappNumber.replace(/\D/g, '');
+  if (!/^\+[1-9]\d{7,14}$/.test('+' + whatsappDigits)) {
     return res.status(400).json({ error: 'Enter a valid WhatsApp number in international format, including country code.' });
   }
 
@@ -351,7 +361,7 @@ app.post('/api/v1/auth/register', async (req, res) => {
       id:          uid,
       username,
       anon_handle: anonHandle,
-      whatsapp_number: whatsappNumber.trim(),
+      whatsapp_number: '+' + whatsappDigits,
       whatsapp_consent_at: new Date().toISOString(),
       enrolled_at: new Date().toISOString(),
     });
@@ -727,6 +737,23 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
   }
   if (metric_type === 'module') extra.week = Number(extra.week);
 
+  // Health-log types must carry an actual value. Without this guard a
+  // click on the tracker button with no data entered still lands a log
+  // and inflates the progress bar / cohort metrics — exactly the bug
+  // where "Food Diary" and "Exercise" incremented the cohort progress
+  // even when nothing was recorded.
+  if (metric_type === 'food' && !String(extra.meal || '').trim()) {
+    return res.status(400).json({ error: 'Select a meal before logging food.' });
+  }
+  if (metric_type === 'activity' &&
+      (!Number.isFinite(Number(extra.duration)) || Number(extra.duration) < 1)) {
+    return res.status(400).json({ error: 'Enter an activity duration in minutes before saving.' });
+  }
+  if (metric_type === 'weight' &&
+      (!Number.isFinite(Number(extra.value)) || Number(extra.value) < 20)) {
+    return res.status(400).json({ error: 'Enter a valid weight in kg before saving.' });
+  }
+
   try {
     if (metric_type === 'module') {
       const { data: existingCompletion, error: completionError } = await supabase
@@ -811,28 +838,55 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
     if (upsertErr) throw upsertErr;
 
     // ── 5. Fetch program_progress for badge logic ────────────
+    // Read-then-write on a single row is racy under concurrent
+    // submits, so lock the row with upsert(..., {onConflict:'user_id'})
+    // and re-read it inside the update to avoid stale counters.
     const { data: prog } = await supabase
       .from('program_progress')
       .select('badges, modules_complete, challenges_done')
       .eq('user_id', uid)
       .maybeSingle();
 
+    const prevModules    = prog?.modules_complete  ?? 0;
+    const prevChallenges = prog?.challenges_done   ?? 0;
+    const prevBadges     = Array.isArray(prog?.badges) ? prog.badges : [];
+
     // ── 6. Update modules/challenges counter if applicable ───
+    // Count DISTINCT weeks actually completed from the log table
+    // instead of blindly incrementing — a stale read or a retry could
+    // otherwise push modules_complete past 12 and keep awarding the
+    // "complete" badge / points forever.
+    let nextModules    = prevModules;
+    let nextChallenges = prevChallenges;
     if (metric_type === 'module') {
-      await supabase.from('program_progress').upsert({
-        user_id:          uid,
-        modules_complete: (prog?.modules_complete ?? 0) + 1,
-        updated_at:       new Date().toISOString(),
-      }, { onConflict: 'user_id' });
+      const { data: modRows } = await supabase
+        .from('research_analytics')
+        .select('metadata')
+        .eq('user_id', uid)
+        .eq('metric_type', 'module');
+      const completedWeeks = new Set(
+        (modRows || [])
+          .map(r => Number(r?.metadata?.week))
+          .filter(w => Number.isInteger(w) && w >= 1 && w <= 12)
+      );
+      nextModules = completedWeeks.size;
+    }
+    if (['challenge', 'daily_challenge', 'weekly_challenge'].includes(metric_type)) {
+      const { data: chRows } = await supabase
+        .from('research_analytics')
+        .select('metric_type')
+        .eq('user_id', uid)
+        .in('metric_type', ['challenge', 'daily_challenge', 'weekly_challenge']);
+      nextChallenges = (chRows || []).length;
     }
 
-    if (['challenge', 'daily_challenge', 'weekly_challenge'].includes(metric_type)) {
-      await supabase.from('program_progress').upsert({
-        user_id:         uid,
-        challenges_done: (prog?.challenges_done ?? 0) + 1,
-        updated_at:      new Date().toISOString(),
-      }, { onConflict: 'user_id' });
-    }
+    const { error: progUpdErr } = await supabase.from('program_progress').upsert({
+      user_id:          uid,
+      modules_complete: nextModules,
+      challenges_done:  nextChallenges,
+      updated_at:       new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+    if (progUpdErr) throw progUpdErr;
 
     // ── 7. Build snapshot for badge evaluation ───────────────
     const { data: allLogs } = await supabase
@@ -849,27 +903,41 @@ app.post('/api/v1/metrics/log', verifyJWT, async (req, res) => {
       streak:            newStreak,
       quiz_correct:      logs.filter(l => l.metric_type === 'quiz' && l.metadata?.correct === true).length,
       challenge_total:   logs.filter(l => ['challenge', 'daily_challenge', 'weekly_challenge'].includes(l.metric_type)).length,
-      modules_complete:  (prog?.modules_complete ?? 0) + (metric_type === 'module' ? 1 : 0),
+      modules_complete:  nextModules,
+      // A "healthy log" is a real food / water / activity / weight
+      // entry — not the session/behaviour/module_opened telemetry.
+      healthy_log_total: logs.filter(l =>
+        ['food', 'water', 'activity', 'weight'].includes(l.metric_type)
+      ).length,
     };
 
-    const { allBadges: evaluatedBadges } = evaluateBadges(prog?.badges ?? [], snapshot);
-    const expectedBadge = metric_type === 'daily_challenge'
+    const { allBadges: evaluatedBadges } = evaluateBadges(prevBadges, snapshot);
+
+    // Client-supplied explicit badge (daily/weekly challenge). Only
+    // accept it when it matches the expected pattern for this metric
+    // type AND we haven't already awarded it — this is what stops the
+    // same badge being appended on every submit.
+    const expectedPattern = metric_type === 'daily_challenge'
       ? /^daily_w(?:[1-9]|1[0-2])_d[1-7]$/
       : metric_type === 'weekly_challenge'
         ? /^weekly_w(?:[1-9]|1[0-2])$/
         : null;
-    const allBadges = expectedBadge?.test(badge) && !evaluatedBadges.includes(badge)
+    const badgeSet = new Set(evaluatedBadges);
+    const allBadges = expectedPattern && badge && expectedPattern.test(badge) && !badgeSet.has(badge)
       ? [...evaluatedBadges, badge]
       : evaluatedBadges;
 
     // ── 8. Persist badges if any new ones were earned ────────
-    if (allBadges.length !== (prog?.badges ?? []).length) {
+    // Always de-dup on write so a previously corrupted array (e.g.
+    // the same badge stored 30-odd times) can't grow any further.
+    const deduped = [...new Set(allBadges)];
+    if (JSON.stringify(deduped) !== JSON.stringify(prevBadges)) {
       await supabase.from('program_progress')
-        .update({ badges: allBadges, updated_at: new Date().toISOString() })
+        .update({ badges: deduped, updated_at: new Date().toISOString() })
         .eq('user_id', uid);
     }
 
-    return res.json({ success: true, points: newTotal, badges: allBadges });
+    return res.json({ success: true, points: newTotal, badges: deduped, modules_complete: nextModules });
 
   } catch (err) {
     console.error('[metrics/log]', err.message);
@@ -1005,6 +1073,33 @@ app.get('/api/v1/program/week', verifyJWT, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/v1/program/modules-completed
+ * Returns the distinct curriculum weeks this user has marked complete,
+ * derived from the research_analytics log table — the source of truth
+ * for "did this participant actually finish week N?".
+ */
+app.get('/api/v1/program/modules-completed', verifyJWT, async (req, res) => {
+  try {
+    const { data: rows, error } = await supabase
+      .from('research_analytics')
+      .select('metadata')
+      .eq('user_id', req.user.id)
+      .eq('metric_type', 'module');
+    if (error) throw error;
+
+    const completedWeeks = new Set(
+      (rows || [])
+        .map(row => Number(row?.metadata?.week))
+        .filter(week => Number.isInteger(week) && week >= 1 && week <= 12)
+    );
+    return res.json({ modules_complete: completedWeeks.size, completed_weeks: Array.from(completedWeeks).sort((a, b) => a - b) });
+  } catch (err) {
+    console.error('[program/modules-completed]', err.message);
+    return res.status(500).json({ error: 'Could not load completed modules.' });
+  }
+});
+
 // ─────────────────────────────────────────────
 // ADMIN DASHBOARD
 // ─────────────────────────────────────────────
@@ -1075,7 +1170,7 @@ function buildAdminAlertCandidates(profiles, logs, progressRows) {
       type,
       title: ALERT_TITLES[type],
       participantId: profile.id,
-      participant: profile.anon_handle || profile.username || profile.id,
+      participant: profile.anon_handle || `Participant ${profile.id.slice(0, 6)}`,
       timestamp,
       status: 'new',
       statusLabel: ALERT_STATUSES[type],
@@ -1207,7 +1302,10 @@ app.get('/api/v1/admin/overview', verifyAdmin, async (req, res) => {
 
       return {
         id: profile.id,
-        participant: profile.anon_handle || profile.username || profile.id,
+        // NEVER fall back to the real username — identities must stay
+        // obfuscated on the leaderboard and admin board. Use the alias
+        // or, if missing, a redacted placeholder.
+        participant: profile.anon_handle || `Participant ${profile.id.slice(0, 6)}`,
         username: profile.username,
         badges: progress.badges || [],
         moduleAssigned: Math.min(12, currentWeek),
@@ -1413,6 +1511,12 @@ app.delete('/api/v1/admin/participants/:participantId', verifyAdmin, async (req,
     return res.status(400).json({ error: 'You cannot delete your own administrator account.' });
   }
 
+  // `force` lets an admin clear out a still-active participant (e.g. a
+  // previous test cohort whose records need removing before onboarding
+  // a new group). It is opt-in via ?force=true so the safer default of
+  // blocking active deletes is preserved.
+  const force = String(req.query.force || '').toLowerCase() === 'true';
+
   try {
     const { data: profile, error: profileError } = await supabase
       .from('profiles').select('id, enrolled_at').eq('id', participantId).maybeSingle();
@@ -1424,13 +1528,13 @@ app.delete('/api/v1/admin/participants/:participantId', verifyAdmin, async (req,
     if (logError) throw logError;
 
     const inactiveDays = daysSince(latestLog?.logged_at || profile.enrolled_at);
-    if (inactiveDays < 14) {
+    if (!force && inactiveDays < 14) {
       return res.status(409).json({ error: `Participant is not inactive for 14 days yet (${inactiveDays} days).` });
     }
 
     const { error: deleteError } = await supabase.auth.admin.deleteUser(participantId);
     if (deleteError) throw deleteError;
-    return res.json({ success: true, participant_id: participantId });
+    return res.json({ success: true, participant_id: participantId, force });
   } catch (err) {
     console.error('[admin/delete-participant]', err.message);
     return res.status(500).json({ error: 'Could not delete participant.' });

@@ -425,17 +425,167 @@ function renderFoodDiary(day) {
   return card;
 }
 
-function renderDay(day) {
-  const section = createElement('section', 'module-day');
-  section.appendChild(createElement('h4', 'module-day-title', `Day ${day.dayNumber}: ${day.topic || 'Daily lesson'}`));
-  appendTextBlock(section, getVisibleDayContent(day), 'module-day-lesson');
-  const infographic = renderInfographic(day);
-  if (infographic) section.appendChild(infographic);
-  const riskChecklist = renderRiskChecklist(day);
-  if (riskChecklist) section.appendChild(riskChecklist);
-  const foodDiary = renderFoodDiary(day);
-  if (foodDiary) section.appendChild(foodDiary);
-  return section;
+// ─────────────────────────────────────────────
+// WEEK 5 ACTIVITY TRACKER (embedded per day)
+// ─────────────────────────────────────────────
+// Week 5 ("Physical activity and diabetes prevention") carries a
+// self-monitoring card on every day. Day 1 → Monday, Day 2 → Tuesday,
+// and so on. Each day's answers save independently to the existing
+// physical_activity_days table (the same store the 7-day tracker uses),
+// keyed by the current week so a participant can fill in Monday on
+// Monday and Tuesday on Tuesday without losing Monday's answers.
+function renderActivityTracker(day) {
+  const config = day.activityTracker;
+  if (!config) return null;
+
+  const dayKey = (day.dayNumber >= 1 && day.dayNumber <= 7)
+    ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][day.dayNumber - 1]
+    : null;
+  if (!dayKey) return null;
+
+  const card = createElement('section', 'activity-tracker-card');
+  card.appendChild(createElement('strong', 'activity-tracker-title', config.title || 'Physical Activity Tracker'));
+  if (config.description) card.appendChild(createElement('p', '', config.description));
+
+  const form = createElement('form', 'activity-tracker-form');
+  form.setAttribute('data-day', dayKey);
+
+  // Keep references to the form fields so we can populate them once the
+  // saved entry for this day loads (the first render uses empty values).
+  const fields = {};
+
+  const field = (label, id) => {
+    const row = createElement('label', 'activity-tracker-field');
+    row.appendChild(createElement('span', 'activity-tracker-label', label));
+    const select = document.createElement('select');
+    select.id = id;
+    select.className = 'tracker-activity-answer';
+    select.setAttribute('data-day', dayKey);
+    select.setAttribute('data-field', id.replace('-answer', ''));
+    select.innerHTML = `<option value="">Choose an answer</option>${['yes', 'no'].map(v =>
+      `<option value="${v}">${v}</option>`).join('')}`;
+    select.addEventListener('change', () => setActivityDurationState(select));
+    fields[id] = select;
+    row.appendChild(select);
+    return row;
+  };
+
+  form.appendChild(field('Vigorous activity?', `${dayKey}-vigorous-answer`));
+  form.appendChild(field('Moderate activity?', `${dayKey}-moderate-answer`));
+
+  const duration = (label, id, fieldId) => {
+    const row = createElement('label', 'activity-tracker-field');
+    row.appendChild(createElement('span', 'activity-tracker-label', label));
+    const select = document.createElement('select');
+    select.id = id;
+    select.className = 'tracker-activity-duration';
+    select.setAttribute('data-day', dayKey);
+    select.setAttribute('data-duration', fieldId);
+    select.innerHTML = `<option value="">Choose a duration</option>${['<30 min', '30–60 min', '>1 hr', 'N/A'].map(v =>
+      `<option value="${v}">${v}</option>`).join('')}`;
+    select.addEventListener('change', () => setActivityDurationState(document.getElementById(`${dayKey}-${fieldId}-answer`)));
+    fields[id] = select;
+    row.appendChild(select);
+    const hint = createElement('p', 'duration-hint', 'Only needed if you answered "yes" above.');
+    hint.hidden = true;
+    row.appendChild(hint);
+    return row;
+  };
+
+  form.appendChild(duration('Vigorous activity duration', `${dayKey}-vigorous-duration`, 'vigorous'));
+  form.appendChild(duration('Moderate activity duration', `${dayKey}-moderate-duration`, 'moderate'));
+
+  const simple = (label, id) => {
+    const row = createElement('label', 'activity-tracker-field');
+    row.appendChild(createElement('span', 'activity-tracker-label', label));
+    const select = document.createElement('select');
+    select.id = id;
+    select.className = 'tracker-activity-answer';
+    select.setAttribute('data-day', dayKey);
+    select.setAttribute('data-field', id.replace('-answer', ''));
+    select.innerHTML = `<option value="">Choose an answer</option>${['yes', 'no'].map(v =>
+      `<option value="${v}">${v}</option>`).join('')}`;
+    fields[id] = select;
+    row.appendChild(select);
+    return row;
+  };
+
+  form.appendChild(simple('Walked at least 10 minutes continuously?', `${dayKey}-walked-answer`));
+
+  const sittingRow = createElement('label', 'activity-tracker-field');
+  sittingRow.appendChild(createElement('span', 'activity-tracker-label', 'Sitting time range'));
+  const sitting = document.createElement('select');
+  sitting.id = `${dayKey}-sitting`;
+  sitting.className = 'tracker-activity-answer';
+  sitting.setAttribute('data-day', dayKey);
+  sitting.setAttribute('data-field', 'sitting_time');
+  sitting.innerHTML = `<option value="">Choose a range</option>${['<2 hrs', '2–4 hrs', '5–7 hrs', '>7 hrs'].map(v =>
+    `<option value="${v}">${v}</option>`).join('')}`;
+  fields[`${dayKey}-sitting`] = sitting;
+  sittingRow.appendChild(sitting);
+  form.appendChild(sittingRow);
+
+  const feedback = createElement('p', 'activity-tracker-feedback');
+  feedback.hidden = true;
+  const saveButton = createElement('button', 'action-btn wide-btn', 'Save this day');
+  saveButton.type = 'submit';
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    saveButton.disabled = true;
+    feedback.hidden = true;
+    try {
+      const answer = id => document.getElementById(id)?.value || null;
+      const payload = {
+        week_start: activityTrackerWeekStart(),
+        day: dayKey,
+        entry: {
+          vigorous: answer(`${dayKey}-vigorous-answer`),
+          vigorous_duration: answer(`${dayKey}-vigorous-answer`) === 'yes' ? answer(`${dayKey}-vigorous-duration`) : null,
+          moderate: answer(`${dayKey}-moderate-answer`),
+          moderate_duration: answer(`${dayKey}-moderate-answer`) === 'yes' ? answer(`${dayKey}-moderate-duration`) : null,
+          walked_ten_minutes: answer(`${dayKey}-walked-answer`),
+          sitting_time: answer(`${dayKey}-sitting`),
+        },
+      };
+      await api('/physical-activity-tracker', 'PUT', payload);
+      feedback.textContent = `✅ ${config.dayLabel} saved.`;
+      feedback.hidden = false;
+    } catch (err) {
+      feedback.textContent = '⚠️ Could not save this day. Please try again.';
+      feedback.hidden = false;
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+
+  form.appendChild(saveButton);
+  form.appendChild(feedback);
+  card.appendChild(form);
+
+  // Populate the form with any previously-saved entry for this day.
+  // Day 1 (Monday) loads Monday's saved answers, Day 2 (Tuesday) loads
+  // Tuesday's, etc — so a participant can fill in each day as the week
+  // progresses without overwriting earlier days.
+  if (typeof api === 'function' && typeof activityTrackerWeekStart === 'function') {
+    (async () => {
+      try {
+        const saved = await api(`/physical-activity-tracker?week_start=${encodeURIComponent(activityTrackerWeekStart())}`);
+        const entry = (saved.daily_entries || {})[dayKey] || {};
+        for (const [key, value] of Object.entries(entry)) {
+          const select = fields[`${dayKey}-${key}`] || fields[`${dayKey}-${key}-answer`];
+          if (select && value) {
+            select.value = value;
+            setActivityDurationState(select);
+          }
+        }
+      } catch (err) {
+        console.warn('[renderActivityTracker/load]', err.message);
+      }
+    })();
+  }
+
+  return card;
 }
 
 function getWeeklyQuiz(week, dayNumber) {
@@ -479,8 +629,14 @@ async function loadModule({ forceNotification = false } = {}) {
   const weekNumber = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
   const completionButton = document.getElementById('markCompleteBtn');
   if (completionButton) {
-    completionButton.disabled = false;
-    completionButton.innerHTML = '<i class="fas fa-check-circle" aria-hidden="true"></i> Mark as Complete (+30 pts)';
+    // Reflect whether this week is already complete so the button
+    // doesn't invite a re-submission of a week that's already done.
+    const alreadyDone = (typeof window.COMPLETED_WEEKS !== 'undefined' &&
+      window.COMPLETED_WEEKS.has(weekNumber));
+    completionButton.disabled = alreadyDone;
+    completionButton.innerHTML = alreadyDone
+      ? '<i class="fas fa-check-circle" aria-hidden="true"></i> Already completed ✓'
+      : '<i class="fas fa-check-circle" aria-hidden="true"></i> Mark as Complete (+30 pts)';
   }
 
   const weeks = getCurriculumWeeks(await fetchCurriculumData());
@@ -675,7 +831,10 @@ function renderQuizCompletion(totalQuestions, correctCount, context) {
 }
 
 async function markModuleComplete() {
-  const week = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
+  const weekSelector = document.getElementById('weekSelector');
+  const daySelector  = document.getElementById('daySelector');
+  const week = parseInt(weekSelector?.value, 10) || 1;
+  const day  = parseInt(daySelector?.value, 10)  || 1;
   if (typeof submitMetric !== 'function') return;
   const result = await submitMetric('module', { week });
   if (!result) {
@@ -687,6 +846,42 @@ async function markModuleComplete() {
   if (button) {
     button.innerHTML = `<i class="fas fa-check-circle" aria-hidden="true"></i> ${result.already_completed ? 'Already completed ✓' : 'Completed ✓'}`;
     button.disabled = true;
+  }
+
+  // Keep the local completed-weeks set in sync so the button state is
+  // correct the next time this week is visited, and so the
+  // "already completed" check works without a server round-trip.
+  if (typeof window !== 'undefined' && typeof window.setCompletedWeeks === 'function') {
+    try {
+      const data = await window.api('/program/modules-completed');
+      window.setCompletedWeeks(data.completed_weeks || []);
+    } catch (err) {
+      console.warn('[markModuleComplete/modules-completed]', err.message);
+      window.COMPLETED_WEEKS = window.COMPLETED_WEEKS || new Set();
+      window.COMPLETED_WEEKS.add(week);
+    }
+  }
+
+  // Auto-advance: move the learner forward to the next day, or — when
+  // they close out Day 7 — to Day 1 of the following week. This keeps
+  // the flow moving without forcing them to hunt through the dropdowns
+  // (the most common "where's my next lesson?" friction point).
+  if (!result.already_completed) {
+    let nextWeek = week;
+    let nextDay  = day + 1;
+    if (nextDay > 7) {
+      nextDay = 1;
+      nextWeek += 1;
+    }
+    if (nextWeek <= 12 && nextDay <= 7) {
+      if (weekSelector) weekSelector.value = String(nextWeek);
+      if (daySelector)  daySelector.value  = String(nextDay);
+      loadModule();
+    } else if (nextWeek > 12) {
+      // Closed out the programme — refresh the leaderboard so the
+      // newly-earned completion points show up for everyone.
+      if (typeof window.loadLeaderboard === 'function') window.loadLeaderboard();
+    }
   }
 }
 

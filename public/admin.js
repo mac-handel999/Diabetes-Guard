@@ -12,9 +12,12 @@ let adminAlertsError = '';
 
 const $ = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
-const formatDate = value => value ? new Date(value).toLocaleDateString() : '—';
-const formatDateTime = value => value ? new Date(value).toLocaleString() : '—';
-
+// ── Date / time formatting ───────────────────────────────────
+// Nigeria uses the Day/Month/Year calendar, so all dates across the
+// app are rendered explicitly as DD/MM/YYYY rather than relying on
+// the browser locale (which can otherwise flip to MM/DD/YYYY).
+const formatDate = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '—';
+const formatDateTime = value => value ? new Date(value).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 // Shared status and network helpers keep error handling consistent across admin sections.
 function showMessage(element, message, isError = true) {
   element.textContent = message;
@@ -124,7 +127,7 @@ function weekTable(weeks) {
 }
 
 function renderParticipants() {
-  $('participantsTable').innerHTML = dashboardData.participants.map(row => `<tr><td><strong>${escapeHtml(row.participant)}</strong>${renderParticipantBadges(row.badges)}<br><small>${escapeHtml(row.username)}</small></td><td>Week ${row.moduleAssigned}</td><td>${row.moduleOpened}</td><td>${row.moduleCompleted}</td><td>${row.quizCompleted} (${row.quizScore}%)</td><td>${row.challengesCompleted}</td><td>${formatDateTime(row.lastActivity)}</td><td><span class="status-pill ${row.status}">${row.status}</span></td><td><button class="table-action" data-view-user="${escapeHtml(row.id)}">View</button>${row.status === 'inactive' ? ` <button class="table-action danger-action" data-delete-user="${escapeHtml(row.id)}">Delete</button>` : ''}</td></tr>`).join('');
+  $('participantsTable').innerHTML = dashboardData.participants.map(row => `<tr><td><strong>${escapeHtml(row.participant)}</strong>${renderParticipantBadges(row.badges)}<br><small>${escapeHtml(row.username)}</small></td><td>Week ${row.moduleAssigned}</td><td>${row.moduleOpened}</td><td>${row.moduleCompleted}</td><td>${row.quizCompleted} (${row.quizScore}%)</td><td>${row.challengesCompleted}</td><td>${formatDateTime(row.lastActivity)}</td><td><span class="status-pill ${row.status}">${row.status}</span></td><td><button class="table-action" data-view-user="${escapeHtml(row.id)}">View</button> <button class="table-action danger-action" data-delete-user="${escapeHtml(row.id)}">Delete</button></td></tr>`).join('');
   document.querySelectorAll('[data-view-user]').forEach(button => button.addEventListener('click', () => viewParticipant(button.dataset.viewUser)));
   document.querySelectorAll('[data-delete-user]').forEach(button => button.addEventListener('click', () => deleteParticipant(button.dataset.deleteUser)));
 }
@@ -186,9 +189,20 @@ function renderDetailLogs(logs) {
 
 async function deleteParticipant(participantId) {
   const participant = dashboardData.participants.find(row => row.id === participantId);
-  if (!participant || !confirm(`Delete inactive participant ${participant.participant}? This permanently removes their profile, logs, progress, points, and assessments.`)) return;
+  if (!participant) return;
+
+  // Active participants are removed with an explicit force confirmation so
+  // a stray click can't wipe a still-contributing tester before the new
+  // cohort is onboarded.
+  const isActive = participant.status === 'active';
+  const message = isActive
+    ? `Delete ACTIVE participant ${participant.participant}? This permanently removes their profile, logs, progress, points, and assessments. This cannot be undone.`
+    : `Delete inactive participant ${participant.participant}? This permanently removes their profile, logs, progress, points, and assessments.`;
+  if (!confirm(message)) return;
+
   try {
-    await request(`/admin/participants/${encodeURIComponent(participantId)}`, { method: 'DELETE' });
+    const url = `/admin/participants/${encodeURIComponent(participantId)}${isActive ? '?force=true' : ''}`;
+    await request(url, { method: 'DELETE' });
     $('participantDetailModal').hidden = true;
     await loadDashboard();
   } catch (error) {
