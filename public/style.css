@@ -1869,38 +1869,67 @@ select:focus {
     background: var(--primary-hover);
 }
 
-/* ===== LOADING / ERROR / RETRY STATES ===== */
-/* The old "Loading Session…" / "Gathering scores…" text had no way
-   to surface a failure — a dead API call just left the user staring
-   at a spinner forever. Give those states a visible retry path. */
-.loading-state,
-.gathering-state {
-    text-align: center;
-    padding: 20px;
-    color: var(--text-muted);
+/* ===== COURSE PROGRESS HISTORY ===== */
+.course-progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.course-progress-summary {
     font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-teal);
+    margin-bottom: 8px;
 }
 
-.loading-state.is-error,
-.gathering-state.is-error {
-    color: var(--accent-coral, #ef6f6c);
-}
-
-.retry-link {
-    display: inline-block;
-    margin-top: 8px;
-    padding: 6px 14px;
-    background: var(--primary-green);
-    color: #fff;
+.course-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
     border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
+    font-size: 13px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
 }
 
-.retry-link:hover {
-    background: var(--primary-hover);
+.course-progress-week {
+    font-weight: 700;
+    color: var(--primary-dark);
+    flex-shrink: 0;
+    min-width: 54px;
+}
+
+.course-progress-theme {
+    flex: 1 1 auto;
+    min-width: 0;
+    word-break: break-word;
+}
+
+.course-progress-status {
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.course-progress-row.is-done {
+    background: #E8F8F0;
+    border-color: var(--primary-green);
+}
+
+.course-progress-row.is-done .course-progress-status {
+    color: var(--primary-green);
+}
+
+.course-progress-row.is-remaining .course-progress-status {
+    color: var(--text-muted);
+}
+
+.course-progress-empty {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
 }
 
 /* ===== HEADER SIZING ===== */

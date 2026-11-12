@@ -147,6 +147,15 @@
         </div>
 
         <div class="card">
+          <h3><i class="fas fa-person-walking" aria-hidden="true"></i> Week 5 Activity Tracker</h3>
+          <p class="card-subtitle">Week 5 ("Physical activity and diabetes prevention") carries a physical activity tracker on every day — Day 1 for Monday, Day 2 for Tuesday, and so on through Day 7 for Sunday. Each day saves independently, so you can fill in Monday on Monday and Tuesday on Tuesday without losing earlier entries.</p>
+          <button class="action-btn wide-btn" onclick="switchTab('learning', null); setTimeout(() => openWeek5Day(5, 1), 50);">
+            <i class="fas fa-arrow-right" aria-hidden="true"></i> Open Week 5 Day 1 (Monday)
+          </button>
+          <p class="card-subtitle" style="margin-top:8px">Tip: jump straight to any Week 5 day by opening Courses, selecting Week 5, and choosing the day you want to record.</p>
+        </div>
+
+        <div class="card">
           <h3><i class="fas fa-medal" aria-hidden="true"></i> Your Badges</h3>
           <p class="card-subtitle"><span id="rankBadgeCount">0</span> badges earned</p>
           <div id="badgeContainer" class="badge-flex-container"></div>
@@ -306,6 +315,14 @@
         <div class="card">
           <h3><i class="fas fa-question-circle" aria-hidden="true"></i> Weekly Quiz</h3>
           <div id="quizContent" role="status" aria-live="polite">Loading quiz...</div>
+        </div>
+
+        <div class="card">
+          <h3><i class="fas fa-list-check" aria-hidden="true"></i> Course Progress</h3>
+          <p class="card-subtitle">Which weeks you have finished and what is left before graduation.</p>
+          <div id="courseProgressList" class="course-progress-list">
+            <p class="course-progress-empty">Loading your course history...</p>
+          </div>
         </div>
       </div>
 

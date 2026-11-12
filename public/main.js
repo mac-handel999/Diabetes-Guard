@@ -77,6 +77,7 @@ function setCompletedWeeks(weeks = []) {
   // Keep the "N of 12 modules completed" display and the greyed-out
   // week selector in sync whenever the completed set changes.
   renderModulesCompleted();
+  renderCourseProgress();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -416,6 +417,10 @@ async function enterApp() {
     loadProfile(),
   ]);
 
+  // Render the course-progress history now that the completed-weeks
+  // set has been populated by loadCurrentWeek().
+  renderCourseProgress();
+
   // Now safe to load module content for the correct week
   loadModule({ forceNotification: true });
 
@@ -619,6 +624,7 @@ function switchTab(tabId, btn) {
   // the participant was on another tab.
   if (tabId === 'learning' && typeof renderModulesCompleted === 'function') {
     renderModulesCompleted();
+    renderCourseProgress();
     loadModule({ forceNotification: true });
   }
 }
@@ -750,6 +756,60 @@ function renderModulesCompleted() {
       }
     });
   }
+}
+
+// ── Course progress history ───────────────────────────────────
+// Renders a per-week list marking each week as finished or remaining,
+// so a participant can see their full course history on one screen
+// rather than having to remember which weeks they completed.
+const WEEK_THEMES = [
+  'Understanding diabetes', 'Understanding your diabetes risk',
+  'Healthy eating and diabetes prevention', 'Understanding sugar and sweetened drinks',
+  'Physical activity and diabetes prevention', 'Weight management and BMI',
+  'Reading food labels and smart food choices', 'Smoking, alcohol and diabetes risk',
+  'Stress, sleep and diabetes prevention', 'Building healthy habits',
+  'Preventing diabetes long-term', 'Graduation',
+];
+
+function renderCourseProgress() {
+  const container = document.getElementById('courseProgressList');
+  if (!container) return;
+
+  const done = (typeof COMPLETED_WEEKS !== 'undefined' ? COMPLETED_WEEKS : new Set());
+  const total = 12;
+
+  if (!done.size) {
+    container.innerHTML =
+      `<p class="course-progress-empty">No modules marked complete yet. ` +
+      `Complete Week 1 to start your course history.</p>`;
+    return;
+  }
+
+  const items = Array.from({ length: total }, (_, i) => i + 1).map(week => {
+    const isDone = done.has(week);
+    const theme = WEEK_THEMES[week - 1] || '';
+    return `
+      <div class="course-progress-row ${isDone ? 'is-done' : 'is-remaining'}">
+        <span class="course-progress-week">Week ${week}</span>
+        <span class="course-progress-theme">${escapeHtml(theme)}</span>
+        <span class="course-progress-status">${isDone ? '✓ Finished' : 'Remaining'}</span>
+      </div>`;
+  }).join('');
+
+  container.innerHTML =
+    `<div class="course-progress-summary">${done.size} of ${total} weeks finished</div>` +
+    `<div class="course-progress-rows">${items}</div>`;
+}
+
+// ── Jump straight to a Week 5 day ────────────────────────────
+// The Trackers card offers a one-click link to the Week 5 activity
+// tracker; this selects Week 5 and the requested day, then loads it.
+function openWeek5Day(week, day) {
+  const weekSelector = document.getElementById('weekSelector');
+  const daySelector  = document.getElementById('daySelector');
+  if (weekSelector) weekSelector.value = String(week);
+  if (daySelector)  daySelector.value  = String(day);
+  if (typeof loadModule === 'function') loadModule({ forceNotification: true });
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -19,10 +19,12 @@ const CURRICULUM_CACHE_DATA_KEY   = 'dg_curriculum_cache';
  * participant from being stuck on an old lesson set after an update.
  */
 async function fetchCurriculumData() {
-  if (MODULE_CONTENT_CACHE) {
-    return MODULE_CONTENT_CACHE;
-  }
-
+  // The in-memory cache is intentionally NOT short-circuited here:
+  // curriculum.json changes between deploys (new lessons, fixed
+  // bullets, the Week 5 activity tracker), so every call re-validates
+  // against the network's version stamp and only reuses the cached
+  // copy when the stamp still matches. A naive early-return here is
+  // what left participants staring at an old lesson set.
   let networkData = null;
   let versionStamp = null;
 
@@ -41,11 +43,22 @@ async function fetchCurriculumData() {
   }
 
   if (networkData) {
-    MODULE_CONTENT_CACHE = networkData;
-    try {
-      localStorage.setItem(CURRICULUM_CACHE_DATA_KEY, JSON.stringify(networkData));
-      localStorage.setItem(CURRICULUM_CACHE_VERSION_KEY, versionStamp);
-    } catch { /* storage full — keep the in-memory copy */ }
+    // Only reuse the in-memory / localStorage copy when its stamp
+    // matches the network's — otherwise the lesson set has changed
+    // and we must serve the new copy.
+    const storedVersion = (() => {
+      try { return localStorage.getItem(CURRICULUM_CACHE_VERSION_KEY); }
+      catch { return null; }
+    })();
+    if (MODULE_CONTENT_CACHE && storedVersion && storedVersion === versionStamp) {
+      // Stamp matches — the cached copy is still current. Keep it.
+    } else {
+      MODULE_CONTENT_CACHE = networkData;
+      try {
+        localStorage.setItem(CURRICULUM_CACHE_DATA_KEY, JSON.stringify(networkData));
+        localStorage.setItem(CURRICULUM_CACHE_VERSION_KEY, versionStamp);
+      } catch { /* storage full — keep the in-memory copy */ }
+    }
     return networkData;
   }
 
