@@ -413,6 +413,10 @@ async function enterApp() {
 
   // Now safe to load module content for the correct week
   loadModule({ forceNotification: true });
+
+  // Start polling the leaderboard so scores update in near-real-time
+  // instead of freezing at the moment the tab was opened.
+  startLeaderboardAutoRefresh();
 }
 
 // Legacy alias used by older index.html
@@ -991,6 +995,34 @@ async function loadLeaderboard() {
 
 // Alias used in older index.html
 async function fetchLeaderboard() { return loadLeaderboard(); }
+
+// ── Leaderboard auto-refresh ─────────────────────────────────
+// Scores change whenever a participant logs food / exercise / water /
+// weight or marks a module complete, and the leaderboard is read-only
+// from the client's perspective — there's no WebSocket to push
+// updates. Poll it on a short interval so the board feels live rather
+// than frozen at the moment the tab was opened. The interval is long
+// enough not to hammer the API but short enough that a new score
+// shows up within a few seconds.
+const LEADERBOARD_REFRESH_MS = 5000;
+let leaderboardRefreshTimer = null;
+
+function startLeaderboardAutoRefresh() {
+  if (leaderboardRefreshTimer) return;
+  leaderboardRefreshTimer = setInterval(() => {
+    if (document.getElementById('gamification') &&
+        !document.getElementById('gamification').hidden) {
+      loadLeaderboard();
+    }
+  }, LEADERBOARD_REFRESH_MS);
+}
+
+function stopLeaderboardAutoRefresh() {
+  if (leaderboardRefreshTimer) {
+    clearInterval(leaderboardRefreshTimer);
+    leaderboardRefreshTimer = null;
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 // PROFILE

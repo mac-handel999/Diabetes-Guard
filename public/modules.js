@@ -3,7 +3,82 @@
 // ═══════════════════════════════════════════════════════════════
 
 // Cache curriculum data in memory, local storage, and the service worker for offline lessons.
+// The cache is keyed by a version stamp so a curriculum.json update (new lessons,
+// fixed bullets, the Week 5 activity tracker, etc.) is picked up without
+// forcing participants to clear their browser storage.
 let MODULE_CONTENT_CACHE = null;
+const CURRICULUM_CACHE_VERSION_KEY = 'dg_curriculum_cache_version';
+const CURRICULUM_CACHE_DATA_KEY   = 'dg_curriculum_cache';
+
+/**
+ * Asynchronously fetches curriculum data with Service Worker / Cache Storage fallback.
+ *
+ * The curriculum changes between deploys (new lessons, fixed content, added
+ * tracker cards), so the cached copy is stamped with the response's
+ * ETag/Last-Modified and only reused when that stamp matches. This stops a
+ * participant from being stuck on an old lesson set after an update.
+ */
+async function fetchCurriculumData() {
+  if (MODULE_CONTENT_CACHE) {
+    return MODULE_CONTENT_CACHE;
+  }
+
+  let networkData = null;
+  let versionStamp = null;
+
+  try {
+    const response = await fetch('curriculum.json', { cache: 'no-store' });
+    if (response.ok) {
+      networkData = await response.json();
+      // ETag or Last-Modified — either one is a fine fingerprint for
+      // "has this file changed since we cached it?".
+      versionStamp = response.headers.get('ETag')
+        || response.headers.get('Last-Modified')
+        || String(Date.now());
+    }
+  } catch (error) {
+    console.warn('Network request failed. Attempting to load curriculum from Cache Storage...', error);
+  }
+
+  if (networkData) {
+    MODULE_CONTENT_CACHE = networkData;
+    try {
+      localStorage.setItem(CURRICULUM_CACHE_DATA_KEY, JSON.stringify(networkData));
+      localStorage.setItem(CURRICULUM_CACHE_VERSION_KEY, versionStamp);
+    } catch { /* storage full — keep the in-memory copy */ }
+    return networkData;
+  }
+
+  // Fallback: Check Cache Storage directly if Service Worker is handling it
+  if ('caches' in window) {
+    try {
+      const cacheResponse = await caches.match(new URL('curriculum.json', location.href));
+      if (cacheResponse) {
+        MODULE_CONTENT_CACHE = await cacheResponse.json();
+        return MODULE_CONTENT_CACHE;
+      }
+    } catch { /* cache read failed — fall through to localStorage */ }
+  }
+
+  // Last resort: the previously-stamped localStorage copy, but only if
+  // its version stamp still matches the network's — otherwise the
+  // participant would silently keep seeing an old lesson set.
+  try {
+    const storedVersion = localStorage.getItem(CURRICULUM_CACHE_VERSION_KEY);
+    const storedData   = localStorage.getItem(CURRICULUM_CACHE_DATA_KEY);
+    if (storedData && storedVersion && storedVersion === versionStamp) {
+      MODULE_CONTENT_CACHE = JSON.parse(storedData);
+      return MODULE_CONTENT_CACHE;
+    }
+    if (storedData) {
+      // Stamp mismatch — the lesson set has changed. Use the new copy
+      // if we have one, otherwise warn rather than silently serving old content.
+      console.warn('[curriculum] Stored lesson cache is stale; a newer curriculum.json is available.');
+    }
+  } catch { /* ignore */ }
+
+  return null;
+}
 
 // Modal state for infographic full-screen view
 let infographicModal = null;
@@ -14,42 +89,6 @@ let infographicModalTitle = null;
 // The week currently rendered in the Courses view, so the
 // quiz-completion handler can fire the week's push notification.
 let CURRENT_WEEK = null;
-
-/**
- * Asynchronously fetches curriculum data with Service Worker / Cache Storage fallback.
- */
-async function fetchCurriculumData() {
-  if (MODULE_CONTENT_CACHE) {
-    return MODULE_CONTENT_CACHE;
-  }
-
-  try {
-    const response = await fetch('curriculum.json');
-    if (!response.ok) {
-      throw new Error(`Failed to load curriculum.json: ${response.status}`);
-    }
-    MODULE_CONTENT_CACHE = await response.json();
-    localStorage.setItem('dg_curriculum_cache', JSON.stringify(MODULE_CONTENT_CACHE));
-    return MODULE_CONTENT_CACHE;
-  } catch (error) {
-    console.warn('Network request failed. Attempting to load curriculum from Cache Storage...', error);
-    
-    // Fallback: Check Cache Storage directly if Service Worker is handling it
-    if ('caches' in window) {
-      const cacheResponse = await caches.match(new URL('curriculum.json', location.href));
-      if (cacheResponse) {
-        MODULE_CONTENT_CACHE = await cacheResponse.json();
-        return MODULE_CONTENT_CACHE;
-      }
-    }
-    const stored = localStorage.getItem('dg_curriculum_cache');
-    if (stored) {
-      MODULE_CONTENT_CACHE = JSON.parse(stored);
-      return MODULE_CONTENT_CACHE;
-    }
-    return null;
-  }
-}
 
 function getCurriculumWeeks(curriculumData) {
   if (Array.isArray(curriculumData)) return curriculumData;
@@ -705,7 +744,19 @@ function renderWeeklyQuizCard(week, dayNumber) {
 
 function renderErrorState(message) {
   const moduleElement = document.getElementById('moduleTarget') || document.getElementById('moduleContent');
-  if (moduleElement) moduleElement.textContent = message;
+  if (!moduleElement) return;
+  moduleElement.replaceChildren();
+  const notice = createElement('p', 'module-error-notice', message);
+  moduleElement.appendChild(notice);
+  // A dead lesson load used to leave the user staring at a static
+  // error forever. Give them a way to retry instead of forcing a reload.
+  const retry = createElement('button', 'action-btn', 'Retry loading lessons');
+  retry.type = 'button';
+  retry.addEventListener('click', () => {
+    MODULE_CONTENT_CACHE = null;
+    loadModule({ forceNotification: true });
+  });
+  moduleElement.appendChild(retry);
 }
 
 function triggerBrowserNotificationMock(messageText, title = 'Dia Shield reminder') {
