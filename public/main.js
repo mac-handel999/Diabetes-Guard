@@ -53,10 +53,16 @@ let waterCount = 0;
 let todayLogs  = { food: 0, water: 0, activity: 0, weight: 0 };
 // Set of curriculum weeks the user has actually marked complete,
 // used to keep the "Mark as Complete" button in sync across the app.
+// Exposed on window so modules.js (loaded after this file) can read
+// and update it without reaching into this module's closure.
 let COMPLETED_WEEKS = new Set();
+window.COMPLETED_WEEKS = COMPLETED_WEEKS;
 
 function setCompletedWeeks(weeks = []) {
   COMPLETED_WEEKS = new Set((weeks || []).map(Number).filter(Number.isInteger));
+  // Keep window.COMPLETED_WEEKS pointing at the same Set object so
+  // modules.js's `window.COMPLETED_WEEKS.has(...)` reads stay live.
+  window.COMPLETED_WEEKS = COMPLETED_WEEKS;
   const button = document.getElementById('markCompleteBtn');
   if (button) {
     const currentWeek = parseInt(document.getElementById('weekSelector')?.value, 10) || 1;
@@ -68,17 +74,15 @@ function setCompletedWeeks(weeks = []) {
       button.disabled = false;
     }
   }
+  // Keep the "N of 12 modules completed" display and the greyed-out
+  // week selector in sync whenever the completed set changes.
+  renderModulesCompleted();
 }
 
 // ═══════════════════════════════════════════════════════════════
 // BOOT
 // ═══════════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  renderActivityTrackerDays();
-  document.getElementById('activityTrackerDays')?.addEventListener('click', event => {
-    const button = event.target.closest('[data-save-tracker-day]');
-    if (button) saveActivityTrackerDay(button.dataset.saveTrackerDay);
-  });
   const stored = localStorage.getItem('dg_session_token');
   if (stored) {
     try {
@@ -402,11 +406,12 @@ async function enterApp() {
   // of "1" instead of the fetched week.)
   await loadCurrentWeek();
 
-  // These can run in parallel — none of them depend on each other
+  // These can run in parallel — none of them depend on each other.
+  // (loadActivityTracker was removed when the standalone Activity
+  // Tracker tab moved into Week 5's embedded per-day tracker.)
   await Promise.all([
     recordSessionActivity(),
     loadDashboardStats(),
-    loadActivityTracker(),
     loadLeaderboard(),
     loadProfile(),
   ]);
@@ -608,6 +613,14 @@ function switchTab(tabId, btn) {
   // back onto it re-reads the current week's saved entries (a save on
   // one day used to be invisible until a full reload).
   if (tabId === 'physical-activity') loadActivityTracker();
+
+  // Refresh the "N of 12 modules completed" display whenever the
+  // Courses tab is opened, so it reflects any completions made while
+  // the participant was on another tab.
+  if (tabId === 'learning' && typeof renderModulesCompleted === 'function') {
+    renderModulesCompleted();
+    loadModule({ forceNotification: true });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -698,6 +711,44 @@ async function loadCurrentWeek() {
 
   } catch (err) {
     console.warn('[loadCurrentWeek]', err.message);
+  }
+}
+
+// ── Modules-completed display ────────────────────────────────
+// Renders "N of 12 modules completed" plus a comma-separated list of
+// the weeks that are done, so a participant can see at a glance what's
+// left without hunting through the week selector.
+function renderModulesCompleted() {
+  const label = document.getElementById('modulesCompletedLabel');
+  const detail = document.getElementById('modulesCompletedDetail');
+  if (!label) return;
+
+  const total = 12;
+  const done  = (typeof COMPLETED_WEEKS !== 'undefined' ? COMPLETED_WEEKS : new Set()).size;
+  const list  = (typeof COMPLETED_WEEKS !== 'undefined'
+    ? Array.from(COMPLETED_WEEKS).sort((a, b) => a - b)
+    : []);
+
+  label.textContent = `${done} of ${total} modules completed`;
+  if (detail) {
+    detail.textContent = list.length
+      ? `Completed: Week ${list.join(', Week ')}.`
+      : 'No modules marked complete yet — pick a week and choose "Mark as Complete".';
+  }
+
+  // Grey out completed weeks in the selector so a participant can't
+  // accidentally re-open and re-submit a week that's already done.
+  const selector = document.getElementById('weekSelector');
+  if (selector) {
+    Array.from(selector.options).forEach(option => {
+      const weekNum = parseInt(option.value, 10);
+      const isDone  = (typeof COMPLETED_WEEKS !== 'undefined' && COMPLETED_WEEKS.has(weekNum));
+      option.classList.toggle('week-selector-option-done', isDone);
+      if (isDone && !option.dataset.doneBadge) {
+        option.dataset.doneBadge = '1';
+        option.textContent = option.textContent.replace(/^Week/, 'Week ✓');
+      }
+    });
   }
 }
 
