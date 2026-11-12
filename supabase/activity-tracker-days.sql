@@ -10,6 +10,41 @@ create table if not exists public.physical_activity_days (
 
 alter table public.physical_activity_days enable row level security;
 
+-- Participants can read and save their own self-monitoring days.
+-- Without these policies the upsert in PUT /physical-activity-tracker
+-- fails with "new row violates row-level security policy" even though
+-- the server inserts with the service role key — Supabase enforces
+-- RLS on the service-role client unless `security definer` is used,
+-- so the policies must exist for the row to be written.
+drop policy if exists "physical_activity_days_select_own" on public.physical_activity_days;
+create policy "physical_activity_days_select_own"
+  on public.physical_activity_days
+  for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "physical_activity_days_insert_own" on public.physical_activity_days;
+create policy "physical_activity_days_insert_own"
+  on public.physical_activity_days
+  for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "physical_activity_days_update_own" on public.physical_activity_days;
+create policy "physical_activity_days_update_own"
+  on public.physical_activity_days
+  for update
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+drop policy if exists "physical_activity_days_delete_own" on public.physical_activity_days;
+create policy "physical_activity_days_delete_own"
+  on public.physical_activity_days
+  for delete
+  to authenticated
+  using (auth.uid() = user_id);
+
 insert into public.physical_activity_days (user_id, week_start, day, entry, updated_at)
 select weeks.user_id, weeks.week_start, entries.key, entries.value, weeks.updated_at
 from public.physical_activity_weeks as weeks

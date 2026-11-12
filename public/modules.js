@@ -180,6 +180,22 @@ function appendTextBlock(parent, text, className) {
   parent.appendChild(block);
 }
 
+// Convert one curriculum day into lesson, infographic, quiz, and challenge content.
+function renderDay(day) {
+  const section = createElement('section', 'module-day');
+  section.appendChild(createElement('h4', 'module-day-title', `Day ${day.dayNumber}: ${day.topic || 'Daily lesson'}`));
+  appendTextBlock(section, getVisibleDayContent(day), 'module-day-lesson');
+  const infographic = renderInfographic(day);
+  if (infographic) section.appendChild(infographic);
+  const riskChecklist = renderRiskChecklist(day);
+  if (riskChecklist) section.appendChild(riskChecklist);
+  const foodDiary = renderFoodDiary(day);
+  if (foodDiary) section.appendChild(foodDiary);
+  const activityTracker = renderActivityTracker(day);
+  if (activityTracker) section.appendChild(activityTracker);
+  return section;
+}
+
 function getSelectedDayNumber() {
   return parseInt(document.getElementById('daySelector')?.value, 10) || 1;
 }

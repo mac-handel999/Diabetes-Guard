@@ -152,12 +152,16 @@ body {
     gap: 3px;
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
-    /* Removes blue flash tap on mobile */
     /* Let the full label render — truncation was cutting words like
        "Trackers" down to "ackers" at narrow widths. */
     word-break: keep-all;
     overflow-wrap: break-word;
     line-height: 1.15;
+    /* Don't clip the label — let it wrap to two lines if needed so
+       "Trackers" / "Leaderboard" never get cut off at small widths. */
+    overflow: visible;
+    height: auto;
+    min-height: 52px;
 }
 
 .tab-link i {
@@ -247,6 +251,9 @@ select:focus {
     gap: 6px;
     font-size: 13px;
     transition: opacity 0.2s;
+    /* Distinct colours per tracker type so they're not all the same
+       teal — makes it obvious which button opens which form. */
+    background: var(--primary-teal);
 }
 
 .tracker-btn:hover {
@@ -1747,6 +1754,14 @@ select:focus {
 .lb-row .leaderboard-badges {
     max-height: 26px;
     overflow: hidden;
+    flex-wrap: wrap;
+    align-content: flex-start;
+}
+
+/* Make sure badge chips inside the leaderboard don't overflow their
+   cap — each chip keeps its own height but the row stays compact. */
+.lb-row .leaderboard-badge {
+    flex-shrink: 0;
 }
 
 /* ===== DURATION HINT ===== */
