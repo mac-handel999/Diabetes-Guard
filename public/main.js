@@ -416,6 +416,7 @@ async function enterApp() {
     loadLeaderboard(),
     loadProfile(),
   ]);
+  wireLeaderboardInteraction();
 
   // Render the course-progress history now that the completed-weeks
   // set has been populated by loadCurrentWeek().
@@ -612,7 +613,10 @@ function switchTab(tabId, btn) {
   if (activeBtn) activeBtn.classList.add('active');
 
   // Lazy-load leaderboard only when that tab is opened
-  if (tabId === 'gamification') loadLeaderboard();
+  if (tabId === 'gamification') {
+    loadLeaderboard();
+    wireLeaderboardInteraction();
+  }
 
   // The activity tracker is lazy-rendered on first load, so switching
   // back onto it re-reads the current week's saved entries (a save on
@@ -1112,19 +1116,24 @@ async function fetchLeaderboard() { return loadLeaderboard(); }
 // weight or marks a module complete, and the leaderboard is read-only
 // from the client's perspective — there's no WebSocket to push
 // updates. Poll it on a short interval so the board feels live rather
-// than frozen at the moment the tab was opened. The interval is long
-// enough not to hammer the API but short enough that a new score
-// shows up within a few seconds.
-const LEADERBOARD_REFRESH_MS = 5000;
+// than frozen at the moment the tab was opened.
+//
+// The interval is deliberately generous (15 s) so a participant has
+// time to find their alias and check their score before the board
+// repaints. A 5 s interval felt jumpy and made it hard to read a row.
+const LEADERBOARD_REFRESH_MS = 15000;
 let leaderboardRefreshTimer = null;
+let leaderboardUserInteracting = false;
 
 function startLeaderboardAutoRefresh() {
   if (leaderboardRefreshTimer) return;
   leaderboardRefreshTimer = setInterval(() => {
-    if (document.getElementById('gamification') &&
-        !document.getElementById('gamification').hidden) {
-      loadLeaderboard();
-    }
+    const gamification = document.getElementById('gamification');
+    if (!gamification || gamification.hidden) return;
+    // Pause auto-refresh while the user is actively interacting with
+    // the board (searching, scrolling) so it doesn't jump under them.
+    if (leaderboardUserInteracting) return;
+    loadLeaderboard();
   }, LEADERBOARD_REFRESH_MS);
 }
 
@@ -1133,6 +1142,29 @@ function stopLeaderboardAutoRefresh() {
     clearInterval(leaderboardRefreshTimer);
     leaderboardRefreshTimer = null;
   }
+}
+
+// Pause the auto-refresh while the user is hovering/scrolling the
+// leaderboard so they can read their score in peace.
+function setLeaderboardInteracting(interacting) {
+  leaderboardUserInteracting = interacting;
+}
+
+// Wire interaction listeners onto the leaderboard so scrolling to find
+// your own alias pauses the auto-refresh instead of fighting it.
+function wireLeaderboardInteraction() {
+  const target = document.getElementById('leaderboardTarget');
+  if (!target || target.dataset.wired === '1') return;
+  target.dataset.wired = '1';
+  target.addEventListener('mouseenter', () => setLeaderboardInteracting(true));
+  target.addEventListener('mouseleave', () => setLeaderboardInteracting(false));
+  target.addEventListener('touchstart', () => setLeaderboardInteracting(true), { passive: true });
+  target.addEventListener('touchend',    () => setLeaderboardInteracting(false));
+  target.addEventListener('scroll', () => {
+    setLeaderboardInteracting(true);
+    clearTimeout(wireLeaderboardInteraction.scrollTimer);
+    wireLeaderboardInteraction.scrollTimer = setTimeout(() => setLeaderboardInteracting(false), 1500);
+  }, { passive: true });
 }
 
 // ═══════════════════════════════════════════════════════════════
