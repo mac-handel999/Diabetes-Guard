@@ -942,18 +942,17 @@ async function markModuleComplete() {
     }
   }
 
-  // Auto-advance: move the learner forward to the next day, or — when
-  // they close out Day 7 — to Day 1 of the following week. This keeps
-  // the flow moving without forcing them to hunt through the dropdowns
-  // (the most common "where's my next lesson?" friction point).
+  // Auto-advance: the "Mark as Complete" button closes out the entire
+  // week, not just the current day — the server records
+  // metric_type=module with metadata.week, and the dedup check is
+  // week-level. So advancing one day at a time would land on Day 2 of
+  // the SAME week, which is now already complete and shows
+  // "Already completed" for every remaining day (3, 4, 5, 6, 7).
+  // Skip straight to Day 1 of the following week instead.
   if (!result.already_completed) {
-    let nextWeek = week;
-    let nextDay  = day + 1;
-    if (nextDay > 7) {
-      nextDay = 1;
-      nextWeek += 1;
-    }
-    if (nextWeek <= 12 && nextDay <= 7) {
+    let nextWeek = week + 1;
+    let nextDay  = 1;
+    if (nextWeek <= 12) {
       if (weekSelector) weekSelector.value = String(nextWeek);
       if (daySelector)  daySelector.value  = String(nextDay);
       loadModule();
