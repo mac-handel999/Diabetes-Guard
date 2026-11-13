@@ -1,8 +1,16 @@
-const CACHE_NAME = 'diashield-v7';
+const CACHE_NAME = 'diashield-v9';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
+  '/podium.css',
+  '/podium.js',
+  '/leaderboard-adapter.js',
+  '/badge-list.js',
+  '/leaderboard-row.js',
+  '/your-rank-bar.js',
+  '/leaderboard-components.css',
+  '/leaderboard-page.css',
   '/main.js',
   '/modules.js',
   '/pwa.js',

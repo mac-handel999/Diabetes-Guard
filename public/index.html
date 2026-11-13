@@ -14,6 +14,9 @@
   <link rel="icon" href="Images/dia-shield-logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="podium.css">
+  <link rel="stylesheet" href="leaderboard-components.css">
+  <link rel="stylesheet" href="leaderboard-page.css">
 
   <!-- Inside <head> -->
   <link rel="manifest" href="/manifest.json">
@@ -327,11 +330,47 @@
       </div>
 
       <div id="gamification" class="content-section" role="tabpanel">
-        <div class="card">
-          <h3><i class="fas fa-users" aria-hidden="true"></i> Real-time Peer Leaderboard</h3>
-          <p class="card-subtitle">Displays research aliases only to guarantee absolute identity obfuscation.</p>
-          <div id="leaderboardTarget" class="leaderboard-wrapper" role="status" aria-live="polite">Gathering
-            scores...</div>
+        <div class="card lb-page">
+          <header class="lb-page__header">
+            <div class="lb-page__title-row">
+              <span class="lb-page__trophy" aria-hidden="true"><i class="fas fa-trophy"></i></span>
+              <div>
+                <h2 class="lb-page__title">Leaderboard</h2>
+                <p class="lb-page__subtitle">Top participants by points. Only research aliases are shown.</p>
+              </div>
+            </div>
+
+            <div class="lb-page__summary" aria-label="Leaderboard summary">
+              <div class="lb-page__summary-item">
+                <strong id="lbTotalParticipants">0</strong>
+                <span>Participants</span>
+              </div>
+              <div class="lb-page__summary-item">
+                <strong id="lbTopScore">0</strong>
+                <span>Top score</span>
+              </div>
+            </div>
+
+            <div class="lb-page__search">
+              <i class="fas fa-search" aria-hidden="true"></i>
+              <input type="search" id="leaderboardSearch" placeholder="Search by alias or name"
+                autocomplete="off" aria-label="Search leaderboard by alias or full name">
+            </div>
+          </header>
+
+          <div id="leaderboardTarget" class="lb-page__target" role="region" aria-label="Leaderboard results">
+            <div class="gathering-state" role="status" aria-live="polite">
+              <i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Gathering scores...
+            </div>
+          </div>
+
+          <div class="lb-page__more">
+            <button type="button" id="leaderboardLoadMore" class="action-btn" hidden>
+              <i class="fas fa-chevron-down" aria-hidden="true"></i> Load more
+            </button>
+          </div>
+
+          <div id="yourRankBar" class="lb-page__your-rank"></div>
         </div>
       </div>
 
@@ -410,6 +449,11 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="leaderboard-adapter.js"></script>
+  <script src="badge-list.js"></script>
+  <script src="leaderboard-row.js"></script>
+  <script src="your-rank-bar.js"></script>
+  <script src="podium.js"></script>
   <script src="main.js"></script>
   <script src="pwa.js"></script>
   <script src="modules.js"></script>

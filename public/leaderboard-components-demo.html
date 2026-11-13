@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia Shield — Leaderboard components</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="leaderboard-components.css">
+</head>
+
+<body>
+    <main class="app-container" style="max-width:560px;margin:24px auto;padding:18px 18px 120px;">
+        <header class="app-header dashboard-header" style="border-radius:14px;margin-bottom:16px;">
+            <div>
+                <h1>Leaderboard components</h1>
+                <p>Rows, badges, and your-rank bar</p>
+            </div>
+        </header>
+
+        <section class="card">
+            <h3>Positions 4 and below</h3>
+            <p class="card-subtitle">Two participants tied at 980 points share rank 4. The logged-in user is highlighted.</p>
+            <div id="rowList"></div>
+        </section>
+
+        <section class="card">
+            <h3>Your rank bar</h3>
+            <p class="card-subtitle">Sticky above the app navigation for the logged-in user.</p>
+            <div id="yourRank"></div>
+        </section>
+
+        <section class="card">
+            <h3>Badge list</h3>
+            <p class="card-subtitle">Hover or focus a badge to see its name.</p>
+
+            <p class="card-subtitle" style="margin-bottom:4px;">Three badges plus an extra chip</p>
+            <div id="badgesFull"></div>
+
+            <p class="card-subtitle" style="margin:12px 0 4px;">No badges</p>
+            <div id="badgesEmpty"></div>
+
+            <p class="card-subtitle" style="margin:12px 0 4px;">Many badges</p>
+            <div id="badgesMany"></div>
+        </section>
+
+        <section class="card">
+            <h3>Missing fields</h3>
+            <p class="card-subtitle">Only alias and points — no full name, avatar, or badges.</p>
+            <div id="sparseRow"></div>
+        </section>
+
+        <p class="app-footer-tag">Resize to 360px wide to check the mobile layout.</p>
+    </main>
+
+    <script src="leaderboard-adapter.js"></script>
+    <script src="badge-list.js"></script>
+    <script src="leaderboard-row.js"></script>
+    <script src="your-rank-bar.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var avatarOne = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='32'%20fill='%230f766e'/%3E%3Ccircle%20cx='32'%20cy='24'%20r='10'%20fill='%23ffffff'/%3E%3Cpath%20d='M12%2058c2-13%2010-20%2020-20s18%207%2020%2020'%20fill='%23ffffff'/%3E%3C/svg%3E";
+
+            var participants = [
+                {
+                    id: 'u1',
+                    username: 'Chidinma Okafor',
+                    anon_handle: 'FutoChamp',
+                    total_points: 2480,
+                    badges: ['first_log', 'streak7', 'hydration', 'weekly_w3', 'quiz_ace'],
+                    avatar: avatarOne
+                },
+                {
+                    id: 'u2',
+                    username: 'Ifeanyi Chukwuemeka Nwosu-Okonkwo',
+                    anon_handle: 'GlucoseGuardianX',
+                    total_points: 1935,
+                    badges: ['streak3', 'quiz_ace']
+                },
+                {
+                    id: 'u3',
+                    username: 'Amina Bello',
+                    anon_handle: 'SugarFreeStar',
+                    total_points: 1410,
+                    badges: ['first_log']
+                },
+                {
+                    id: 'u4',
+                    username: 'Tunde Chukwuemeka Bakare-Okonkwo',
+                    anon_handle: 'FitFuto',
+                    total_points: 980,
+                    badges: ['hydration', 'streak3', 'active'],
+                    avatar: avatarOne
+                },
+                {
+                    id: 'u5',
+                    username: 'Ngozi Eze',
+                    anon_handle: 'SugarSensei',
+                    total_points: 980,
+                    badges: ['first_log', 'quiz_ace']
+                },
+                {
+                    id: 'u6',
+                    username: 'Emeka Obi',
+                    anon_handle: 'DailyWalker',
+                    total_points: 875,
+                    badges: ['active', 'streak7']
+                },
+                {
+                    id: 'u7',
+                    username: 'Fatima Yusuf',
+                    anon_handle: 'HydrationHawk',
+                    total_points: 640,
+                    badges: ['hydration']
+                },
+                {
+                    id: 'u8',
+                    username: 'Bola Adeyemi',
+                    anon_handle: 'QuietComer',
+                    total_points: 320,
+                    badges: []
+                }
+            ];
+
+            var currentAlias = 'FitFuto';
+
+            LeaderboardRow.renderList(document.getElementById('rowList'), participants, {
+                minRank: 4,
+                currentAlias: currentAlias,
+                leaderPoints: 2480,
+                showProgress: true
+            });
+
+            YourRankBar.render(document.getElementById('yourRank'), participants, {
+                currentAlias: currentAlias
+            });
+
+            BadgeList.render(document.getElementById('badgesFull'), [
+                'first_log',
+                'streak7',
+                'hydration',
+                'weekly_w3'
+            ]);
+
+            BadgeList.render(document.getElementById('badgesEmpty'), []);
+
+            BadgeList.render(document.getElementById('badgesMany'), [
+                'first_log',
+                'hydration',
+                'active',
+                'streak3',
+                'streak7',
+                'quiz_ace',
+                'challenge',
+                'week1'
+            ]);
+
+            LeaderboardRow.render(document.getElementById('sparseRow'), {
+                anon_handle: 'QuietComer',
+                total_points: 120
+            }, {
+                rank: 9,
+                leaderPoints: 2480,
+                showProgress: true
+            });
+        }());
+    </script>
+</body>
+
+</html>

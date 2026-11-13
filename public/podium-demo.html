@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia Shield — Podium preview</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="podium.css">
+</head>
+
+<body>
+    <main class="app-container" style="max-width:560px;margin:24px auto;padding:18px;">
+        <header class="app-header dashboard-header" style="border-radius:14px;margin-bottom:16px;">
+            <div>
+                <h1>Podium preview</h1>
+                <p>Dia Shield leaderboard component</p>
+            </div>
+        </header>
+
+        <section class="card">
+            <h3>Top 3 participants</h3>
+            <p class="card-subtitle">Mock data — gold, silver, bronze, crown, badges, and a long name.</p>
+            <div id="podiumFull"></div>
+        </section>
+
+        <section class="card">
+            <h3>Two participants</h3>
+            <p class="card-subtitle">The missing third spot keeps the 2-1-3 layout intact.</p>
+            <div id="podiumPartial"></div>
+        </section>
+
+        <section class="card">
+            <h3>One participant, missing fields</h3>
+            <p class="card-subtitle">No full name, avatar, or badges — no “undefined” values.</p>
+            <div id="podiumSparse"></div>
+        </section>
+
+        <p class="app-footer-tag">
+            Tip: resize to 360px wide to check the mobile podium.
+        </p>
+    </main>
+
+    <script src="podium.js"></script>
+    <script>
+        (function () {
+            'use strict';
+
+            var avatarOne = "data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='32'%20fill='%230f766e'/%3E%3Ccircle%20cx='32'%20cy='24'%20r='10'%20fill='%23ffffff'/%3E%3Cpath%20d='M12%2058c2-13%2010-20%2020-20s18%207%2020%2020'%20fill='%23ffffff'/%3E%3C/svg%3E";
+
+            var participants = [
+                {
+                    alias: 'FutoChamp',
+                    full_name: 'Chidinma Okafor',
+                    total_points: 2480,
+                    badges: ['first_log', 'streak7', 'hydration', 'weekly_w3', 'quiz_ace'],
+                    avatar: avatarOne
+                },
+                {
+                    alias: 'GlucoseGuardianX',
+                    full_name: 'Ifeanyi Chukwuemeka Nwosu-Okonkwo',
+                    total_points: 1935,
+                    badges: ['streak3', 'quiz_ace']
+                },
+                {
+                    alias: 'SugarFreeStar',
+                    full_name: 'Amina Bello',
+                    total_points: 1410,
+                    badges: ['first_log']
+                }
+            ];
+
+            DiaPodium.render(document.getElementById('podiumFull'), participants);
+            DiaPodium.render(document.getElementById('podiumPartial'), [participants[0], participants[1]]);
+            DiaPodium.render(document.getElementById('podiumSparse'), [
+                { alias: 'NewComer', total_points: 90 }
+            ]);
+        }());
+    </script>
+</body>
+
+</html>

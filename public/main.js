@@ -1051,60 +1051,192 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-async function loadLeaderboard() {
-  const el = document.getElementById('leaderboardList') || document.getElementById('leaderboardTarget');
-  if (!el) return;
+const LEADERBOARD_PAGE_SIZE = 5;
+let leaderboardParticipants = [];
+let leaderboardSearchTerm = '';
+let leaderboardVisibleRows = LEADERBOARD_PAGE_SIZE;
+let leaderboardLoading = false;
+let leaderboardHasRendered = false;
 
-  el.innerHTML = '<div class="gathering-state" id="leaderboardState"><i class="fas fa-circle-notch fa-spin"></i> Gathering scores...</div>';
+function setLeaderboardText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
 
-  try {
-    const board   = await api('/metrics/leaderboard');
-    const myAlias = SESSION?.anon_handle || '';
+function leaderboardEmptyMarkup(isSearch) {
+  const icon = isSearch ? 'fa-search' : 'fa-trophy';
+  const title = isSearch ? 'No matching participants' : 'No participants yet';
+  const text = isSearch
+    ? 'Try a different alias or full name.'
+    : 'Scores will appear here after participants earn points.';
+  const action = isSearch
+    ? '<button type="button" class="retry-link" onclick="clearLeaderboardSearch()">Clear search</button>'
+    : '';
 
-    if (!board.length) {
-      el.innerHTML = '<p style="text-align:center;color:#5A7A67;font-size:13px;padding:16px">No scores yet. Be the first on the board!</p>';
-      return;
+  return `<div class="lb-page__empty" role="status">
+    <span class="lb-page__empty-icon" aria-hidden="true"><i class="fas ${icon}"></i></span>
+    <strong>${title}</strong>
+    <span class="lb-page__empty-text">${text}</span>
+    ${action}
+  </div>`;
+}
+
+function leaderboardSkeletonMarkup() {
+  return `
+    <div class="lb-skeleton__podium" aria-hidden="true">
+      <span class="lb-skeleton__block lb-skeleton__block--2"></span>
+      <span class="lb-skeleton__block lb-skeleton__block--1"></span>
+      <span class="lb-skeleton__block lb-skeleton__block--3"></span>
+    </div>
+    <div class="lb-skeleton__rows" aria-hidden="true">
+      <span class="lb-skeleton__row"></span>
+      <span class="lb-skeleton__row"></span>
+      <span class="lb-skeleton__row"></span>
+      <span class="lb-skeleton__row"></span>
+    </div>
+    <span class="lb-sr-only" role="status" aria-live="polite">Loading leaderboard…</span>
+  `;
+}
+
+function renderLeaderboardError() {
+  const target = document.getElementById('leaderboardTarget');
+  const loadMore = document.getElementById('leaderboardLoadMore');
+  const search = document.getElementById('leaderboardSearch');
+  if (loadMore) loadMore.hidden = true;
+  if (search) search.disabled = leaderboardParticipants.length === 0;
+  if (!target) return;
+
+  target.setAttribute('aria-busy', 'false');
+  target.innerHTML = `<div class="gathering-state is-error lb-page__error" role="alert">
+    <div>Could not load the leaderboard.</div>
+    <button type="button" class="retry-link" onclick="loadLeaderboard()">Retry</button>
+  </div>`;
+}
+
+function clearLeaderboardSearch() {
+  const input = document.getElementById('leaderboardSearch');
+  if (input) input.value = '';
+  leaderboardSearchTerm = '';
+  leaderboardVisibleRows = LEADERBOARD_PAGE_SIZE;
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  const target = document.getElementById('leaderboardTarget');
+  const loadMore = document.getElementById('leaderboardLoadMore');
+  const search = document.getElementById('leaderboardSearch');
+  if (!target) return;
+
+  target.setAttribute('aria-busy', 'false');
+
+  const participants = LeaderboardAdapter.toParticipants(leaderboardParticipants);
+  const ranked = LeaderboardAdapter.assignRanks(participants);
+  const topScore = ranked.length ? ranked[0].points : 0;
+
+  setLeaderboardText('lbTotalParticipants', String(ranked.length));
+  setLeaderboardText('lbTopScore', LeaderboardAdapter.formatPoints(topScore));
+
+  if (search) search.disabled = ranked.length === 0;
+  if (loadMore) loadMore.hidden = true;
+
+  const term = leaderboardSearchTerm.trim().toLowerCase();
+  const isSearching = term.length > 0;
+  const filtered = isSearching
+    ? ranked.filter((participant) =>
+        (participant.alias || '').toLowerCase().includes(term) ||
+        (participant.name || '').toLowerCase().includes(term))
+    : ranked;
+
+  if (!filtered.length) {
+    target.innerHTML = leaderboardEmptyMarkup(ranked.length > 0);
+    const yourRank = document.getElementById('yourRankBar');
+    if (yourRank) {
+      YourRankBar.render(yourRank, participants, {
+        currentAlias: SESSION?.anon_handle,
+        currentUserId: SESSION?.user_id
+      });
+    }
+    return;
+  }
+
+  if (isSearching) {
+    target.innerHTML = '<div id="leaderboardRows" class="lb-page__rows"></div>';
+
+    const rows = document.getElementById('leaderboardRows');
+    if (rows) {
+      LeaderboardRow.renderList(rows, filtered, {
+        useExistingRanks: true,
+        minRank: 1,
+        currentAlias: SESSION?.anon_handle,
+        currentUserId: SESSION?.user_id,
+        leaderPoints: topScore,
+        showProgress: true,
+        limit: leaderboardVisibleRows
+      });
     }
 
-    el.innerHTML = board.map((row, i) => {
-      const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
-      const isMe = row.anon_handle === myAlias;
+    if (loadMore) loadMore.hidden = filtered.length <= leaderboardVisibleRows;
+  } else {
+    target.innerHTML = `
+      <div id="leaderboardPodium" class="lb-page__podium"></div>
+      <div id="leaderboardRows" class="lb-page__rows"></div>
+    `;
 
-      if (isMe) setText('rankPosition', `#${i + 1}`);
+    const podium = document.getElementById('leaderboardPodium');
+    const rows = document.getElementById('leaderboardRows');
 
-      const safeAlias = escapeHtml(row.anon_handle);
+    if (podium) DiaPodium.render(podium, filtered, { animate: !leaderboardHasRendered });
 
-      return `
-        <div class="lb-row" style="display:flex;align-items:flex-start;gap:10px;padding:10px 6px;border-bottom:1px solid #D4EBE0">
-          <div class="lb-rank ${rankClass}"
-               style="width:28px;height:28px;border-radius:50%;background:${rankClass==='top1'?'#F5C842':rankClass==='top2'?'#E0E0E0':rankClass==='top3'?'#FFDFC0':'#EFF8F2'};
-                       color:${rankClass==='top1'?'#0D4A2F':rankClass==='top2'?'#555':rankClass==='top3'?'#A0522D':'#1A7A4A'};
-                       font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            ${i + 1}
-          </div>
-          <span style="flex:1;min-width:0;font-size:13px;font-weight:600;word-break:break-word">
-            ${safeAlias}
-            <span class="leaderboard-badges">${(row.badges || []).map(badge => {
-              const presentation = getBadgePresentation(badge);
-              return `<span class="leaderboard-badge" title="${escapeHtml(presentation.label)}">${presentation.emoji}</span>`;
-            }).join('')}</span>
-          </span>
-          ${isMe ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:#0D4A2F;padding:2px 6px;border-radius:999px;flex-shrink:0">You</span>' : ''}
-          <span style="font-size:13px;font-weight:800;color:#1A7A4A;flex-shrink:0">${row.total_points} pts</span>
-        </div>
-      `;
-    }).join('');
+    if (ranked.length) leaderboardHasRendered = true;
 
-    // Update alias display
-    const aliasEl = document.getElementById('rankAlias');
-    if (aliasEl && SESSION?.anon_handle) aliasEl.textContent = SESSION.anon_handle;
+    const rowCount = Math.max(0, filtered.length - 3);
 
+    if (rows && rowCount > 0) {
+      LeaderboardRow.renderList(rows, filtered, {
+        useExistingRanks: true,
+        skip: 3,
+        currentAlias: SESSION?.anon_handle,
+        currentUserId: SESSION?.user_id,
+        leaderPoints: topScore,
+        showProgress: true,
+        limit: leaderboardVisibleRows
+      });
+    } else if (rows) {
+      rows.innerHTML = '';
+    }
+
+    if (loadMore) loadMore.hidden = rowCount <= leaderboardVisibleRows;
+  }
+
+  const yourRank = document.getElementById('yourRankBar');
+  if (yourRank) {
+    YourRankBar.render(yourRank, participants, {
+      currentAlias: SESSION?.anon_handle,
+      currentUserId: SESSION?.user_id
+    });
+  }
+}
+
+async function loadLeaderboard() {
+  const target = document.getElementById('leaderboardTarget');
+  if (!target || leaderboardLoading) return;
+
+  leaderboardLoading = true;
+
+  if (!leaderboardParticipants.length) {
+    target.setAttribute('aria-busy', 'true');
+    target.innerHTML = leaderboardSkeletonMarkup();
+  }
+
+  try {
+    const board = await api('/metrics/leaderboard');
+    leaderboardParticipants = Array.isArray(board) ? board : [];
+    renderLeaderboard();
   } catch (err) {
-    el.innerHTML = `<div class="gathering-state is-error">
-      <div>Could not load the leaderboard.</div>
-      <button class="retry-link" onclick="loadLeaderboard()">Retry</button>
-    </div>`;
+    renderLeaderboardError();
     console.warn('[loadLeaderboard]', err.message);
+  } finally {
+    leaderboardLoading = false;
   }
 }
 
@@ -1154,17 +1286,43 @@ function setLeaderboardInteracting(interacting) {
 // your own alias pauses the auto-refresh instead of fighting it.
 function wireLeaderboardInteraction() {
   const target = document.getElementById('leaderboardTarget');
-  if (!target || target.dataset.wired === '1') return;
-  target.dataset.wired = '1';
-  target.addEventListener('mouseenter', () => setLeaderboardInteracting(true));
-  target.addEventListener('mouseleave', () => setLeaderboardInteracting(false));
-  target.addEventListener('touchstart', () => setLeaderboardInteracting(true), { passive: true });
-  target.addEventListener('touchend',    () => setLeaderboardInteracting(false));
-  target.addEventListener('scroll', () => {
-    setLeaderboardInteracting(true);
-    clearTimeout(wireLeaderboardInteraction.scrollTimer);
-    wireLeaderboardInteraction.scrollTimer = setTimeout(() => setLeaderboardInteracting(false), 1500);
-  }, { passive: true });
+
+  if (target && target.dataset.wired !== '1') {
+    target.dataset.wired = '1';
+    target.addEventListener('mouseenter', () => setLeaderboardInteracting(true));
+    target.addEventListener('mouseleave', () => setLeaderboardInteracting(false));
+    target.addEventListener('touchstart', () => setLeaderboardInteracting(true), { passive: true });
+    target.addEventListener('touchend',    () => setLeaderboardInteracting(false));
+    target.addEventListener('scroll', () => {
+      setLeaderboardInteracting(true);
+      clearTimeout(wireLeaderboardInteraction.scrollTimer);
+      wireLeaderboardInteraction.scrollTimer = setTimeout(() => setLeaderboardInteracting(false), 1500);
+    }, { passive: true });
+  }
+
+  const search = document.getElementById('leaderboardSearch');
+  if (search && search.dataset.wired !== '1') {
+    search.dataset.wired = '1';
+    const onSearch = () => {
+      leaderboardSearchTerm = search.value;
+      leaderboardVisibleRows = LEADERBOARD_PAGE_SIZE;
+      renderLeaderboard();
+    };
+
+    search.addEventListener('input', onSearch);
+    search.addEventListener('search', onSearch);
+    search.addEventListener('focus', () => setLeaderboardInteracting(true));
+    search.addEventListener('blur', () => setLeaderboardInteracting(false));
+  }
+
+  const loadMore = document.getElementById('leaderboardLoadMore');
+  if (loadMore && loadMore.dataset.wired !== '1') {
+    loadMore.dataset.wired = '1';
+    loadMore.addEventListener('click', () => {
+      leaderboardVisibleRows += LEADERBOARD_PAGE_SIZE;
+      renderLeaderboard();
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
